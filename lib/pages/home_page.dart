@@ -1,5 +1,6 @@
 import 'package:electrocitybd1/widgets/Sections/TrendingItems.dart';
 import 'package:electrocitybd1/widgets/Sections/sidebar.dart';
+import 'package:electrocitybd1/widgets/footer.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/Sections/BestSellings/best_selling.dart';
@@ -33,7 +34,9 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
+          // const FooterSection(),
         ],
+        
       ),
     );
   }
@@ -53,19 +56,19 @@ class _MainContentState extends State<_MainContent> {
     {
       'title': 'Your Medication\nNow Made Easy',
       'subtitle': 'Best selling on Nika',
-      'image': 'https://picsum.photos/seed/medicine/600/400',
+      'image': 'https://picsum.photos/seed/medicine/1200/600',
       'label': 'SPECIAL OFFERS',
     },
     {
       'title': 'Electronics Sale\nUp to 50% Off',
       'subtitle': 'Best deals on gadgets',
-      'image': 'https://picsum.photos/seed/electronics/600/400',
+      'image': 'https://picsum.photos/seed/electronics/1200/600',
       'label': 'HOT DEALS',
     },
     {
       'title': 'New Arrivals\nJust For You',
       'subtitle': 'Latest products in store',
-      'image': 'https://picsum.photos/seed/new/600/400',
+      'image': 'https://picsum.photos/seed/new/1200/600',
       'label': 'NEW IN',
     },
   ];
@@ -105,517 +108,201 @@ class _MainContentState extends State<_MainContent> {
   @override
   Widget build(BuildContext context) {
     final slide = _slides[_currentIndex];
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top hero + right best selling
+          /// HERO + BEST SELLING
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Hero banner section
+              /// HERO BANNER
               Expanded(
                 flex: 7,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      /// BG IMAGE FILLS ALL (no padding)
-                      Positioned.fill(
-                        child: Image.network(
-                          slide['image']!,
-                          fit: BoxFit.cover,
-                          color: Colors.white.withOpacity(0.7),
-                          colorBlendMode: BlendMode.lighten,
+                child: SizedBox(
+                  height: 420, // ✅ FIXED HERO HEIGHT
+                  width: double.infinity,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Image.network(
+                            slide['image']!,
+                            fit: BoxFit.cover,
+                            color: Colors.white.withOpacity(0.7),
+                            colorBlendMode: BlendMode.lighten,
+                          ),
                         ),
-                      ),
-                      // Foreground content with padding
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                width: 420,
-                                margin: const EdgeInsets.symmetric(vertical: 32, horizontal: 32),
-                                padding: const EdgeInsets.all(0),
-                                // No background, fully transparent
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      slide['label']!,
-                                      style: const TextStyle(
-                                        color: Colors.teal,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      slide['title']!,
-                                      style: const TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      slide['subtitle']!,
-                                      style: const TextStyle(color: Colors.black54),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF2E3192),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 28,
-                                          vertical: 14,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      child: const Text('Shop Now'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
 
-                            /// LEFT ARROW
-                            Positioned(
-                              left: 1,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: _sliderButton(
-                                  Icons.chevron_left,
-                                  onTap: _prevSlide,
+                        /// CONTENT
+                        Positioned(
+                          left: 80, // Increased from 32 to 80
+                          top: 60,
+                          child: Container(
+                            width: 380, // Adjust as needed
+                            padding: const EdgeInsets.all(20),
+                            // No decoration for full transparency
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  slide['label']!,
+                                  style: const TextStyle(
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            ),
-
-                            /// RIGHT ARROW
-                            Positioned(
-                              right: 2,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: _sliderButton(
-                                  Icons.chevron_right,
-                                  onTap: _nextSlide,
+                                const SizedBox(height: 12),
+                                Text(
+                                  slide['title']!,
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.2,
+                                  ),
                                 ),
-                              ),
-                            ),
-
-                            /// DOT INDICATORS
-                            Positioned(
-                              bottom: 16,
-                              left: 0,
-                              right: 0,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(
-                                  _slides.length,
-                                  (i) => GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _currentIndex = i;
-                                      });
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: i == _currentIndex
-                                            ? Colors.teal
-                                            : Colors.grey.shade400,
-                                        shape: BoxShape.circle,
-                                      ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  slide['subtitle']!,
+                                  style: const TextStyle(color: Colors.black54),
+                                ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(
+                                      0xFFFFC107,
+                                    ), // Golden-yellow
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 28,
+                                      vertical: 14,
                                     ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('Shop Now'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        /// LEFT ARROW
+                        Positioned(
+                          left: 8,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: _sliderButton(
+                              Icons.chevron_left,
+                              onTap: _prevSlide,
+                            ),
+                          ),
+                        ),
+
+                        /// RIGHT ARROW
+                        Positioned(
+                          right: 20,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: _sliderButton(
+                              Icons.chevron_right,
+                              onTap: _nextSlide,
+                            ),
+                          ),
+                        ),
+
+                        /// DOTS
+                        Positioned(
+                          bottom: 16,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              _slides.length,
+                              (i) => GestureDetector(
+                                onTap: () {
+                                  setState(() => _currentIndex = i);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: i == _currentIndex
+                                        ? Colors.teal
+                                        : Colors.grey.shade400,
+                                    shape: BoxShape.circle,
                                   ),
                                 ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
+
               const SizedBox(width: 12),
-              // Right best selling box
+
+              /// BEST SELLING
               const SizedBox(width: 300, child: BestSellingBox()),
-              ],
-            ),
-          
+            ],
+          ),
 
           const SizedBox(height: 16),
-          // Collections page section
+
+          /// OTHER SECTIONS (unchanged)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: CollectionsPage(),
           ),
-
           const SizedBox(height: 12),
-          // trending promo strip
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TrendingItems(),
           ),
-
-          // Category promo strip
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: PromoStrip(),
           ),
-
           const SizedBox(height: 14),
-          // Flash sale carousel
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: FlashSaleCarousel(),
           ),
-
           const SizedBox(height: 16),
-          // Mid-banner row
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: MidBannerRow(),
           ),
-
           const SizedBox(height: 16),
-          // Deals of the day section
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: DealsOfTheDay(),
           ),
-
           const SizedBox(height: 16),
-          // Technology section
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: TechnologySection(),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.redAccent, width: 2),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Main columns
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Brand + social
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'ElectroCityBD',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Electronic gadgets & accessories',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              _socialIcon(Icons.facebook),
-                              const SizedBox(width: 8),
-                              _socialIcon(Icons.camera_alt),
-                              const SizedBox(width: 8),
-                              _socialIcon(Icons.youtube_searched_for),
-                              const SizedBox(width: 8),
-                              _socialIcon(Icons.message),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Categories
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Categories',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Accessories'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Electronics'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Electricals'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Gadgets'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Information
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Information',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('About'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Privacy Policy'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Terms & Conditions'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Contact'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // My Account
-                    // Expanded(
-                    //   child: Column(
-                    //     crossAxisAlignment: CrossAxisAlignment.start,
-                    //     children: [
-                    //       const Text(
-                    //         'Account',
-                    //         style: TextStyle(fontWeight: FontWeight.w700),
-                    //       ),
-                    //       const SizedBox(height: 8),
-                    //       TextButton(
-                    //         onPressed: () {},
-                    //         child: const Align(
-                    //           alignment: Alignment.centerLeft,
-                    //           child: Text('My Orders'),
-                    //         ),
-                    //       ),
-                    //       TextButton(
-                    //         onPressed: () {},
-                    //         child: const Align(
-                    //           alignment: Alignment.centerLeft,
-                    //           child: Text('Wishlist'),
-                    //         ),
-                    //       ),
-                    //       TextButton(
-                    //         onPressed: () {},
-                    //         child: const Align(
-                    //           alignment: Alignment.centerLeft,
-                    //           child: Text('Track Order'),
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-
-                    // Contact
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Contact Us',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: const [
-                              Icon(Icons.location_on, size: 14),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Dhaka, Bangladesh',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: const [
-                              Icon(Icons.phone, size: 14),
-                              SizedBox(width: 6),
-                              Text(
-                                '+880-123-567-890',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: const [
-                              Icon(Icons.email, size: 14),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'support@electrocitybd.com',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-                Divider(color: Colors.grey.shade300),
-                const SizedBox(height: 10),
-
-                // Bottom row: copyright + payment logos
-                Row(
-                  children: [
-                    SizedBox(width: 70),
-                    const Expanded(
-                      child: Center(
-                        child: Text(
-                          '© ElectrocityBD 2025. All rights reserved.',
-                          style: TextStyle(fontSize: 15),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Row(
-                      children: [
-                        _paymentPlaceholder('Visa', imagePath: 'visa.png'),
-                        const SizedBox(width: 8),
-                        _paymentPlaceholder('Master', imagePath: 'master.png'),
-                        const SizedBox(width: 8),
-                        _paymentPlaceholder('AmEx', imagePath: 'amex.png'),
-                        const SizedBox(width: 8),
-                        _paymentPlaceholder('PayPal', imagePath: 'paypal.jpg'),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 24),
+          const FooterSection(),
         ],
       ),
     );
   }
 }
 
-Widget _paymentPlaceholder(String label, {required String imagePath}) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(6),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Text(
-        //   label,
-        //   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        // ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: 60,
-          height: 36,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: Image.asset(
-              'assets/$imagePath',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback when asset isn't available
-                return Container(
-                  color: Colors.grey.shade300,
-                  child: Center(
-                    child: Icon(
-                      Icons.credit_card,
-                      size: 14,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
-Widget _socialIcon(IconData icon) {
-  return Container(
-    padding: const EdgeInsets.all(8),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(6),
-    ),
-    child: Icon(icon, size: 18, color: Colors.black87),
-  );
-}
+
