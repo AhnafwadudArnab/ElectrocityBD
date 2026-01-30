@@ -90,7 +90,7 @@ class _PromoStripState extends State<PromoStrip> {
         'image': 'assets/fashionsgadgets.png',
       },
       {
-        'label': 'Fashion & Accessories',
+        'label': 'Home & Beauty',
         'color': Colors.blue,
         'off': '20%-40%',
         'image': 'assets/hb.png',
@@ -103,11 +103,28 @@ class _PromoStripState extends State<PromoStrip> {
             'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=800&q=60',
       },
       {
-        'label': 'Furniture & Decor',
-        'color': Colors.red,
-        'off': '20%-40%',
-        'image':
-            'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=800&q=60',
+        'label': 'Smart Home',
+        'color': Colors.green,
+        'off': '15%-35%',
+        'image': 'assets/smarthome.png',
+      },
+      {
+        'label': 'Audio & Music',
+        'color': Colors.indigo,
+        'off': '25%-45%',
+        'image': 'assets/audio.png',
+      },
+      {
+        'label': 'Wearables',
+        'color': Colors.deepPurple,
+        'off': '10%-30%',
+        'image': 'assets/wearables.png',
+      },
+      {
+        'label': 'Gaming',
+        'color': Colors.brown,
+        'off': '20%-50%',
+        'image': 'assets/gaming.png',
       },
       {
         'label': 'Gadgets & Tech',

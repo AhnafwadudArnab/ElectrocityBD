@@ -1,22 +1,53 @@
 import 'package:flutter/material.dart';
 
-class CollectionsPage extends StatelessWidget {
-  CollectionsPage({Key? key}) : super(key: key);
+class CollectionsPage extends StatefulWidget {
+  const CollectionsPage({Key? key}) : super(key: key);
 
-  final List<Map<String, dynamic>> _categories = const [
-    {'title': 'Keyboard', 'count': 2, 'icon': Icons.keyboard},
+  @override
+  State<CollectionsPage> createState() => _CollectionsPageState();
+}
+
+class _CollectionsPageState extends State<CollectionsPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  final List<Map<String, dynamic>> _categories = [
+    {'title': 'Smartphone', 'count': 12, 'icon': Icons.smartphone},
+    {'title': 'Laptop', 'count': 8, 'icon': Icons.laptop},
+    {'title': 'Tablet', 'count': 6, 'icon': Icons.tablet_mac},
+    {'title': 'Smart TV', 'count': 4, 'icon': Icons.tv},
+    {'title': 'Camera', 'count': 7, 'icon': Icons.camera_alt},
+    {'title': 'Headphones', 'count': 10, 'icon': Icons.headset},
+    {'title': 'Speaker', 'count': 9, 'icon': Icons.speaker},
+    {'title': 'Smart Watch', 'count': 5, 'icon': Icons.watch},
     {'title': 'Printer', 'count': 3, 'icon': Icons.print},
-    {'title': 'Headphones', 'count': 5, 'icon': Icons.headset_mic},
-    {'title': 'Laptop', 'count': 5, 'icon': Icons.laptop},
-    {'title': 'Pen Drive', 'count': 4, 'icon': Icons.usb},
-    {'title': 'Tablet', 'count': 5, 'icon': Icons.tablet_mac},
-    {'title': 'Smart Watch', 'count': 7, 'icon': Icons.watch},
-    {'title': 'Camera', 'count': 3, 'icon': Icons.camera_alt},
-    {'title': 'Speaker', 'count': 6, 'icon': Icons.speaker},
-    {'title': 'Mouse', 'count': 4, 'icon': Icons.mouse},
-    {'title': 'Charger', 'count': 5, 'icon': Icons.battery_charging_full},
-    {'title': 'Router', 'count': 3, 'icon': Icons.router},
+    {'title': 'Router', 'count': 4, 'icon': Icons.router},
+    {'title': 'Monitor', 'count': 6, 'icon': Icons.desktop_windows},
+    {'title': 'Game Console', 'count': 2, 'icon': Icons.videogame_asset},
   ];
+
+  static const double _tileWidth = 180;
+
+  void _scrollLeft() {
+    _scrollController.animateTo(
+      (_scrollController.offset - _tileWidth).clamp(
+        0,
+        _scrollController.position.maxScrollExtent,
+      ),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _scrollRight() {
+    _scrollController.animateTo(
+      (_scrollController.offset + _tileWidth).clamp(
+        0,
+        _scrollController.position.maxScrollExtent,
+      ),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,29 +87,25 @@ class CollectionsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              _navButton(Icons.chevron_left),
+              _navButton(Icons.chevron_left, _scrollLeft),
               const SizedBox(width: 6),
-              _navButton(Icons.chevron_right),
+              _navButton(Icons.chevron_right, _scrollRight),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          /// HORIZONTAL SCROLL CONTAINER
+          /// HORIZONTAL LIST
           Container(
-            width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: Colors.grey.withOpacity(0.12)),
             ),
             child: SingleChildScrollView(
+              controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _categories.map((c) {
-                  return _categoryTile(c);
-                }).toList(),
-              ),
+              child: Row(children: _categories.map(_categoryTile).toList()),
             ),
           ),
         ],
@@ -86,72 +113,70 @@ class CollectionsPage extends StatelessWidget {
     );
   }
 
-  /// SINGLE TILE
+  /// SINGLE TILE (CLICKABLE)
   Widget _categoryTile(Map<String, dynamic> c) {
-    return Container(
-      width: 180,
-      height: 92,
-      decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(
-            color: Colors.grey.withOpacity(0.12),
+    return InkWell(
+      onTap: () {
+        debugPrint('Clicked: ${c['title']}');
+      },
+      child: Container(
+        width: _tileWidth,
+        height: 92,
+        decoration: BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.grey.withOpacity(0.12)),
           ),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  c['title'],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    c['title'],
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${c['count']} items',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
+                  const SizedBox(height: 6),
+                  Text(
+                    '${c['count']} items',
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(6),
+            const SizedBox(width: 8),
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(c['icon'], size: 28, color: Colors.black54),
             ),
-            child: Icon(
-              c['icon'],
-              size: 28,
-              color: Colors.black54,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// NAV BUTTON
-  Widget _navButton(IconData icon) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: const Color(0xFF123456),
-        borderRadius: BorderRadius.circular(6),
+  /// NAV BUTTON (WORKING)
+  Widget _navButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: const Color(0xFF123456),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(icon, size: 18, color: Colors.white),
       ),
-      child: Icon(icon, size: 18, color: Colors.white),
     );
   }
 }
