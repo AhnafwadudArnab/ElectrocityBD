@@ -1,14 +1,11 @@
-import 'package:electrocitybd1/Model%20Pages/Model_products_card.dart';
-import 'package:electrocitybd1/Model%20Pages/productss.dart';
+import 'package:electrocitybd1/All%20Pages/Categories%20All/Category%20Model%20Pages/Model_products_card.dart';
+import 'package:electrocitybd1/All%20Pages/Categories%20All/Category%20Model%20Pages/productss.dart';
 import 'package:flutter/material.dart';
 
 class CategoryPage extends StatelessWidget {
   final String title;
-  const CategoryPage({
-    super.key,
-    required this.title,
-    required List<Product> products,
-  });
+
+  const CategoryPage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +37,7 @@ class CategoryPages extends StatelessWidget {
             childAspectRatio: 0.7,
           ),
           itemBuilder: (context, index) {
-            return ProductCard(product: products[index]);
+            return ProductCard(product: products[index], onPress: () {});
           },
         ),
       ),

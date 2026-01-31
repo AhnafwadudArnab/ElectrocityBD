@@ -1,3 +1,5 @@
+import 'package:electrocitybd1/All%20Pages/Categories%20All/Category%20Model%20Pages/Data/Data_stuctures.dart';
+import 'package:electrocitybd1/All%20Pages/Categories%20All/category_page.dart';
 import 'package:flutter/material.dart';
 
 class CategoriesPage extends StatelessWidget {
@@ -13,6 +15,28 @@ class CategoriesPage extends StatelessWidget {
       'Fashion & Accessories',
       'Gifts, Toys & Sports',
       'Furniture & Fixtures',
+    ];
+
+    final List<Widget> pages = [
+      CategoryPages(
+        title: 'Electronics & Gadgets',
+        products: electronicsGadgets,
+      ),
+      CategoryPages(
+        title: 'Kitchen & Home Appliances',
+        products: kitchenHomeAppliances,
+      ),
+      CategoryPages(title: 'Industrial & Tools', products: industrialTools),
+      CategoryPages(
+        title: 'Home, Lifestyle & Decoration',
+        products: homeLifestyleDecoration,
+      ),
+      CategoryPages(
+        title: 'Fashion & Accessories',
+        products: fashionAccessories,
+      ),
+      CategoryPages(title: 'Gifts, Toys & Sports', products: giftsToysSports),
+      CategoryPages(title: 'Furniture & Fixtures', products: furnitureFixtures),
     ];
 
     return Scaffold(
@@ -69,7 +93,9 @@ class CategoriesPage extends StatelessWidget {
                           color: Colors.grey.shade400,
                         ),
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => pages[index]),
+                          );
                         },
                       );
                     },

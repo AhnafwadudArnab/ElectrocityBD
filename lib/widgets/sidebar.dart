@@ -1,10 +1,11 @@
 import 'dart:math';
 
-import 'package:electrocitybd1/All%20Pages/category_page.dart';
+import 'package:electrocitybd1/All%20Pages/Categories%20All/category_page.dart';
 import 'package:electrocitybd1/pages/Services/product_page.dart';
 import 'package:electrocitybd1/pages/Services/promotions_page.dart';
 import 'package:flutter/material.dart';
 
+import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart'; // Import your category pages
 import '../pages/sidebar pages/service_page.dart';
 
 // AI design prompt (for Uizard / Midjourney etc.)
@@ -13,7 +14,7 @@ const String kSidebarDesignPrompt =
 
 class Sidebar extends StatefulWidget {
   final double? width;
-  const Sidebar({super.key, this.width});
+  const Sidebar({Key? key, this.width}) : super(key: key);
 
   @override
   State<Sidebar> createState() => _SidebarState();
@@ -21,44 +22,49 @@ class Sidebar extends StatefulWidget {
 
 class _SidebarState extends State<Sidebar> {
   bool _expanded = false;
+
   final List<Map<String, dynamic>> _categories = [
     {
       'icon': Icons.electrical_services,
       'text': 'Electronics & Gadgets',
+      'page': ElectronicsGadgetsPage(), // <-- Widget,
     },
     {
-      'icon': Icons.phone_android,
+      'icon': Icons.kitchen,
       'text': 'Kitchen & Home Appliances',
+      'page': KitchenHomeAppliancesPage(),
     },
     {
       'icon': Icons.build,
       'text': 'Industrial & Tools',
+      'page': IndustrialToolsPage(),
     },
     {
       'icon': Icons.home,
       'text': 'Home, Lifestyle & Decoration',
+      'page': HomeLifestyleDecorationPage(),
     },
     {
-      'icon': Icons.shopping_bag,
+      'icon': Icons.checkroom,
       'text': 'Fashion & Accessories',
+      'page': FashionAccessoriesPage(),
     },
     {
-      'icon': Icons.card_giftcard,
+      'icon': Icons.toys,
       'text': 'Gifts, Toys & Sports',
+      'page': GiftsToysSportsPage(),
     },
     {
       'icon': Icons.chair,
       'text': 'Furniture & Fixtures',
+      'page': FurnitureFixturesPage(),
     },
   ];
 
-
-  void _openCategory(BuildContext context, String title) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CategoryPage(title: title, products: []),
-      ),
-    );
+  void _openCategory(BuildContext context, Widget page, String title) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => CategoryPage(title: title)));
   }
 
   @override
@@ -169,7 +175,7 @@ class _SidebarState extends State<Sidebar> {
           return Column(
             children: [
               InkWell(
-                onTap: () => _openCategory(context, item['text'] as String),
+                onTap: () => _openCategory(context, item['page'], item['text']),
                 hoverColor: Colors.orange.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
