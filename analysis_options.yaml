@@ -11,6 +11,7 @@ analyzer:
   errors:
     unused_element_parameter: ignore
     deprecated_member_use: ignore
+    use_key_in_widget_constructors: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

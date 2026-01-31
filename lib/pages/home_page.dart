@@ -1,5 +1,5 @@
 import 'package:electrocitybd1/widgets/Sections/TrendingItems.dart';
-import 'package:electrocitybd1/widgets/Sections/sidebar.dart';
+import 'package:electrocitybd1/widgets/sidebar.dart';
 import 'package:electrocitybd1/widgets/footer.dart';
 import 'package:flutter/material.dart';
 

@@ -16,6 +16,17 @@ class FlashSaleCarousel extends StatelessWidget {
       return min + rnd.nextInt(steps) * 10;
     }
 
+    final images = [
+        'asssets/1.png',
+        'asssets/2.jpg',
+        "asssets/3.jpg",
+        "asssets/4.jpg",
+        "asssets/5.jpg",
+        "asssets/6.jpg",
+        "asssets/7.png",
+      ];
+      // Add more as needed
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,10 +125,13 @@ class FlashSaleCarousel extends StatelessWidget {
                                             const BorderRadius.vertical(
                                               top: Radius.circular(12),
                                             ),
-                                        child: Image.network(
-                                          'https://picsum.photos/seed/flash$index/400/400',
+                                        child: Image.asset(
+                                          images[index % images.length],
                                           fit: BoxFit.cover,
                                           width: double.infinity,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Icon(Icons.error),
                                         ),
                                       ),
                                     ],

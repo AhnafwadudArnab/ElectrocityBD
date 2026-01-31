@@ -5,7 +5,7 @@ import 'package:electrocitybd1/pages/Services/promotions_page.dart';
 import 'package:electrocitybd1/pages/category_page.dart';
 import 'package:flutter/material.dart';
 
-import '../../pages/sidebar pages/service_page.dart';
+import '../pages/sidebar pages/service_page.dart';
 
 // AI design prompt (for Uizard / Midjourney etc.)
 const String kSidebarDesignPrompt =
@@ -33,9 +33,11 @@ class _SidebarState extends State<Sidebar> {
   ];
 
   void _openCategory(BuildContext context, String title) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => CategoryPage(title: title)));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CategoryPage(title: title, products: []),
+      ),
+    );
   }
 
   @override
