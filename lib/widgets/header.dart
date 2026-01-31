@@ -1,4 +1,6 @@
+import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({super.key});
@@ -23,7 +25,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             Container(
-              height: 60,
+              height: 70,
               width: 90,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
@@ -46,12 +48,17 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
 
             /// LOGO
-            const Text(
-              'ElectroCity BD',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+            TextButton(
+              onPressed: () {
+                Get.offAll(() => HomePage());
+              },
+              child: const Text(
+                'ElectroCity BD',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ),
 
@@ -72,10 +79,11 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                     const SizedBox(width: 8),
                     const Expanded(
                       child: TextField(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Enter your keyword...',
-                        ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Search here...',
+                      ),
+                      autocorrect: true,
                       ),
                     ),
                     const SizedBox(width: 8),

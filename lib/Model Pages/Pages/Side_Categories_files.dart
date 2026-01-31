@@ -1,6 +1,6 @@
 import 'package:electrocitybd1/Model%20Pages/Data/Data_stuctures.dart';
 
-import '../../pages/category_page.dart';
+import '../../All Pages/category_page.dart';
 
 class IndustrialPage extends CategoryPage {
   IndustrialPage({super.key})

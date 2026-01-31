@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:electrocitybd1/pages/Services/product_page.dart';
 import 'package:electrocitybd1/pages/Services/promotions_page.dart';
-import 'package:electrocitybd1/pages/category_page.dart';
+import 'package:electrocitybd1/All%20Pages/category_page.dart';
 import 'package:flutter/material.dart';
 
 import '../pages/sidebar pages/service_page.dart';
@@ -21,16 +21,37 @@ class Sidebar extends StatefulWidget {
 
 class _SidebarState extends State<Sidebar> {
   bool _expanded = false;
-
   final List<Map<String, dynamic>> _categories = [
-    {'icon': Icons.build, 'text': 'Industrial & Tools'},
-    {'icon': Icons.card_giftcard, 'text': 'Gifts, Sports & Toys'},
-    {'icon': Icons.checkroom, 'text': 'Textile & Accessories'},
-    {'icon': Icons.style, 'text': 'Fashion & Clothing'},
-    {'icon': Icons.brush, 'text': 'Makeup & Skincare'},
-    {'icon': Icons.home, 'text': 'Home, Lifestyle & Decoration'},
-    {'icon': Icons.event_seat, 'text': 'Furniture & Fixtures'},
+    {
+      'icon': Icons.electrical_services,
+      'text': 'Electronics & Gadgets',
+    },
+    {
+      'icon': Icons.phone_android,
+      'text': 'Kitchen & Home Appliances',
+    },
+    {
+      'icon': Icons.build,
+      'text': 'Industrial & Tools',
+    },
+    {
+      'icon': Icons.home,
+      'text': 'Home, Lifestyle & Decoration',
+    },
+    {
+      'icon': Icons.shopping_bag,
+      'text': 'Fashion & Accessories',
+    },
+    {
+      'icon': Icons.card_giftcard,
+      'text': 'Gifts, Toys & Sports',
+    },
+    {
+      'icon': Icons.chair,
+      'text': 'Furniture & Fixtures',
+    },
   ];
+
 
   void _openCategory(BuildContext context, String title) {
     Navigator.of(context).push(
