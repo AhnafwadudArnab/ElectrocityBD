@@ -1,68 +1,94 @@
 import 'package:electrocitybd1/Model%20Pages/productss.dart';
 
-final industrialTools = [
-  Product(name: 'Drill Machine', image: 'assets/tools/drill.png', price: 5500),
-  Product(name: 'Grinder', image: 'assets/tools/grinder.png', price: 4200),
+// 1️⃣ Electronics & Gadgets
+final electronicsGadgets = [
+  Product(name: 'Mobile', image: 'assets/electronics/mobile.png', price: 15000),
+  Product(name: 'Charger', image: 'assets/electronics/charger.png', price: 800),
   Product(
-    name: 'Welding Machine',
-    image: 'assets/tools/welding.png',
-    price: 12500,
+    name: 'Earphone',
+    image: 'assets/electronics/earphone.png',
+    price: 1200,
   ),
-  Product(name: 'Multimeter', image: 'assets/tools/multimeter.png', price: 950),
-];
-
-final giftsSportsToys = [
   Product(
-    name: 'Remote Control Car',
-    image: 'assets/toys/car.png',
-    price: 1800,
+    name: 'Smart Watch',
+    image: 'assets/electronics/smartwatch.png',
+    price: 4500,
   ),
-  Product(name: 'Football', image: 'assets/sports/football.png', price: 900),
   Product(
-    name: 'Fitness Dumbbell',
-    image: 'assets/sports/dumbbell.png',
+    name: 'Power Bank',
+    image: 'assets/electronics/powerbank.png',
     price: 2200,
   ),
 ];
 
-final textileAccessories = [
-  Product(name: 'Bedsheet', image: 'assets/textile/bedsheet.png', price: 1600),
-  Product(name: 'Curtain', image: 'assets/textile/curtain.png', price: 2300),
-  Product(name: 'Blanket', image: 'assets/textile/blanket.png', price: 2800),
-];
-
-final fashionClothing = [
-  Product(name: 'Men T-Shirt', image: 'assets/fashion/tshirt.png', price: 750),
-  Product(name: 'Ladies Bag', image: 'assets/fashion/bag.png', price: 2800),
-  Product(name: 'Watch', image: 'assets/fashion/watch.png', price: 3200),
-];
-
-final makeupSkincare = [
-  Product(name: 'Face Wash', image: 'assets/makeup/facewash.png', price: 450),
+// 2️⃣ Kitchen & Home Appliances
+final kitchenHomeAppliances = [
+  Product(name: 'Blender', image: 'assets/kitchen/blender.png', price: 2500),
   Product(
-    name: 'Hair Dryer',
-    image: 'assets/makeup/hairdryer.png',
-    price: 2900,
+    name: 'Rice Cooker',
+    image: 'assets/kitchen/ricecooker.png',
+    price: 3200,
   ),
-  Product(name: 'Trimmer', image: 'assets/makeup/trimmer.png', price: 1800),
+  Product(name: 'Kettle', image: 'assets/kitchen/kettle.png', price: 1100),
+  Product(name: 'Oven', image: 'assets/kitchen/oven.png', price: 7800),
+  Product(
+    name: 'Induction Cooker',
+    image: 'assets/kitchen/induction.png',
+    price: 5400,
+  ),
 ];
 
-final homeLifestyle = [
-  Product(name: 'LED Light', image: 'assets/home/led.png', price: 650),
+// 3️⃣ Industrial & Tools
+final industrialTools = [
+  Product(name: 'Drill Machine', image: 'assets/tools/drill.png', price: 5500),
+  Product(name: 'Grinder', image: 'assets/tools/grinder.png', price: 4200),
+  Product(
+    name: 'Voltage Stabilizer',
+    image: 'assets/tools/stabilizer.png',
+    price: 3500,
+  ),
+  Product(name: 'Tool Kits', image: 'assets/tools/toolkit.png', price: 2500),
+];
+
+// 4️⃣ Home, Lifestyle & Decoration
+final homeLifestyleDecoration = [
+  Product(name: 'LED Lights', image: 'assets/home/led.png', price: 650),
   Product(name: 'Wall Clock', image: 'assets/home/clock.png', price: 1200),
-  Product(name: 'Artificial Plant', image: 'assets/home/plant.png', price: 980),
+  Product(name: 'Storage Items', image: 'assets/home/storage.png', price: 1800),
+  Product(name: 'Home Decor', image: 'assets/home/decor.png', price: 2200),
 ];
 
+// 5️⃣ Fashion & Accessories
+final fashionAccessories = [
+  Product(name: 'Bags', image: 'assets/fashion/bag.png', price: 2800),
+  Product(name: 'Watches', image: 'assets/fashion/watch.png', price: 3200),
+  Product(
+    name: 'Sunglasses',
+    image: 'assets/fashion/sunglasses.png',
+    price: 1500,
+  ),
+  Product(name: 'Footwear', image: 'assets/fashion/footwear.png', price: 2100),
+];
+
+// 6️⃣ Gifts, Toys & Sports
+final giftsToysSports = [
+  Product(name: 'Gift Items', image: 'assets/gifts/gift.png', price: 1200),
+  Product(name: 'Kids Toys', image: 'assets/toys/kidstoy.png', price: 1800),
+  Product(
+    name: 'Fitness Accessories',
+    image: 'assets/sports/fitness.png',
+    price: 2200,
+  ),
+];
+
+// 7️⃣ Furniture & Fixtures (optional but premium)
 final furnitureFixtures = [
-  Product(
-    name: 'Office Chair',
-    image: 'assets/furniture/chair.png',
-    price: 6500,
-  ),
-  Product(
-    name: 'Study Table',
-    image: 'assets/furniture/table.png',
-    price: 8900,
-  ),
+  Product(name: 'Chair', image: 'assets/furniture/chair.png', price: 6500),
+  Product(name: 'Table', image: 'assets/furniture/table.png', price: 8900),
   Product(name: 'Sofa', image: 'assets/furniture/sofa.png', price: 28000),
+  Product(
+    name: 'Storage Furniture',
+    image: 'assets/furniture/storage.png',
+    price: 7500,
+  ),
 ];

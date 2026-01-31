@@ -6,13 +6,13 @@ class CategoriesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      'Smartwatch',
-      'Headphones',
-      'Television & Audio',
-      'Smartphone',
-      'Laptop & Computer',
-      'Accessories',
-      'Gaming',
+      'Electronics & Gadgets',
+      'Kitchen & Home Appliances',
+      'Industrial & Tools',
+      'Home, Lifestyle & Decoration',
+      'Fashion & Accessories',
+      'Gifts, Toys & Sports',
+      'Furniture & Fixtures',
     ];
 
     return Scaffold(

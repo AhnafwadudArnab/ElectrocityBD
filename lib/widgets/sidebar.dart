@@ -1,8 +1,8 @@
 import 'dart:math';
 
+import 'package:electrocitybd1/All%20Pages/category_page.dart';
 import 'package:electrocitybd1/pages/Services/product_page.dart';
 import 'package:electrocitybd1/pages/Services/promotions_page.dart';
-import 'package:electrocitybd1/All%20Pages/category_page.dart';
 import 'package:flutter/material.dart';
 
 import '../pages/sidebar pages/service_page.dart';
@@ -13,7 +13,7 @@ const String kSidebarDesignPrompt =
 
 class Sidebar extends StatefulWidget {
   final double? width;
-  const Sidebar({Key? key, this.width}) : super(key: key);
+  const Sidebar({super.key, this.width});
 
   @override
   State<Sidebar> createState() => _SidebarState();
