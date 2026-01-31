@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 
 class CategoryPage extends StatelessWidget {
   final String title;
-  const CategoryPage({Key? key, required this.title, required List<Product> products}) : super(key: key);
+  const CategoryPage({
+    super.key,
+    required this.title,
+    required List<Product> products,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,16 +19,11 @@ class CategoryPage extends StatelessWidget {
   }
 }
 
-
 class CategoryPages extends StatelessWidget {
   final String title;
   final List<Product> products;
 
-  const CategoryPages({
-    super.key,
-    required this.title,
-    required this.products,
-  });
+  const CategoryPages({super.key, required this.title, required this.products});
 
   @override
   Widget build(BuildContext context) {
