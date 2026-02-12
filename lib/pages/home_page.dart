@@ -1,15 +1,15 @@
 import 'package:electrocitybd1/widgets/Sections/TrendingItems.dart';
-import 'package:electrocitybd1/widgets/sidebar.dart';
 import 'package:electrocitybd1/widgets/footer.dart';
+import 'package:electrocitybd1/widgets/sidebar.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/Sections/BestSellings/best_selling.dart';
+import '../widgets/Sections/Collections/collections_pages.dart'
+    hide MonitorListingPage;
 import '../widgets/Sections/Deals_of_the_day.dart';
-import '../widgets/Sections/Collections/collections_pages.dart' hide MonitorListingPage;
+import '../widgets/Sections/FeaturedBrandsStrip.dart';
 import '../widgets/Sections/flash_sale.dart';
 import '../widgets/Sections/mid_banner_row.dart';
-import '../widgets/Sections/FeaturedBrandsStrip.dart';
-import 'TechPart_multiple pages/Monitors_pages_tech.dart';
 import '../widgets/header.dart';
 
 class HomePage extends StatelessWidget {
@@ -290,8 +290,8 @@ class _MainContentState extends State<_MainContent> {
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: DealsOfTheDay(),
           ),
-          const SizedBox(height: 16),
-          const MonitorListingPage(),
+          //const SizedBox(height: 16),
+          //const MonitorListingPage(),
           const SizedBox(height: 24),
           const FooterSection(),
         ],
