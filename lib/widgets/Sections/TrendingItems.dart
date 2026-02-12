@@ -9,7 +9,7 @@ class TrendingItem {
   final int discountedPrice;
   final String timeRemaining;
 
-  TrendingItem({
+  const TrendingItem({
     required this.image,
     required this.title,
     required this.originalPrice,
@@ -21,53 +21,54 @@ class TrendingItem {
 class TrendingItems extends StatelessWidget {
   const TrendingItems({super.key});
 
+  static const List<TrendingItem> _sampleProducts = [
+    TrendingItem(
+      image: 'assets/Products/7.png',
+      title: 'Blender Machine',
+      originalPrice: 1500,
+      discountedPrice: 999,
+      timeRemaining: '02:12:34',
+    ),
+    TrendingItem(
+      image: 'assets/Products/2.jpg',
+      title: 'Water Heater',
+      originalPrice: 2000,
+      discountedPrice: 1299,
+      timeRemaining: '01:45:20',
+    ),
+    TrendingItem(
+      image: 'assets/Products/3.jpg',
+      title: 'Blender Machine Complete Set',
+      originalPrice: 1200,
+      discountedPrice: 799,
+      timeRemaining: '03:30:15',
+    ),
+    TrendingItem(
+      image: 'assets/Products/4.jpg',
+      title: 'Iron Machine',
+      originalPrice: 800,
+      discountedPrice: 499,
+      timeRemaining: '02:00:45',
+    ),
+    TrendingItem(
+      image: 'assets/Products/5.jpg',
+      title: 'Electric Oven',
+      originalPrice: 1200,
+      discountedPrice: 749,
+      timeRemaining: '04:15:30',
+    ),
+    TrendingItem(
+      image: 'assets/Products/6.jpg',
+      title: 'Washing Machine',
+      originalPrice: 3500,
+      discountedPrice: 2499,
+      timeRemaining: '01:20:10',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // Sample data - replace with your actual data
-    final trendingProducts = [
-      TrendingItem(
-        image: 'assets/Products/7.png',
-        title: 'Blender Machine',
-        originalPrice: 1500,
-        discountedPrice: 999,
-        timeRemaining: '02:12:34',
-      ),
-      TrendingItem(
-        image: 'assets/Products/2.jpg',
-        title: 'Product Water Heater',
-        originalPrice: 2000,
-        discountedPrice: 1299,
-        timeRemaining: '01:45:20',
-      ),
-      TrendingItem(
-        image: 'assets/Products/3.jpg',
-        title: 'Blender Machine Complete Set',
-        originalPrice: 1200,
-        discountedPrice: 799,
-        timeRemaining: '03:30:15',
-      ),
-      TrendingItem(
-        image: 'assets/Products/4.jpg',
-        title: 'Iron Machine',
-        originalPrice: 1800,
-        discountedPrice: 1199,
-        timeRemaining: '02:00:45',
-      ),
-      TrendingItem(
-        image: 'assets/Products/5.jpg',
-        title: 'Electric Oven',
-        originalPrice: 1600,
-        discountedPrice: 999,
-        timeRemaining: '04:15:30',
-      ),
-      TrendingItem(
-        image: 'assets/Products/6.jpg',
-        title: 'Washing Machine',
-        originalPrice: 1900,
-        discountedPrice: 1299,
-        timeRemaining: '01:20:10',
-      ),
-    ];
+    final trendingProducts = _sampleProducts;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

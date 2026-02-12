@@ -1,3 +1,4 @@
+import 'package:electrocitybd1/widgets/Sections/TechPart.dart';
 import 'package:electrocitybd1/widgets/Sections/TrendingItems.dart';
 import 'package:electrocitybd1/widgets/footer.dart';
 import 'package:electrocitybd1/widgets/sidebar.dart';
@@ -277,6 +278,11 @@ class _MainContentState extends State<_MainContent> {
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: FeaturedBrandsStrip(),
           ),
+          const SizedBox(height: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: DealsOfTheDay(),
+          ),
           const SizedBox(height: 14),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),
@@ -287,13 +293,9 @@ class _MainContentState extends State<_MainContent> {
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: MidBannerRow(),
           ),
+
           const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: DealsOfTheDay(),
-          ),
-          //const SizedBox(height: 16),
-          //const MonitorListingPage(),
+          Techpart(),
           const SizedBox(height: 24),
           const FooterSection(),
         ],

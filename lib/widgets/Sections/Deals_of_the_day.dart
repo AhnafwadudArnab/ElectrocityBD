@@ -78,145 +78,128 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Row
-            // Header Row
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Deal Of The Days',
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Deals of the Day',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Deal Of The Day: Unbelievable Savings Await!',
-                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _timeBox(twoDigits(days), 'Days'),
+                              const SizedBox(width: 8),
+                              _timeBox(twoDigits(hours), 'Hours'),
+                              const SizedBox(width: 8),
+                              _timeBox(twoDigits(minutes), 'Min'),
+                              const SizedBox(width: 8),
+                              _timeBox(twoDigits(seconds), 'Sec'),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                // Countdown + Nav buttons
-                Flexible(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _timeBox(days.toString(), 'Days'),
-                        const SizedBox(width: 8),
-                        _timeBox(twoDigits(hours), 'Hours'),
-                        const SizedBox(width: 8),
-                        _timeBox(twoDigits(minutes), 'Mins'),
-                        const SizedBox(width: 8),
-                        _timeBox(twoDigits(seconds), 'Sec'),
-                        const SizedBox(width: 300),
-                        _navButton(Icons.chevron_left, () => _scrollBy(-260)),
-                        const SizedBox(width: 6),
-                        _navButton(Icons.chevron_right, () => _scrollBy(260)),
-                      ],
-                    ),
-                  ),
-                ),
+                const SizedBox(width: 8),
+                _navButton(Icons.arrow_back_ios, () => _scrollBy(-320)),
+                const SizedBox(width: 8),
+                _navButton(Icons.arrow_forward_ios, () => _scrollBy(320)),
               ],
             ),
             const SizedBox(height: 12),
 
             // Product cards list
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+            SizedBox(
+              height: 120,
+              child: ListView(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _productCard(
+                    brand: 'Samsung',
+                    title: 'CCTV Camera',
+                    price: '৳8,500',
+                    oldPrice: '৳10,500',
+                    imagePath: 'assets/Deals of the Day/2.png',
+                  ),
+                  _productCard(
+                    brand: 'Walton',
+                    title: 'Blender 3-in-1 Machine',
+                    price: '৳5,500',
+                    oldPrice: '৳7,000',
+                    imagePath: 'assets/Deals of the Day/9.png',
+                  ),
+                  _productCard(
+                    brand: 'Panasonic',
+                    title: 'Cooker 5L',
+                    price: '৳8,500',
+                    oldPrice: '৳11,000',
+                    imagePath: 'assets/Deals of the Day/3.png',
+                  ),
+                  _productCard(
+                    brand: 'Jamuna',
+                    title: 'Fan',
+                    price: '৳4,200',
+                    oldPrice: '৳4,800',
+                    imagePath: 'assets/Deals of the Day/5.png',
+                  ),
+                  _productCard(
+                    brand: 'Walton',
+                    title: 'AC 1.5 Ton',
+                    price: '৳32,200',
+                    oldPrice: '৳38,800',
+                    imagePath: 'assets/Deals of the Day/6.png',
+                  ),
+                  _productCard(
+                    brand: 'Walton',
+                    title: 'AC 2 Ton',
+                    price: '৳46,500',
+                    oldPrice: '৳55,750',
+                    imagePath: 'assets/Deals of the Day/6.png',
+                  ),
+                  _productCard(
+                    brand: 'Panasonic',
+                    title: 'Mixer Grinder',
+                    price: '৳2,800',
+                    oldPrice: '৳3,200',
+                    imagePath: 'assets/Deals of the Day/09.png',
+                  ),
+                  _productCard(
+                    brand: 'Hikvision',
+                    title: 'Air Purifier',
+                    price: '৳18,500',
+                    oldPrice: '৳22,000',
+                    imagePath: 'assets/Deals of the Day/7.png',
+                  ),
+                  _productCard(
+                    brand: 'P9 Max',
+                    title: 'Bluetooth Headphones',
+                    price: '৳1,850',
+                    oldPrice: '৳2,500',
+                    imagePath: 'assets/Deals of the Day/1.png',
                   ),
                 ],
-              ),
-              child: SizedBox(
-                height: 120,
-                width: double.infinity,
-                child: ListView(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _productCard(
-                      imagePath: 'assets/images/product1.png',
-                      brand: 'Cello Melody',
-                      title: 'Compact Pocket Size Power Bank',
-                      price: 'Tk. 1,800.00',
-                      oldPrice: 'Tk. 2,000.00',
-                    ),
-                    _productCard(
-                      imagePath: 'assets/images/product2.png',
-                      brand: 'Cello Melody',
-                      title: 'KeyPop Combo Of Keyboard & Mouse',
-                      price: 'From Tk. 1,200.00',
-                      oldPrice: 'Tk. 1,400.00',
-                    ),
-                    _productCard(
-                      imagePath: 'assets/images/product3.png',
-                      brand: 'Cello Melody',
-                      title: 'Open Ear Wireless Earbuds',
-                      price: 'Tk. 4,400.00',
-                      oldPrice: 'Tk. 4,900.00',
-                      badge: 'New',
-                    ),
-                    _productCard(
-                      brand: 'Cello Melody',
-                      title: 'Laptop Hardshell Matte Case',
-                      price: 'From Tk. 53,300.00',
-                      oldPrice: 'Tk. 57,800.00',
-                      imagePath: 'assets/images/product4.png',
-                    ),
-                    _productCard(
-                      imagePath: 'assets/images/product5.png',
-                      brand: 'Aurora Tech',
-                      title: 'Slim Bluetooth Speaker',
-                      price: 'Tk. 2,300.00',
-                      oldPrice: 'Tk. 2,800.00',
-                      badge: 'Hot',
-                    ),
-                    _productCard(
-                      brand: 'HomeEase',
-                      title: 'Mini USB Desk Lamp',
-                      price: 'Tk. 850.00',
-                      oldPrice: 'Tk. 1,050.00',
-                      imagePath: 'assets/images/product6.png',
-                    ),
-                    _productCard(
-                      brand: 'GigaCharge',
-                      title: 'Fast Charger 30W',
-                      price: 'Tk. 1,150.00',
-                      oldPrice: 'Tk. 1,400.00',
-                      imagePath: 'assets/images/product7.png',
-                    ),
-                    _productCard(
-                      brand: 'PixelPro',
-                      title: 'Wireless Mouse Ergonomic Design',
-                      price: 'Tk. 1,050.00',
-                      oldPrice: 'Tk. 1,250.00',
-                      imagePath: 'assets/images/product8.png',
-                    ),
-                    _productCard(
-                      brand: 'SoundMax',
-                      title: 'Over-Ear Studio Headphones',
-                      price: 'Tk. 6,500.00',
-                      oldPrice: 'Tk. 7,200.00',
-                      badge: 'Deal',
-                      imagePath: 'assets/images/product9.png',
-                    ),
-                  ],
-                ),
               ),
             ),
           ],
@@ -227,9 +210,10 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
   static Widget _timeBox(String value, String label) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.black87,
             borderRadius: BorderRadius.circular(6),
@@ -239,14 +223,12 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Colors.black54),
-        ),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontSize: 9, color: Colors.black54)),
       ],
     );
   }
@@ -262,11 +244,11 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
           height: 30,
           decoration: BoxDecoration(
             color: const Color(0xFF123456),
-          borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Icon(icon, color: Colors.white, size: 18),
         ),
-        child: Icon(icon, color: Colors.white, size: 18),
       ),
-      )
     );
   }
 
@@ -292,13 +274,22 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
         children: [
           //pic part
           Container(
-            width: 64,
-            height: 64,
+            width: 85,
+            height: 85,
             decoration: BoxDecoration(
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(Icons.image, color: Colors.grey),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.image, color: Colors.grey);
+                },
+              ),
+            ),
           ),
           const SizedBox(width: 5),
           Expanded(
@@ -306,64 +297,38 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        brand,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
-                    if (badge != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        margin: const EdgeInsets.only(left: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          badge,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                  ],
+                Text(
+                  brand,
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 Text(
                   title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Text(
                       price,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF123456),
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       oldPrice,
                       style: const TextStyle(
-                        color: Colors.red,
+                        fontSize: 11,
+                        color: Colors.grey,
                         decoration: TextDecoration.lineThrough,
-                        fontSize: 12,
                       ),
                     ),
                   ],
