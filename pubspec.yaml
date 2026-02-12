@@ -1,6 +1,6 @@
 name: electrocitybd1
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -70,10 +70,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
-
   uses-material-design: true
   assets:
     - assets/
     - assets/Products/
+    - assets/Deals/
     - assets/Brand Logo/
     - assets/Hero banner logos/

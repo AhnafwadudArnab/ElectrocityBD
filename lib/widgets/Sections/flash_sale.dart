@@ -1,31 +1,72 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
+class FlashSaleItem {
+  final String image;
+  final String title;
+  final int originalPrice;
+  final int discountedPrice;
+  final String timeRemaining;
+
+  FlashSaleItem({
+    required this.image,
+    required this.title,
+    required this.originalPrice,
+    required this.discountedPrice,
+    required this.timeRemaining,
+  });
+}
 
 class FlashSaleCarousel extends StatelessWidget {
   const FlashSaleCarousel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final items = List.generate(8, (i) => i);
-
-    int randomPrice({int min = 300, int max = 2000}) {
-      final rnd = Random();
-      final steps = ((max - min) ~/ 10) + 1;
-      return min + rnd.nextInt(steps) * 10;
-    }
-
-    final images = [
-        'asssets/1.png',
-        'asssets/2.jpg',
-        "asssets/3.jpg",
-        "asssets/4.jpg",
-        "asssets/5.jpg",
-        "asssets/6.jpg",
-        "asssets/7.png",
-      ];
-      // Add more as needed
+    final flashSaleProducts = [
+      FlashSaleItem(
+        image: 'assets/Products/1.png',
+        title: '1',
+        originalPrice: 1500,
+        discountedPrice: 999,
+        timeRemaining: '02:12:34',
+      ),
+      FlashSaleItem(
+        image: 'assets/Products/2.jpg',
+        title: '2',
+        originalPrice: 2000,
+        discountedPrice: 1299,
+        timeRemaining: '01:45:20',
+      ),
+      FlashSaleItem(
+        image: 'assets/Products/3.jpg',
+        title: '3',
+        originalPrice: 1200,
+        discountedPrice: 799,
+        timeRemaining: '03:30:15',
+      ),
+      FlashSaleItem(
+        image: 'assets/Products/4.jpg',
+        title: '4',
+        originalPrice: 1800,
+        discountedPrice: 1199,
+        timeRemaining: '02:00:45',
+      ),
+      FlashSaleItem(
+        image: 'assets/Products/5.jpg',
+        title: '5',
+        originalPrice: 1600,
+        discountedPrice: 999,
+        timeRemaining: '04:15:30',
+      ),
+      FlashSaleItem(
+        image: 'assets/Products/6.jpg',
+        title: '6',
+        originalPrice: 1900,
+        discountedPrice: 1299,
+        timeRemaining: '01:20:10',
+      ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,20 +105,15 @@ class FlashSaleCarousel extends StatelessWidget {
                   height: 240,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: items.length,
+                    itemCount: flashSaleProducts.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
-                      final rnd = Random();
-                      final original = randomPrice();
-                      final discount = (rnd.nextInt(19) + 1) * 10;
-                      int sale = original - discount;
-                      if (sale < 300) sale = 300;
-                      //main container
-                      // Note: add "import 'dart:ui';" at the top of the file for ImageFilter
+                      final product = flashSaleProducts[index];
+
                       return Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          // Glass-style panel placed under the main card
+                          // Glass-style panel
                           Positioned(
                             top: 16,
                             left: 0,
@@ -100,7 +136,7 @@ class FlashSaleCarousel extends StatelessWidget {
                             ),
                           ),
 
-                          // Main container
+                          // Main product card
                           Container(
                             width: 198,
                             decoration: BoxDecoration(
@@ -117,24 +153,20 @@ class FlashSaleCarousel extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                // Product Image
                                 Expanded(
-                                  child: Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                              top: Radius.circular(12),
-                                            ),
-                                        child: Image.asset(
-                                          images[index % images.length],
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  Icon(Icons.error),
-                                        ),
-                                      ),
-                                    ],
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12),
+                                    ),
+                                    child: Image.asset(
+                                      product.image,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(Icons.error),
+                                    ),
                                   ),
                                 ),
                                 Padding(
@@ -143,15 +175,19 @@ class FlashSaleCarousel extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Product Title
                                       Text(
-                                        'Flash Product ${index + 1}',
+                                        product.title,
                                         style: const TextStyle(fontSize: 13),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
+                                      // Original Price & Discounted Price
                                       Row(
                                         children: [
                                           Text(
-                                            'Tk ${original.toString()}',
+                                            'Tk ${product.originalPrice}',
                                             style: const TextStyle(
                                               decoration:
                                                   TextDecoration.lineThrough,
@@ -161,7 +197,7 @@ class FlashSaleCarousel extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            'Tk ${sale.toString()}',
+                                            'Tk ${product.discountedPrice}',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -169,6 +205,7 @@ class FlashSaleCarousel extends StatelessWidget {
                                         ],
                                       ),
                                       const SizedBox(height: 6),
+                                      // Time Remaining
                                       Row(
                                         children: [
                                           const Icon(
@@ -177,9 +214,9 @@ class FlashSaleCarousel extends StatelessWidget {
                                             color: Colors.orange,
                                           ),
                                           const SizedBox(width: 6),
-                                          const Text(
-                                            '02:12:34',
-                                            style: TextStyle(
+                                          Text(
+                                            product.timeRemaining,
+                                            style: const TextStyle(
                                               color: Colors.orange,
                                               fontSize: 12,
                                             ),

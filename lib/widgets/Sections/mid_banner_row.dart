@@ -6,49 +6,36 @@ class MidBannerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final banners = [
-      {
-        'label': 'Sale 60% Off',
-        'bg': Colors.deepOrange,
-        'img': 'https://picsum.photos/seed/m1/600/300',
-      },
-      {
-        'label': 'Super Deal!',
-        'bg': Colors.pink,
-        'img': 'https://picsum.photos/seed/m2/600/300',
-      },
-      {
-        'label': 'Sale 30% Off',
-        'bg': Colors.indigo,
-        'img': 'https://picsum.photos/seed/m3/600/300',
-      },
+      {'label': 'Super Deals', 'img': 'assets/Deals/1.png'},
+      {'label': 'Up To 60% Off', 'img': 'assets/Deals/2.png'},
+      {'label': 'Up To 60% Off', 'img': 'assets/Deals/3.png'},
     ];
 
     return Row(
       children: banners
           .map(
             (b) => Expanded(
-              child: Container(
-                height: 140,
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: NetworkImage(b['img'] as String),
-                    fit: BoxFit.cover,
-                  ),
-                ),
+              child: GestureDetector(
+                onTap: () {},
                 child: Container(
+                  height: 140,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.black.withOpacity(0.25),
+                    image: DecorationImage(
+                      image: AssetImage(b['img'].toString()),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   child: Center(
                     child: Text(
-                      b['label'] as String,
+                      b['label'].toString(),
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
                       ),
                     ),
                   ),
