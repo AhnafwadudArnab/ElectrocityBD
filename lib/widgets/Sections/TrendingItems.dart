@@ -1,21 +1,73 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
+class TrendingItem {
+  final String image;
+  final String title;
+  final int originalPrice;
+  final int discountedPrice;
+  final String timeRemaining;
+
+  TrendingItem({
+    required this.image,
+    required this.title,
+    required this.originalPrice,
+    required this.discountedPrice,
+    required this.timeRemaining,
+  });
+}
 
 class TrendingItems extends StatelessWidget {
   const TrendingItems({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final items = List.generate(8, (i) => i);
-
-    // helper to produce multiples of 10 between 300 and 2000
-    int randomPrice({int min = 300, int max = 2000}) {
-      final rnd = Random();
-      final steps = ((max - min) ~/ 10) + 1;
-      return min + rnd.nextInt(steps) * 10;
-    }
+    // Sample data - replace with your actual data
+    final trendingProducts = [
+      TrendingItem(
+        image: 'assets/Products/7.png',
+        title: 'Blender Machine',
+        originalPrice: 1500,
+        discountedPrice: 999,
+        timeRemaining: '02:12:34',
+      ),
+      TrendingItem(
+        image: 'assets/Products/2.jpg',
+        title: 'Product Water Heater',
+        originalPrice: 2000,
+        discountedPrice: 1299,
+        timeRemaining: '01:45:20',
+      ),
+      TrendingItem(
+        image: 'assets/Products/3.jpg',
+        title: 'Blender Machine Complete Set',
+        originalPrice: 1200,
+        discountedPrice: 799,
+        timeRemaining: '03:30:15',
+      ),
+      TrendingItem(
+        image: 'assets/Products/4.jpg',
+        title: 'Iron Machine',
+        originalPrice: 1800,
+        discountedPrice: 1199,
+        timeRemaining: '02:00:45',
+      ),
+      TrendingItem(
+        image: 'assets/Products/5.jpg',
+        title: 'Electric Oven',
+        originalPrice: 1600,
+        discountedPrice: 999,
+        timeRemaining: '04:15:30',
+      ),
+      TrendingItem(
+        image: 'assets/Products/6.jpg',
+        title: 'Washing Machine',
+        originalPrice: 1900,
+        discountedPrice: 1299,
+        timeRemaining: '01:20:10',
+      ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +81,7 @@ class TrendingItems extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to full flash sale page
+                // Navigate to full trending items page
               },
               child: const Text('See All'),
             ),
@@ -54,20 +106,15 @@ class TrendingItems extends StatelessWidget {
                   height: 240,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: items.length,
+                    itemCount: trendingProducts.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
-                      final rnd = Random();
-                      final original = randomPrice();
-                      final discount = (rnd.nextInt(19) + 1) * 10; // 10..190
-                      int sale = original - discount;
-                      if (sale < 300) sale = 300;
-                      //main container
-                      // Note: add "import 'dart:ui';" at the top of the file for ImageFilter
+                      final product = trendingProducts[index];
+
                       return Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          // Glass-style panel placed under the main card
+                          // Glass-style panel
                           Positioned(
                             top: 16,
                             left: 0,
@@ -90,7 +137,7 @@ class TrendingItems extends StatelessWidget {
                             ),
                           ),
 
-                          // Main container
+                          // Main product card
                           Container(
                             width: 198,
                             decoration: BoxDecoration(
@@ -107,21 +154,17 @@ class TrendingItems extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                // Product Image
                                 Expanded(
-                                  child: Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                              top: Radius.circular(12),
-                                            ),
-                                        child: Image.network(
-                                          'https://picsum.photos/seed/$index/400/300',
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                        ),
-                                      ),
-                                    ],
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12),
+                                    ),
+                                    child: Image.asset(
+                                      product.image,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    ),
                                   ),
                                 ),
                                 Padding(
@@ -130,15 +173,19 @@ class TrendingItems extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Product Title
                                       Text(
-                                        'Flash Product ${index + 1}',
+                                        product.title,
                                         style: const TextStyle(fontSize: 13),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
+                                      // Original Price & Discounted Price
                                       Row(
                                         children: [
                                           Text(
-                                            'Tk ${original.toString()}',
+                                            'Tk ${product.originalPrice}',
                                             style: const TextStyle(
                                               decoration:
                                                   TextDecoration.lineThrough,
@@ -148,7 +195,7 @@ class TrendingItems extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            'Tk ${sale.toString()}',
+                                            'Tk ${product.discountedPrice}',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -156,6 +203,7 @@ class TrendingItems extends StatelessWidget {
                                         ],
                                       ),
                                       const SizedBox(height: 6),
+                                      // Time Remaining
                                       Row(
                                         children: [
                                           const Icon(
@@ -164,9 +212,9 @@ class TrendingItems extends StatelessWidget {
                                             color: Colors.orange,
                                           ),
                                           const SizedBox(width: 6),
-                                          const Text(
-                                            '02:12:34',
-                                            style: TextStyle(
+                                          Text(
+                                            product.timeRemaining,
+                                            style: const TextStyle(
                                               color: Colors.orange,
                                               fontSize: 12,
                                             ),

@@ -53,21 +53,21 @@ class _MainContentState extends State<_MainContent> {
 
   final List<Map<String, String>> _slides = [
     {
-      'title': 'Your Medication\nNow Made Easy',
-      'subtitle': 'Best selling on Nika',
-      'image': 'https://picsum.photos/seed/medicine/1200/600',
+      // 'title': 'Pre-Ramadan Sale\nUp to 70% Off',
+      // 'subtitle': 'Best selling on Nika',
+      'image': 'assets/Hero banner logos/pre-ramadan.png',
       'label': 'SPECIAL OFFERS',
     },
     {
-      'title': 'Electronics Sale\nUp to 50% Off',
-      'subtitle': 'Best deals on gadgets',
-      'image': 'https://picsum.photos/seed/electronics/1200/600',
+      // 'title': 'Electronics Sale\nUp to 50% Off',
+      // 'subtitle': 'Best deals on gadgets',
+      'image': 'assets/Hero banner logos/dopp.png',
       'label': 'HOT DEALS',
     },
     {
-      'title': 'New Arrivals\nJust For You',
-      'subtitle': 'Latest products in store',
-      'image': 'https://picsum.photos/seed/new/1200/600',
+      // 'title': 'New Arrivals\nJust For You',
+      // 'subtitle': 'Latest products in store',
+      'image': 'assets/Hero banner logos/top.png',
       'label': 'NEW IN',
     },
   ];
@@ -130,15 +130,13 @@ class _MainContentState extends State<_MainContent> {
                         Positioned.fill(
                           child: Image.network(
                             slide['image']!,
-                            fit: BoxFit.cover,
-                            color: Colors.white.withOpacity(0.7),
-                            colorBlendMode: BlendMode.lighten,
+                            fit: BoxFit.fill,
                           ),
                         ),
 
                         /// CONTENT
                         Positioned(
-                          left: 80, // Increased from 32 to 80
+                          left: 60, // Increased from 32 to 80
                           top: 60,
                           child: Container(
                             width: 380, // Adjust as needed
@@ -154,37 +152,20 @@ class _MainContentState extends State<_MainContent> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  slide['title']!,
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  slide['subtitle']!,
-                                  style: const TextStyle(color: Colors.black54),
-                                ),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(
-                                      0xFFFFC107,
-                                    ), // Golden-yellow
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 28,
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text('Shop Now'),
-                                ),
+                                // const SizedBox(height: 12),
+                                // Text(
+                                //   slide['title']!,
+                                //   style: const TextStyle(
+                                //     fontSize: 32,
+                                //     fontWeight: FontWeight.bold,
+                                //     height: 1.2,
+                                //   ),
+                                // ),
+                                // const SizedBox(height: 12),
+                                // Text(
+                                //   slide['subtitle']!,
+                                //   style: const TextStyle(color: Colors.black54),
+                                // ),
                               ],
                             ),
                           ),
@@ -243,6 +224,27 @@ class _MainContentState extends State<_MainContent> {
                                   ),
                                 ),
                               ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 730,
+                          right: 0,
+                          bottom: 25,
+                          child: Center(
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFFC107),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 20,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Shop Now'),
                             ),
                           ),
                         ),
