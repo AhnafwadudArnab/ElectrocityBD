@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/Sections/BestSellings/best_selling.dart';
 import '../widgets/Sections/Deals_of_the_day.dart';
-import '../widgets/Sections/collections_pages.dart';
+import '../widgets/Sections/Collections/collections_pages.dart' hide MonitorListingPage;
 import '../widgets/Sections/flash_sale.dart';
 import '../widgets/Sections/mid_banner_row.dart';
 import '../widgets/Sections/FeaturedBrandsStrip.dart';
@@ -36,7 +36,6 @@ class HomePage extends StatelessWidget {
           ),
           // const FooterSection(),
         ],
-        
       ),
     );
   }
@@ -292,7 +291,7 @@ class _MainContentState extends State<_MainContent> {
             child: DealsOfTheDay(),
           ),
           const SizedBox(height: 16),
-         const MonitorListingPage(),
+          const MonitorListingPage(),
           const SizedBox(height: 24),
           const FooterSection(),
         ],
@@ -300,6 +299,3 @@ class _MainContentState extends State<_MainContent> {
     );
   }
 }
-
-
-
