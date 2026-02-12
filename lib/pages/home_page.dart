@@ -8,8 +8,8 @@ import '../widgets/Sections/Deals_of_the_day.dart';
 import '../widgets/Sections/collections_pages.dart';
 import '../widgets/Sections/flash_sale.dart';
 import '../widgets/Sections/mid_banner_row.dart';
-import '../widgets/Sections/promo_strip.dart';
-import '../widgets/Sections/technology_section.dart';
+import '../widgets/Sections/FeaturedBrandsStrip.dart';
+import 'TechPart_multiple pages/Monitors_pages_tech.dart';
 import '../widgets/header.dart';
 
 class HomePage extends StatelessWidget {
@@ -274,7 +274,7 @@ class _MainContentState extends State<_MainContent> {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),
-            child: PromoStrip(),
+            child: FeaturedBrandsStrip(),
           ),
           const SizedBox(height: 14),
           const Padding(
@@ -292,10 +292,7 @@ class _MainContentState extends State<_MainContent> {
             child: DealsOfTheDay(),
           ),
           const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: TechnologySection(),
-          ),
+         const MonitorListingPage(),
           const SizedBox(height: 24),
           const FooterSection(),
         ],

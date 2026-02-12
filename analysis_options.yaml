@@ -13,6 +13,7 @@ analyzer:
     deprecated_member_use: ignore
     use_key_in_widget_constructors: ignore
     file_names: ignore
+    unused_element: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
