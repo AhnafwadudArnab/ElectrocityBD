@@ -6,9 +6,18 @@ class MidBannerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final banners = [
-      {'label': 'Super Deals', 'img': 'assets/Deals/1.png'},
-      {'label': 'Up To 60% Off', 'img': 'assets/Deals/2.png'},
-      {'label': 'Up To 60% Off', 'img': 'assets/Deals/3.png'},
+      {
+        //'label': 'Super Deals',
+        'img': 'assets/Deals/1.png',
+      },
+      {
+        //'label': 'Up To 60% Off',
+        'img': 'assets/Deals/2.png',
+      },
+      {
+        //'label': 'Up To 60% Off',
+        'img': 'assets/Deals/3.png',
+      },
     ];
 
     return Row(
@@ -18,27 +27,27 @@ class MidBannerRow extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {},
                 child: Container(
-                  height: 140,
+                  height: 160,
                   margin: const EdgeInsets.symmetric(horizontal: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     image: DecorationImage(
                       image: AssetImage(b['img'].toString()),
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                     ),
                   ),
-                  child: Center(
-                    child: Text(
-                      b['label'].toString(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
-                      ),
-                    ),
-                  ),
+                  // child: Center(
+                  //   child: Text(
+                  //     b['label'].toString(),
+                  //     textAlign: TextAlign.center,
+                  //     style: const TextStyle(
+                  //       color: Colors.white,
+                  //       fontSize: 16,
+                  //       fontWeight: FontWeight.bold,
+                  //       shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                  //     ),
+                  //   ),
+                  // ),
                 ),
               ),
             ),
