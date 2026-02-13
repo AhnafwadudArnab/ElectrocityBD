@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../Dimensions/responsive_dimensions.dart';
+
 class ProductCard extends StatelessWidget {
   final String title;
   final double price;
@@ -51,9 +53,9 @@ class ProductCard extends StatelessWidget {
                   left: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.padding(context) * 0.5,
+                      vertical: AppDimensions.padding(context) * 0.4,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.green[700],
@@ -89,7 +91,7 @@ class ProductCard extends StatelessWidget {
 
           // Details
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+            padding: EdgeInsets.all(AppDimensions.padding(context) * 0.8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -97,7 +99,10 @@ class ProductCard extends StatelessWidget {
                   title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, height: 1.2),
+                  style: TextStyle(
+                    fontSize: AppDimensions.smallFont(context),
+                    height: 1.2,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -105,8 +110,8 @@ class ProductCard extends StatelessWidget {
                   children: [
                     Text(
                       'Tk ${price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TextStyle(
+                        fontSize: AppDimensions.bodyFont(context),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -114,8 +119,8 @@ class ProductCard extends StatelessWidget {
                     if (originalPrice != null)
                       Text(
                         'Tk ${originalPrice!.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppDimensions.smallFont(context),
                           color: Colors.grey,
                           decoration: TextDecoration.lineThrough,
                         ),
@@ -123,17 +128,20 @@ class ProductCard extends StatelessWidget {
                     const Spacer(),
                     if (isPreOrder)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppDimensions.padding(context) * 0.5,
+                          vertical: AppDimensions.padding(context) * 0.4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.orange[100],
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Pre-Order',
-                          style: TextStyle(color: Colors.orange, fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontSize: AppDimensions.smallFont(context),
+                          ),
                         ),
                       ),
                   ],

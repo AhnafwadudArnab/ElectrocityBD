@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class FeaturedBrandsStrip extends StatefulWidget {
   const FeaturedBrandsStrip({super.key});
 
@@ -77,7 +79,10 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
       children: [
         // 1. Header Section
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppDimensions.padding(context),
+            vertical: AppDimensions.padding(context) * 0.8,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

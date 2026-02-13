@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../../Dimensions/responsive_dimensions.dart';
 import '../../Item details/Item_details.dart';
 
 class BestSellingBox extends StatelessWidget {
@@ -28,7 +29,7 @@ class BestSellingBox extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(AppDimensions.padding(context)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -43,7 +44,7 @@ class BestSellingBox extends StatelessWidget {
             'Best Selling',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppDimensions.padding(context) * 0.5),
 
           /// ITEMS
           ...items.map((i) {

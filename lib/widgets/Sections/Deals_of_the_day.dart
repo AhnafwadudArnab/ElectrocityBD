@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class DealsOfTheDay extends StatefulWidget {
   const DealsOfTheDay({Key? key}) : super(key: key);
 
@@ -73,7 +75,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: EdgeInsets.all(AppDimensions.padding(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

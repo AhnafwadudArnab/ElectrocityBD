@@ -6,6 +6,7 @@ import 'package:electrocitybd1/pages/Services/promotions_page.dart';
 import 'package:flutter/material.dart';
 
 import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart'; // Import your category pages
+import '../Dimensions/responsive_dimensions.dart';
 import '../pages/sidebar pages/service_page.dart';
 
 // AI design prompt (for Uizard / Midjourney etc.)
@@ -69,15 +70,27 @@ class _SidebarState extends State<Sidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
     final accent = Colors.deepOrange;
     final redAccent = Colors.redAccent;
 
     return Container(
       // Provide a sensible default width for the sidebar when none is passed
-      width: widget.width ?? 280.0,
+      width:
+          widget.width ??
+          r.value(
+            smallMobile: 0.0,
+            mobile: 0.0,
+            tablet: 240.0,
+            smallDesktop: 260.0,
+            desktop: 280.0,
+          ),
       color: Colors.white,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        padding: EdgeInsets.symmetric(
+          vertical: AppDimensions.padding(context) * 0.6,
+          horizontal: AppDimensions.padding(context) * 0.6,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

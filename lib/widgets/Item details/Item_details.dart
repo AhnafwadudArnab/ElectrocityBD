@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class ItemDetailsPage extends StatelessWidget {
   final String title;
   final String imageUrl;
@@ -19,7 +21,7 @@ class ItemDetailsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppDimensions.padding(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -35,7 +37,10 @@ class ItemDetailsPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -48,7 +53,10 @@ class ItemDetailsPage extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'Price: Tk $price',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(

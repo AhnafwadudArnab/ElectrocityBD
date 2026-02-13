@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class Techpart extends StatefulWidget {
   const Techpart({super.key});
 
@@ -96,19 +98,14 @@ class _TechpartState extends State<Techpart> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    int crossAxisCount;
-
-    // Responsive grid columns
-    if (screenWidth < 600) {
-      crossAxisCount = 2; // Mobile: 2 products
-    } else if (screenWidth < 900) {
-      crossAxisCount = 3; // Tablet: 3 products
-    } else if (screenWidth < 1200) {
-      crossAxisCount = 4; // Small desktop: 4 products
-    } else {
-      crossAxisCount = 5; // Large desktop: 5 products
-    }
+    final r = AppResponsive.of(context);
+    final crossAxisCount = r.value(
+      smallMobile: 2,
+      mobile: 2,
+      tablet: 3,
+      smallDesktop: 4,
+      desktop: 5,
+    );
 
     return SingleChildScrollView(
       child: Row(
@@ -116,7 +113,7 @@ class _TechpartState extends State<Techpart> {
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(AppDimensions.padding(context)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -126,10 +123,21 @@ class _TechpartState extends State<Techpart> {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
-                      childAspectRatio:
-                          0.75, // Adjust height/width ratio (0.75 = taller)
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.75,
+                      crossAxisSpacing: r.value(
+                        smallMobile: 6.0,
+                        mobile: 8.0,
+                        tablet: 12.0,
+                        smallDesktop: 14.0,
+                        desktop: 16.0,
+                      ),
+                      mainAxisSpacing: r.value(
+                        smallMobile: 6.0,
+                        mobile: 8.0,
+                        tablet: 12.0,
+                        smallDesktop: 14.0,
+                        desktop: 16.0,
+                      ),
                     ),
                     itemCount: _itemsToShow,
                     itemBuilder: (context, index) => _buildProductCard(index),
@@ -169,7 +177,10 @@ class _TechpartState extends State<Techpart> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color.fromARGB(255, 187, 108, 108), width: 1),
+        border: Border.all(
+          color: const Color.fromARGB(255, 187, 108, 108),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +202,7 @@ class _TechpartState extends State<Techpart> {
               children: [
                 Text(
                   product['name'],
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: AppDimensions.smallFont(context)),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -211,9 +222,9 @@ class _TechpartState extends State<Techpart> {
                 const SizedBox(height: 8),
                 Text(
                   product['price'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: AppDimensions.bodyFont(context),
                   ),
                 ),
               ],

@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class FlashSaleItem {
   final String image;
   final String title;
@@ -74,9 +76,12 @@ class FlashSaleCarousel extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Flash Sale',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -88,14 +93,16 @@ class FlashSaleCarousel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppDimensions.padding(context) * 0.3,
+          ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(AppDimensions.padding(context) * 0.5),
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(.219),
                   borderRadius: BorderRadius.circular(16),

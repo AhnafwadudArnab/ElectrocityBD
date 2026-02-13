@@ -2,6 +2,8 @@ import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../Dimensions/responsive_dimensions.dart';
+
 class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({super.key});
 
@@ -10,6 +12,9 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
+    final isSmall = r.isSmallMobile;
+
     return SafeArea(
       bottom: false,
       child: Container(
@@ -21,73 +26,121 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             end: Alignment.centerRight,
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(
+          horizontal: r.value(
+            smallMobile: 8.0,
+            mobile: 12.0,
+            tablet: 16.0,
+            desktop: 24.0,
+          ),
+        ),
         child: Row(
           children: [
+            // Logo
             Container(
-              height: 70,
-              width: 90,
+              height: isSmall ? 50 : 70,
+              width: isSmall ? 50 : 90,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-                shape: BoxShape.circle,
-              ),
               child: ClipOval(
                 child: Image.asset(
                   'assets/logo_ecity.png',
-                  height: 50,
-                  width: 50,
+                  height: isSmall ? 35 : 50,
+                  width: isSmall ? 35 : 50,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
+                  errorBuilder: (context, error, stackTrace) => Icon(
                     Icons.electric_bolt,
                     color: Colors.white,
-                    size: 50,
+                    size: isSmall ? 35 : 50,
                   ),
                 ),
               ),
             ),
 
-            /// LOGO
-            TextButton(
-              onPressed: () {
-                Get.offAll(() => HomePage());
-              },
-              child: const Text(
-                'ElectroCity BD',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+            /// LOGO TEXT
+            if (!isSmall)
+              TextButton(
+                onPressed: () {
+                  Get.offAll(() => HomePage());
+                },
+                child: const Text(
+                  'ElectroCity BD',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(width: 55),
+            SizedBox(
+              width: r.value(
+                smallMobile: 4.0,
+                mobile: 10.0,
+                tablet: 30.0,
+                desktop: 55.0,
+              ),
+            ),
 
             /// SEARCH BAR
             Expanded(
               child: Container(
-                height: 45,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                height: r.value(
+                  smallMobile: 38.0,
+                  mobile: 42.0,
+                  tablet: 45.0,
+                  desktop: 45.0,
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.search, color: Colors.black54),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: TextField(
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Search here...',
-                      ),
-                      autocorrect: true,
+                    Icon(
+                      Icons.search,
+                      color: Colors.black54,
+                      size: r.value(
+                        smallMobile: 18.0,
+                        mobile: 20.0,
+                        tablet: 24.0,
+                        desktop: 24.0,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.tune, color: Colors.black54),
+                    SizedBox(
+                      width: r.value(
+                        smallMobile: 4.0,
+                        mobile: 8.0,
+                        tablet: 8.0,
+                        desktop: 8.0,
+                      ),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: isSmall ? 'Search...' : 'Search here...',
+                          hintStyle: TextStyle(
+                            fontSize: r.value(
+                              smallMobile: 12.0,
+                              mobile: 14.0,
+                              tablet: 14.0,
+                              desktop: 14.0,
+                            ),
+                          ),
+                        ),
+                        autocorrect: true,
+                      ),
+                    ),
+                    if (!isSmall) const SizedBox(width: 8),
+                    if (!isSmall) const Icon(Icons.tune, color: Colors.black54),
                   ],
                 ),
               ),

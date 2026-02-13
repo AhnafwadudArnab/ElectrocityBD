@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class TrendingItem {
   final String image;
   final String title;
@@ -76,9 +78,12 @@ class TrendingItems extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Trending Items',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             TextButton(
               onPressed: () {

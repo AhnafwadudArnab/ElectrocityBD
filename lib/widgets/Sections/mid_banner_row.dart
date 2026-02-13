@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class MidBannerRow extends StatelessWidget {
   const MidBannerRow({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
     final banners = [
       {
         //'label': 'Super Deals',
@@ -27,8 +30,16 @@ class MidBannerRow extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {},
                 child: Container(
-                  height: 160,
-                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  height: r.value(
+                    smallMobile: 80.0,
+                    mobile: 100.0,
+                    tablet: 140.0,
+                    smallDesktop: 150.0,
+                    desktop: 160.0,
+                  ),
+                  margin: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.padding(context) * 0.4,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     image: DecorationImage(

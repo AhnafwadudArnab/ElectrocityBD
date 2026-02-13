@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 /// A horizontal row of 4 offer cards showing "Up to 90% OFF" with background images.
 class OffersUpto90 extends StatelessWidget {
   const OffersUpto90({super.key});
@@ -34,7 +36,9 @@ class OffersUpto90 extends StatelessWidget {
           .map(
             (o) => Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.padding(context) * 0.4,
+                ),
                 child: _OfferCard(
                   title: o['label'] as String,
                   imageUrl: o['image'] as String,

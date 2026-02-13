@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
+
 class PromoCard extends StatelessWidget {
   final String label;
   final String off;
@@ -16,12 +18,13 @@ class PromoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Container(
-        height: 90,
-        padding: const EdgeInsets.all(12),
+        height: r.value(mobile: 70.0, tablet: 80.0, desktop: 90.0),
+        padding: EdgeInsets.all(AppDimensions.padding(context) * 0.8),
         decoration: BoxDecoration(
           color: color.withOpacity(0.95),
           image: DecorationImage(
@@ -63,7 +66,10 @@ class PromoCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     off,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: AppDimensions.smallFont(context),
+                    ),
                   ),
                 ],
               ),
