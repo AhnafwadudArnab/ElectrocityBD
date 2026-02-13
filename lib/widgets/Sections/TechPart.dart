@@ -96,6 +96,20 @@ class _TechpartState extends State<Techpart> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount;
+
+    // Responsive grid columns
+    if (screenWidth < 600) {
+      crossAxisCount = 2; // Mobile: 2 products
+    } else if (screenWidth < 900) {
+      crossAxisCount = 3; // Tablet: 3 products
+    } else if (screenWidth < 1200) {
+      crossAxisCount = 4; // Small desktop: 4 products
+    } else {
+      crossAxisCount = 5; // Large desktop: 5 products
+    }
+
     return SingleChildScrollView(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,14 +124,13 @@ class _TechpartState extends State<Techpart> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          childAspectRatio:
-                              0.75, // Adjust height/width ratio (0.75 = taller)
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio:
+                          0.75, // Adjust height/width ratio (0.75 = taller)
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
                     itemCount: _itemsToShow,
                     itemBuilder: (context, index) => _buildProductCard(index),
                   ),
@@ -156,7 +169,7 @@ class _TechpartState extends State<Techpart> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: const Color.fromARGB(255, 187, 108, 108), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
