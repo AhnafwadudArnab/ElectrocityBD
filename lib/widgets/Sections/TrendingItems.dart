@@ -56,6 +56,13 @@ class TrendingItems extends StatelessWidget {
       originalPrice: 3500,
       discountedPrice: 2499,
     ),
+
+    TrendingItem(
+      image: 'assets/Products/3.jpg',
+      title: 'Blender Machine Complete Set',
+      originalPrice: 1200,
+      discountedPrice: 799,
+    ),
   ];
 
   @override
