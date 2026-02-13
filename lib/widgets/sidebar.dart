@@ -1,17 +1,13 @@
 import 'dart:math';
-
-import 'package:electrocitybd1/All%20Pages/Categories%20All/category_page.dart';
-import 'package:electrocitybd1/pages/Services/product_page.dart';
-import 'package:electrocitybd1/pages/Services/promotions_page.dart';
 import 'package:flutter/material.dart';
-
-import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart'; // Import your category pages
 import '../Dimensions/responsive_dimensions.dart';
-import '../pages/sidebar pages/service_page.dart';
 
-// AI design prompt (for Uizard / Midjourney etc.)
-const String kSidebarDesignPrompt =
-    'Create a modern e-commerce sidebar layout with product categories, promotional banner, latest products section, and small feature cards (free delivery, order protection, etc.). The sidebar should be clean, vertical, and scrollable, suitable for a Flutter app UI.';
+// Import your actual page links here
+import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart';
+import '../All Pages/Categories All/category_page.dart';
+import '../../pages/Services/product_page.dart';
+import '../../pages/Services/promotions_page.dart';
+import '../pages/sidebar pages/service_page.dart';
 
 class Sidebar extends StatefulWidget {
   final double? width;
@@ -22,47 +18,47 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  bool _expanded = false;
+  bool _expanded = true; // Default to expanded for desktop feel
 
   final List<Map<String, dynamic>> _categories = [
     {
-      'icon': Icons.electrical_services,
-      'text': 'Electronics & Gadgets',
-      'page': ElectronicsGadgetsPage(), // <-- Widget,
+      'icon': Icons.laptop_mac,
+      'text': 'Laptops & Computers',
+      'page': ElectronicsGadgetsPage(),
+    },
+    {
+      'icon': Icons.smartphone,
+      'text': 'Smartphones & Tablets',
+      'page': ElectronicsGadgetsPage(),
+    },
+    {
+      'icon': Icons.tv,
+      'text': 'TV & Home Entertainment',
+      'page': ElectronicsGadgetsPage(),
     },
     {
       'icon': Icons.kitchen,
-      'text': 'Kitchen & Home Appliances',
+      'text': 'Kitchen Appliances',
       'page': KitchenHomeAppliancesPage(),
     },
     {
-      'icon': Icons.build,
-      'text': 'Industrial & Tools',
+      'icon': Icons.wash,
+      'text': 'Washing Machines',
+      'page': KitchenHomeAppliancesPage(),
+    },
+    {
+      'icon': Icons.memory,
+      'text': 'Components & Gaming',
       'page': IndustrialToolsPage(),
     },
     {
-      'icon': Icons.home,
-      'text': 'Home, Lifestyle & Decoration',
-      'page': HomeLifestyleDecorationPage(),
-    },
-    {
-      'icon': Icons.checkroom,
-      'text': 'Fashion & Accessories',
-      'page': FashionAccessoriesPage(),
-    },
-    {
-      'icon': Icons.toys,
-      'text': 'Gifts, Toys & Sports',
-      'page': GiftsToysSportsPage(),
-    },
-    {
-      'icon': Icons.chair,
-      'text': 'Furniture & Fixtures',
-      'page': FurnitureFixturesPage(),
+      'icon': Icons.camera_alt,
+      'text': 'Cameras & Accessories',
+      'page': ElectronicsGadgetsPage(),
     },
   ];
 
-  void _openCategory(BuildContext context, Widget page, String title) {
+  void _openCategory(BuildContext context, String title) {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => CategoryPage(title: title)));
@@ -71,76 +67,32 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
-    final accent = Colors.deepOrange;
-    final redAccent = Colors.redAccent;
+    const primaryRed = Colors.red;
 
     return Container(
-      // Provide a sensible default width for the sidebar when none is passed
       width:
           widget.width ??
           r.value(
             smallMobile: 0.0,
             mobile: 0.0,
-            tablet: 240.0,
-            smallDesktop: 260.0,
-            desktop: 280.0,
+            tablet: 260.0,
+            smallDesktop: 280.0,
+            desktop: 300.0,
           ),
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(right: BorderSide(color: Colors.grey.shade200)),
+      ),
       child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          vertical: AppDimensions.padding(context) * 0.6,
-          horizontal: AppDimensions.padding(context) * 0.6,
-        ),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 🔽 Dropdown Header button
-            Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              child: InkWell(
-                onTap: () => setState(() => _expanded = !_expanded),
-                borderRadius: BorderRadius.circular(6),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(199, 216, 197, 199),
-                    border: Border.all(color: Colors.grey.shade200),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          ' Browse Categories',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade900,
-                          ),
-                        ),
-                      ),
-                      AnimatedRotation(
-                        duration: const Duration(milliseconds: 200),
-                        turns: _expanded ? 0.5 : 0.0,
-                        child: Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
+            // 🛡️ HEADER / CATEGORY TOGGLE
+            _buildSectionHeader('CATEGORIES', canToggle: true),
             const SizedBox(height: 8),
-
-            // 📂 Category List
             AnimatedCrossFade(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 300),
               crossFadeState: _expanded
                   ? CrossFadeState.showFirst
                   : CrossFadeState.showSecond,
@@ -148,402 +100,79 @@ class _SidebarState extends State<Sidebar> {
               secondChild: const SizedBox.shrink(),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-            // 🏷️ Promo Banner
-            _buildPromoBanner(redAccent),
+            // 🏷️ PROMO CARD
+            _buildLivePromoCard(primaryRed),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-            // 🆕 Latest Products
-            _buildLatestProducts(accent),
+            // 🆕 LATEST TECH (Real-time feel)
+            _buildSectionHeader('LATEST ARRIVALS'),
+            const SizedBox(height: 10),
+            _buildProductMiniList(primaryRed),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-            // ⚙️ Services
-            _buildServiceIcons(),
-
-            const SizedBox(height: 12),
-
-            // 📢 Bottom Ad
-            _buildBottomAd(accent),
+            // ⚙️ TRUST BADGES
+            _buildTrustSection(),
           ],
         ),
       ),
     );
   }
 
-  // 🧩 Category List
-  Widget _buildCategoryList(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Column(
-        children: List.generate(_categories.length, (i) {
-          final item = _categories[i];
-          return Column(
-            children: [
-              InkWell(
-                onTap: () => _openCategory(context, item['page'], item['text']),
-                hoverColor: Colors.orange.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Icon(
-                          item['icon'] as IconData,
-                          size: 18,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          item['text'] as String,
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 14,
-                        color: Colors.grey.shade400,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (i != _categories.length - 1)
-                Divider(height: 1, color: Colors.grey.shade200),
-            ],
-          );
-        }),
-      ),
-    );
-  }
-
-  // 🏷️ Promo Banner
-  Widget _buildPromoBanner(Color badgeColor) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Stack(
-        children: [
-          // Network image with graceful loading placeholder and error fallback
-          Image.network(
-            'https://picsum.photos/300/200?random=1',
-            height: 120,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 120,
-                color: Colors.grey.shade200,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 120,
-              color: Colors.grey.shade200,
-              child: const Center(child: Icon(Icons.broken_image)),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.black.withOpacity(0.0),
-                  Colors.black.withOpacity(0.35),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 10,
-            bottom: 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    '50% OFF',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'New Arrival',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.95),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Colorful Shoes',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // CTA
-                ElevatedButton(
-                  onPressed: () => Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => PromotionsPage())),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black87,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'Shop Now',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 🆕 Latest Products Section
-  Widget _buildLatestProducts(Color accent) {
-    int randomPrice({int min = 300, int max = 2000}) {
-      final rnd = Random();
-      final steps = ((max - min) ~/ 10) + 1;
-      return min + rnd.nextInt(steps) * 10;
-    }
-
-    final products = [
-      {
-        'img': 'https://picsum.photos/60/60?random=11',
-        'title': 'Wireless Headphones',
-        'price': 'Tk ${randomPrice()}',
-      },
-      {
-        'img': 'https://picsum.photos/60/60?random=12',
-        'title': 'Sport Watch',
-        'price': 'Tk ${randomPrice()}',
-      },
-      {
-        'img': 'https://picsum.photos/60/60?random=13',
-        'title': 'Leather Wallet',
-        'price': 'Tk ${randomPrice()}',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildSectionHeader(String title, {bool canToggle = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 6),
-          child: Text(
-            'Latest Products',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade900,
-            ),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade600,
+            letterSpacing: 1.2,
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade100),
-            borderRadius: BorderRadius.circular(6),
+        if (canToggle)
+          IconButton(
+            onPressed: () => setState(() => _expanded = !_expanded),
+            icon: Icon(_expanded ? Icons.remove : Icons.add, size: 16),
+            constraints: const BoxConstraints(),
+            padding: EdgeInsets.zero,
           ),
-          child: Column(
-            children: List.generate(products.length, (i) {
-              final p = products[i];
-              return Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ProductPage(
-                            title: p['title'] as String,
-                            imageUrl: p['img'] as String,
-                            price: p['price'] as String,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.network(
-                            p['img'] as String,
-                            width: 52,
-                            height: 52,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                width: 52,
-                                height: 52,
-                                color: Colors.grey.shade200,
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                                  width: 52,
-                                  height: 52,
-                                  color: Colors.grey.shade200,
-                                  child: const Center(
-                                    child: Icon(Icons.broken_image, size: 20),
-                                  ),
-                                ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                p['title'] as String,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: List.generate(
-                                  5,
-                                  (i) => const Icon(
-                                    Icons.star,
-                                    size: 12,
-                                    color: Colors.amber,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          p['price'] as String,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: accent,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (i != products.length - 1)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Divider(height: 1, color: Colors.grey.shade200),
-                    ),
-                ],
-              );
-            }),
-          ),
-        ),
       ],
     );
   }
 
-  // ⚙️ Service Icons Row
-  Widget _buildServiceIcons() {
-    final services = [
-      {'icon': Icons.local_shipping, 'text': 'Free Delivery'},
-      {'icon': Icons.lock, 'text': 'Secure Payment'},
-      {'icon': Icons.card_giftcard, 'text': 'Promotion Gift'},
-      {'icon': Icons.monetization_on, 'text': 'Money Back'},
-    ];
-
+  Widget _buildCategoryList(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade100),
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: services.map((s) {
-          return Expanded(
-            child: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ServicePage(title: s['text'] as String),
-                ),
-              ),
-              borderRadius: BorderRadius.circular(6),
-              child: Column(
+      child: Column(
+        children: _categories.map((item) {
+          return InkWell(
+            onTap: () => _openCategory(context, item['text']),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Colors.orange.withOpacity(0.12),
-                    child: Icon(
-                      s['icon'] as IconData,
-                      color: Colors.deepOrange,
-                      size: 18,
+                  Icon(item['icon'], size: 18, color: Colors.blueGrey.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      item['text'],
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    s['text'] as String,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                  const Icon(Icons.chevron_right, size: 14, color: Colors.grey),
                 ],
               ),
             ),
@@ -553,54 +182,150 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-  // 📢 Bottom Ad
-  Widget _buildBottomAd(Color accent) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Stack(
+  Widget _buildLivePromoCard(Color accent) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [accent, Colors.red.shade900]),
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: const NetworkImage(
+            'https://www.transparenttextures.com/patterns/carbon-fibre.png',
+          ),
+          opacity: 0.1,
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network(
-            'https://picsum.photos/300/150?random=5',
-            height: 110,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 110,
-                color: Colors.grey.shade200,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 110,
-              color: Colors.grey.shade200,
-              child: const Center(child: Icon(Icons.broken_image)),
+          const Text(
+            'FLASH SALE',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.12)),
-          Positioned(
-            left: 12,
-            top: 12,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Up to 50% Off',
-                  style: TextStyle(color: accent, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Furniture Sale',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+          const Text(
+            'Up to 40% Off on Earbuds',
+            style: TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.red,
+              minimumSize: const Size(80, 32),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
+            child: const Text(
+              'VIEW ALL',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductMiniList(Color accent) {
+    final products = [
+      {
+        'name': 'RTX 4090 GPU',
+        'price': '1,85,000',
+        'img': 'https://picsum.photos/id/1/60/60',
+      },
+      {
+        'name': 'MacBook M3 Pro',
+        'price': '2,45,000',
+        'img': 'https://picsum.photos/id/2/60/60',
+      },
+      {
+        'name': 'Sony WH-1000XM5',
+        'price': '35,500',
+        'img': 'https://picsum.photos/id/3/60/60',
+      },
+    ];
+
+    return Column(
+      children: products.map((p) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  p['img']!,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      p['name']!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Tk ${p['price']}',
+                      style: TextStyle(
+                        color: accent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTrustSection() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade900,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          _trustItem(Icons.verified_user, 'Official Warranty'),
+          const Divider(color: Colors.white10),
+          _trustItem(Icons.support_agent, '24/7 Tech Support'),
+          const Divider(color: Colors.white10),
+          _trustItem(Icons.local_shipping, 'Fast Island-wide Delivery'),
+        ],
+      ),
+    );
+  }
+
+  Widget _trustItem(IconData icon, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.orange, size: 16),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 11),
           ),
         ],
       ),
