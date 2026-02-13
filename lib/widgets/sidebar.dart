@@ -1,17 +1,11 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../Dimensions/responsive_dimensions.dart';
-
-// Import your actual page links here
 import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart';
 import '../All Pages/Categories All/category_page.dart';
-import '../../pages/Services/product_page.dart';
-import '../../pages/Services/promotions_page.dart';
-import '../pages/sidebar pages/service_page.dart';
 
 class Sidebar extends StatefulWidget {
   final double? width;
-  const Sidebar({Key? key, this.width}) : super(key: key);
+  const Sidebar({super.key, this.width});
 
   @override
   State<Sidebar> createState() => _SidebarState();
