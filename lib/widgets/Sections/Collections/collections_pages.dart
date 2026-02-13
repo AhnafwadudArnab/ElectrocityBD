@@ -75,9 +75,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
   }
 
   void _navigateToCategory(String title, String page) {
-    // Navigate to specific pages based on the category
     Widget destinationPage;
-
     switch (page) {
       case 'monitor':
         destinationPage = const MonitorListingPage();
@@ -88,7 +86,6 @@ class _CollectionsPageState extends State<CollectionsPage> {
       case 'smartphone':
         destinationPage = const SmartphoneListingPage();
         break;
-      // Add more cases for other categories
       default:
         destinationPage = CategoryDetailsPage(categoryTitle: title);
     }
@@ -142,15 +139,12 @@ class _CollectionsPageState extends State<CollectionsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.grey.withOpacity(0.12)),
-            ),
+          SizedBox(
+            height: 100,
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
               child: Row(children: _categories.map(_categoryTile).toList()),
             ),
           ),
@@ -160,47 +154,68 @@ class _CollectionsPageState extends State<CollectionsPage> {
   }
 
   Widget _categoryTile(Map<String, dynamic> c) {
-    return InkWell(
-      onTap: () => _navigateToCategory(c['title'], c['page']),
-      child: Container(
-        width: _tileWidth,
-        height: 92,
-        decoration: BoxDecoration(
-          border: Border(
-            right: BorderSide(color: Colors.grey.withOpacity(0.12)),
+    return Container(
+      width: _tileWidth,
+      margin: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: () => _navigateToCategory(c['title'], c['page']),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            // Set border to red
+            border: Border.all(
+              color: const Color.fromARGB(255, 197, 111, 105), // Using red border color
+              width: 1.5,
+            ),
           ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    c['title'],
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${c['count']} items',
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ],
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      c['title'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${c['count']} items',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(6),
+              const SizedBox(width: 4),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(
+                    0.05,
+                  ), // Subtle red tint for icon bg
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  c['icon'],
+                  size: 22,
+                  color: Colors.red,
+                ), // Red icon to match
               ),
-              child: Icon(c['icon'], size: 28, color: Colors.black54),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -223,52 +238,32 @@ class _CollectionsPageState extends State<CollectionsPage> {
   }
 }
 
+// --- Placeholder Classes remain the same ---
 class CategoryDetailsPage extends StatelessWidget {
   final String categoryTitle;
-
   const CategoryDetailsPage({super.key, required this.categoryTitle});
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(categoryTitle)),
-      body: Center(child: Text('$categoryTitle Details Page')),
-    );
-  }
+  Widget build(BuildContext context) =>
+      Scaffold(appBar: AppBar(title: Text(categoryTitle)));
 }
 
 class MonitorListingPage extends StatelessWidget {
-  const MonitorListingPage();
-
+  const MonitorListingPage({super.key});
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Monitor Listing')),
-      body: Center(child: Text('Monitor Listing Page')),
-    );
-  }
+  Widget build(BuildContext context) =>
+      Scaffold(appBar: AppBar(title: const Text('Monitor Listing')));
 }
 
 class LaptopListingPage extends StatelessWidget {
-  const LaptopListingPage();
-
+  const LaptopListingPage({super.key});
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Laptop Listing')),
-      body: Center(child: Text('Laptop Listing Page')),
-    );
-  }
+  Widget build(BuildContext context) =>
+      Scaffold(appBar: AppBar(title: const Text('Laptop Listing')));
 }
 
 class SmartphoneListingPage extends StatelessWidget {
-  const SmartphoneListingPage();
-
+  const SmartphoneListingPage({super.key});
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Smartphone Listing')),
-      body: Center(child: Text('Smartphone Listing Page')),
-    );
-  }
+  Widget build(BuildContext context) =>
+      Scaffold(appBar: AppBar(title: const Text('Smartphone Listing')));
 }

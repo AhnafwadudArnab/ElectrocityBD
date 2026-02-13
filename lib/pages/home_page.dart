@@ -20,10 +20,11 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
-    final showSidebar = !r.isSmallMobile && !r.isMobile;
+    final showSidebar = r.isSmallDesktop || r.isDesktop;
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 252, 252, 252),
+      drawer: !showSidebar ? Drawer(child: const Sidebar()) : null,
       body: Column(
         children: [
           const Header(),
@@ -120,7 +121,7 @@ class _MainContentState extends State<_MainContent> {
     final height = r.value(
       smallMobile: 200.0,
       mobile: 250.0,
-      tablet: 350.0,
+      tablet: 280.0,
       smallDesktop: 400.0,
       desktop: 420.0,
     );
@@ -130,7 +131,7 @@ class _MainContentState extends State<_MainContent> {
       tablet: 40.0,
       desktop: 60.0,
     );
-    final showButton = !r.isSmallMobile && !r.isMobile;
+    final showButton = !r.isSmallMobile;
 
     return SizedBox(
       height: height,
@@ -156,7 +157,7 @@ class _MainContentState extends State<_MainContent> {
                 width: r.value(
                   smallMobile: 200.0,
                   mobile: 280.0,
-                  tablet: 350.0,
+                  tablet: 320.0,
                   desktop: 380.0,
                 ),
                 padding: EdgeInsets.all(
@@ -237,45 +238,43 @@ class _MainContentState extends State<_MainContent> {
               ),
             ),
 
-            /// SHOP NOW BUTTON (hide on small screens)
-            if (showButton)
-              Positioned(
-                left: r.value(
-                  smallMobile: 500.0,
-                  mobile: 500.0,
-                  tablet: 500.0,
-                  smallDesktop: 650.0,
-                  desktop: 730.0,
-                ),
-                right: 0,
-                bottom: 25,
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC107),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: r.value(
-                          smallMobile: 30.0,
-                          mobile: 30.0,
-                          tablet: 30.0,
-                          desktop: 40.0,
-                        ),
-                        vertical: r.value(
-                          smallMobile: 16.0,
-                          mobile: 16.0,
-                          tablet: 16.0,
-                          desktop: 20.0,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Shop Now'),
-                  ),
-                ),
-              ),
+            // /// SHOP NOW BUTTON (hide on small screens)
+            // if (showButton)
+            //   Positioned(
+            //     bottom: 25,
+            //     right: r.value(
+            //       mobile: 20.0,
+            //       tablet: 30.0,
+            //       smallDesktop: 40.0,
+            //       desktop: 20.0,
+            //     ),
+            //     child: ElevatedButton(
+            //       onPressed: () {},
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: const Color(0xFFFFC107),
+            //         padding: EdgeInsets.symmetric(
+            //           horizontal: r.value(
+            //             smallMobile: 16.0,
+            //             mobile: 22.0,
+            //             tablet: 30.0,
+            //             smallDesktop: 35.0,
+            //             desktop: 40.0,
+            //           ),
+            //           vertical: r.value(
+            //             smallMobile: 10.0,
+            //             mobile: 12.0,
+            //             tablet: 16.0,
+            //             smallDesktop: 18.0,
+            //             desktop: 20.0,
+            //           ),
+            //         ),
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(8),
+            //         ),
+            //       ),
+            //       child: const Text('Shop Now'),
+            //     ),
+            //   ),
           ],
         ),
       ),

@@ -219,6 +219,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
           decoration: BoxDecoration(
             color: Colors.black87,
             borderRadius: BorderRadius.circular(6),
+            
           ),
           child: Text(
             value,
@@ -270,7 +271,11 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey.withOpacity(0.12)),
+        // border: Border.all(color: Colors.grey.withOpacity(0.12)),
+        border: Border.all(
+              color: const Color.fromARGB(255, 207, 150, 65), // Using red border color
+              width: 1.5,
+            ),
       ),
       child: Row(
         children: [

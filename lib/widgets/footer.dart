@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import '../Dimensions/responsive_dimensions.dart';
+import '../Dimensions/responsive_dimensions.dart'; // Adjust path as needed
 
 class FooterSection extends StatelessWidget {
   const FooterSection({super.key});
@@ -9,109 +8,118 @@ class FooterSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // ✅ VERY IMPORTANT
-        children: [
-          // Main footer
-          Container(
-            margin: EdgeInsets.fromLTRB(
-              AppDimensions.padding(context),
-              AppDimensions.padding(context) * 0.5,
-              AppDimensions.padding(context),
-              0,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB700),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: EdgeInsets.symmetric(
-              vertical: AppDimensions.padding(context) * 1.3,
-              horizontal: AppDimensions.padding(context) * 1.3,
-            ),
-            child: r.isSmallMobile || r.isMobile || r.isTablet
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _logoSection(false),
-                      const SizedBox(height: 16),
-                      _companySection(false),
-                      const SizedBox(height: 16),
-                      _customerServiceSection(false),
-                      const SizedBox(height: 16),
-                      _infoSection(false),
-                      const SizedBox(height: 16),
-                      _contactSection(false),
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _logoSection(true),
-                      _companySection(true),
-                      _customerServiceSection(true),
-                      _infoSection(true),
-                      _contactSection(true),
-                    ],
-                  ),
-          ),
+    final padding = AppDimensions.padding(context);
 
-          // Copyright bar
-          Container(
-            height: 36,
-            width: double.infinity,
-            alignment: Alignment.center,
-            child: const Text(
-              'Copyright © 2026 ElectrocityBD. All Rights Reserved.',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: double.infinity,
+          margin: EdgeInsets.all(padding),
+          padding: EdgeInsets.all(padding * 1.5),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFB700),
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.start,
+            runSpacing: 30, // Space between rows when wrapping
+            spacing: 10,   // Minimum horizontal space between items
+            children: [
+              _buildSizedSection(context, const _LogoSection(), flex: 2.2),
+              _buildSizedSection(context, const _CompanySection()),
+              _buildSizedSection(context, const _CustomerServiceSection()),
+              _buildSizedSection(context, const _InfoSection()),
+              _buildSizedSection(context, const _ContactSection(), flex: 1.8),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Copyright © 2026 ElectrocityBD. All Rights Reserved.',
+          style: TextStyle(
+            fontSize: AppDimensions.smallFont(context),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: padding),
+      ],
     );
   }
 
-  // ---------- Sections ----------
+  /// Calculates dynamic width for each footer column
+  Widget _buildSizedSection(BuildContext context, Widget child, {double flex = 1}) {
+    final r = AppResponsive.of(context);
+    
+    double width;
+    if (r.isSmallMobile) {
+      width = r.width; // Stack fully on tiny screens
+    } else if (r.isMobile) {
+      width = r.wp(42); // 2 per row
+    } else if (r.isTablet) {
+      width = r.wp(28); // 3 per row
+    } else {
+      // Small Desktop (1024px) & Desktop
+      // We divide the space into roughly 7 units (2.2 + 1 + 1 + 1 + 1.8)
+      width = r.wp(12) * flex; 
+    }
 
-  Widget _logoSection(bool useExpanded) {
-    final content = Column(
+    return SizedBox(
+      width: width,
+      child: child,
+    );
+  }
+}
+
+/// ===============================
+/// LOGO SECTION
+/// ===============================
+
+class _LogoSection extends StatelessWidget {
+  const _LogoSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            CircleAvatar(
+          children: [
+            const CircleAvatar(
               backgroundColor: Colors.white,
-              radius: 20,
+              radius: 18,
               child: Text(
                 '24',
-                style: TextStyle(
-                  color: Color(0xFF2E3192),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Color(0xFF2E3192), fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(width: 10),
-            Text(
-              'ElectrocityBD',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                'ElectrocityBD',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: AppDimensions.titleFont(context),
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Your one-stop shop for the\nlatest electronics, gadgets, and\naccessories.',
-          style: TextStyle(color: Colors.white, fontSize: 12, height: 1.5),
+        Text(
+          'Your one-stop shop for the latest electronics, gadgets, and accessories.',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: AppDimensions.smallFont(context),
+            height: 1.5,
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             _social(FontAwesomeIcons.facebookF),
             _social(FontAwesomeIcons.twitter),
@@ -121,146 +129,146 @@ class FooterSection extends StatelessWidget {
         ),
       ],
     );
-    return useExpanded ? Expanded(flex: 2, child: content) : content;
   }
+}
 
-  Widget _companySection(bool useExpanded) => _linkColumn('Company', [
-    'About Us',
-    'Blog',
-    'Contact Us',
-    'Career',
-  ], useExpanded);
+/// ===============================
+/// LINK SECTIONS
+/// ===============================
 
-  Widget _customerServiceSection(bool useExpanded) => _linkColumn(
-    'Customer Services',
-    ['My Account', 'Track Order', 'Return', 'FAQ'],
-    useExpanded,
-  );
+class _CompanySection extends StatelessWidget {
+  const _CompanySection();
+  @override
+  Widget build(BuildContext context) => _linkColumn(context, 'Company', ['About Us', 'Blog', 'Contact Us', 'Career']);
+}
 
-  Widget _infoSection(bool useExpanded) => _linkColumn('Our Information', [
-    'Privacy',
-    'Terms',
-    'Return Policy',
-  ], useExpanded);
+class _CustomerServiceSection extends StatelessWidget {
+  const _CustomerServiceSection();
+  @override
+  Widget build(BuildContext context) => _linkColumn(context, 'Services', ['My Account', 'Track Order', 'Return', 'FAQ']);
+}
 
-  Widget _contactSection(bool useExpanded) {
-    final content = Column(
+class _InfoSection extends StatelessWidget {
+  const _InfoSection();
+  @override
+  Widget build(BuildContext context) => _linkColumn(context, 'Information', ['Privacy', 'Terms', 'Return Policy']);
+}
+
+/// ===============================
+/// CONTACT SECTION
+/// ===============================
+
+class _ContactSection extends StatelessWidget {
+  const _ContactSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
+        Text(
           'Contact Info',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: AppDimensions.bodyFont(context),
           ),
         ),
         const SizedBox(height: 12),
-        _contactRow(Icons.phone, '+880 1234-567890'),
+        _contactRow(context, Icons.phone, '+880 1234-567890'),
         const SizedBox(height: 8),
-        _contactRow(Icons.phone_android, '+880 9876-543210'),
-        const SizedBox(height: 8),
-        _contactRow(Icons.email, 'support@electrocitybd.com'),
+        _contactRow(context, Icons.email, 'support@electrocitybd.com'),
         const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Icon(Icons.location_on, color: Colors.white, size: 18),
-            SizedBox(width: 8),
+          children: [
+            const Icon(Icons.location_on, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '123, Main Street, Dhaka,\nBangladesh',
+                '123, Main Street, Dhaka, Bangladesh',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: AppDimensions.smallFont(context),
                   height: 1.4,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _paymentIcon('assets/master.png'),
-            const SizedBox(width: 10),
-            _paymentIcon('assets/paypal.jpg'),
-            const SizedBox(width: 10),
-            _paymentIcon('assets/visa.png'),
-          ],
+      ],
+    );
+  }
+}
+
+/// ===============================
+/// HELPERS
+/// ===============================
+
+Widget _linkColumn(BuildContext context, String title, List<String> links) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        title,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: AppDimensions.bodyFont(context),
         ),
-      ],
-    );
-    return useExpanded ? Expanded(flex: 2, child: content) : content;
-  }
+      ),
+      const SizedBox(height: 8),
+      ...links.map((link) => _footerButton(context, link)),
+    ],
+  );
+}
 
-  static Widget _contactRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white, size: 18),
-        const SizedBox(width: 8),
-        Text(text, style: const TextStyle(color: Colors.white, fontSize: 12)),
-      ],
-    );
-  }
+Widget _footerButton(BuildContext context, String text) {
+  return TextButton(
+    onPressed: () {},
+    style: TextButton.styleFrom(
+      foregroundColor: Colors.white,
+      padding: EdgeInsets.zero,
+      alignment: Alignment.centerLeft,
+      minimumSize: const Size(0, 24),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: AppDimensions.smallFont(context)),
+    ),
+  );
+}
 
-  // ---------- Helpers ----------
-
-  static Widget _linkColumn(
-    String title,
-    List<String> links,
-    bool useExpanded,
-  ) {
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
+Widget _contactRow(BuildContext context, IconData icon, String text) {
+  return Row(
+    children: [
+      Icon(icon, color: Colors.white, size: 16),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          text,
+          style: TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: AppDimensions.smallFont(context),
           ),
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 12),
-        ...links.map(_footerButton),
-      ],
-    );
-    return useExpanded ? Expanded(child: content) : content;
-  }
-
-  static Widget _footerButton(String text) {
-    return TextButton(
-      onPressed: () {},
-      style: TextButton.styleFrom(
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        alignment: Alignment.centerLeft,
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child: Text(text, style: const TextStyle(fontSize: 12)),
-    );
-  }
+    ],
+  );
+}
 
-  static Widget _paymentIcon(String asset) {
-    return Container(
-      width: 52,
-      height: 36,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Image.asset(asset, fit: BoxFit.contain),
-    );
-  }
-
-  static Widget _social(IconData icon) {
-    return IconButton(
+Widget _social(IconData icon) {
+  return SizedBox(
+    width: 32,
+    child: IconButton(
       onPressed: () {},
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
       icon: FaIcon(icon, color: Colors.white, size: 16),
-    );
-  }
+    ),
+  );
 }

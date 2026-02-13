@@ -1,7 +1,5 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-
 import '../../Dimensions/responsive_dimensions.dart';
 
 class TrendingItem {
@@ -9,14 +7,12 @@ class TrendingItem {
   final String title;
   final int originalPrice;
   final int discountedPrice;
-  final String timeRemaining;
 
   const TrendingItem({
     required this.image,
     required this.title,
     required this.originalPrice,
     required this.discountedPrice,
-    required this.timeRemaining,
   });
 }
 
@@ -29,49 +25,41 @@ class TrendingItems extends StatelessWidget {
       title: 'Blender Machine',
       originalPrice: 1500,
       discountedPrice: 999,
-      timeRemaining: '02:12:34',
     ),
     TrendingItem(
       image: 'assets/Products/2.jpg',
       title: 'Water Heater',
       originalPrice: 2000,
       discountedPrice: 1299,
-      timeRemaining: '01:45:20',
     ),
     TrendingItem(
       image: 'assets/Products/3.jpg',
       title: 'Blender Machine Complete Set',
       originalPrice: 1200,
       discountedPrice: 799,
-      timeRemaining: '03:30:15',
     ),
     TrendingItem(
       image: 'assets/Products/4.jpg',
       title: 'Iron Machine',
       originalPrice: 800,
       discountedPrice: 499,
-      timeRemaining: '02:00:45',
     ),
     TrendingItem(
       image: 'assets/Products/5.jpg',
       title: 'Electric Oven',
       originalPrice: 1200,
       discountedPrice: 749,
-      timeRemaining: '04:15:30',
     ),
     TrendingItem(
       image: 'assets/Products/6.jpg',
       title: 'Washing Machine',
       originalPrice: 3500,
       discountedPrice: 2499,
-      timeRemaining: '01:20:10',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final trendingProducts = _sampleProducts;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -85,12 +73,7 @@ class TrendingItems extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                // Navigate to full trending items page
-              },
-              child: const Text('See All'),
-            ),
+            TextButton(onPressed: () {}, child: const Text('See All')),
           ],
         ),
         const SizedBox(height: 8),
@@ -106,21 +89,22 @@ class TrendingItems extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(.219),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey),
+                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
                 ),
                 child: SizedBox(
-                  height: 240,
+                  // Reduced height slightly since the timer row is gone
+                  height: 220,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: trendingProducts.length,
+                    itemCount: _sampleProducts.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
-                      final product = trendingProducts[index];
+                      final product = _sampleProducts[index];
 
                       return Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          // Glass-style panel
+                          // Glass-style background panel
                           Positioned(
                             top: 16,
                             left: 0,
@@ -130,7 +114,7 @@ class TrendingItems extends StatelessWidget {
                                 filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                                 child: Container(
                                   width: 190,
-                                  height: 210,
+                                  height: 190,
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(12),
@@ -145,10 +129,14 @@ class TrendingItems extends StatelessWidget {
 
                           // Main product card
                           Container(
-                            width: 198,
+                            width: 205,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF62A9D8),
+                                width: 1.5,
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
@@ -179,69 +167,63 @@ class TrendingItems extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      // Product Title
                                       Text(
                                         product.title,
-                                        style: const TextStyle(fontSize: 13),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
-                                      // Original Price & Discounted Price
                                       Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            'Tk ${product.originalPrice}',
-                                            style: const TextStyle(
-                                              decoration:
-                                                  TextDecoration.lineThrough,
-                                              color: Colors.grey,
-                                              fontSize: 12,
-                                            ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Tk ${product.originalPrice}',
+                                                style: const TextStyle(
+                                                  decoration: TextDecoration
+                                                      .lineThrough,
+                                                  color: Colors.grey,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Tk ${product.discountedPrice}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: Color(0xFF2E3192),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Tk ${product.discountedPrice}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      // Time Remaining
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.timer,
-                                            size: 14,
-                                            color: Colors.orange,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            product.timeRemaining,
-                                            style: const TextStyle(
-                                              color: Colors.orange,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          const Spacer(),
                                           ElevatedButton(
                                             onPressed: () {},
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.orange,
+                                              foregroundColor: Colors.white,
+                                              elevation: 0,
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 6,
+                                                    horizontal: 12,
+                                                    vertical: 0,
                                                   ),
+                                              minimumSize: const Size(0, 30),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
                                             ),
                                             child: const Text(
                                               'Add',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                              ),
+                                              style: TextStyle(fontSize: 12),
                                             ),
                                           ),
                                         ],

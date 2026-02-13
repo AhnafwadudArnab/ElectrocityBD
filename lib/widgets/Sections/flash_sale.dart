@@ -68,6 +68,13 @@ class FlashSaleCarousel extends StatelessWidget {
         discountedPrice: 1299,
         timeRemaining: '01:20:10',
       ),
+      FlashSaleItem(
+        image: 'assets/Products/3.jpg',
+        title: '3',
+        originalPrice: 1200,
+        discountedPrice: 799,
+        timeRemaining: '03:30:15',
+      ),
     ];
 
     return Column(
@@ -145,10 +152,19 @@ class FlashSaleCarousel extends StatelessWidget {
 
                           // Main product card
                           Container(
-                            width: 198,
+                            width: 204,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color.fromARGB(
+                                  255,
+                                  98,
+                                  169,
+                                  216,
+                                ), // Using red border color
+                                width: 1.5,
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
