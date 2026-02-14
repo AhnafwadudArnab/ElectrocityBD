@@ -1,9 +1,8 @@
+import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../Dimensions/responsive_dimensions.dart';
-import '../pages/Profiles/Profile.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({super.key});
@@ -73,7 +72,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             SizedBox(width: 210),
-
             /// SEARCH ICON (instead of full search bar on small screens)
             if (isSmall)
               IconButton(
@@ -150,7 +148,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             /// PROFILE
             IconButton(
               onPressed: () {
-                Get.to(() => const ProfilePage());
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
+                );
               },
               icon: const Icon(Icons.person_rounded, color: Colors.white),
             ),

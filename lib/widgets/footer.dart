@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../Dimensions/responsive_dimensions.dart'; // Adjust path as needed
 
 class FooterSection extends StatelessWidget {
@@ -15,8 +16,8 @@ class FooterSection extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          margin: EdgeInsets.all(padding),
-          padding: EdgeInsets.all(padding * 1.5),
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: padding),
+          padding: EdgeInsets.all(padding * 1.8),
           decoration: BoxDecoration(
             color: const Color(0xFFFFB700),
             borderRadius: BorderRadius.circular(16),
@@ -25,7 +26,7 @@ class FooterSection extends StatelessWidget {
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.start,
             runSpacing: 30, // Space between rows when wrapping
-            spacing: 10,   // Minimum horizontal space between items
+            spacing: 10, // Minimum horizontal space between items
             children: [
               _buildSizedSection(context, const _LogoSection(), flex: 2.2),
               _buildSizedSection(context, const _CompanySection()),
@@ -35,7 +36,6 @@ class FooterSection extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 10),
         Text(
           'Copyright © 2026 ElectrocityBD. All Rights Reserved.',
           style: TextStyle(
@@ -43,15 +43,19 @@ class FooterSection extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: padding),
+       // SizedBox(height: padding),
       ],
     );
   }
 
   /// Calculates dynamic width for each footer column
-  Widget _buildSizedSection(BuildContext context, Widget child, {double flex = 1}) {
+  Widget _buildSizedSection(
+    BuildContext context,
+    Widget child, {
+    double flex = 1,
+  }) {
     final r = AppResponsive.of(context);
-    
+
     double width;
     if (r.isSmallMobile) {
       width = r.width; // Stack fully on tiny screens
@@ -62,13 +66,10 @@ class FooterSection extends StatelessWidget {
     } else {
       // Small Desktop (1024px) & Desktop
       // We divide the space into roughly 7 units (2.2 + 1 + 1 + 1 + 1.8)
-      width = r.wp(12) * flex; 
+      width = r.wp(12) * flex;
     }
 
-    return SizedBox(
-      width: width,
-      child: child,
-    );
+    return SizedBox(width: width, child: child);
   }
 }
 
@@ -93,7 +94,10 @@ class _LogoSection extends StatelessWidget {
               radius: 18,
               child: Text(
                 '24',
-                style: TextStyle(color: Color(0xFF2E3192), fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Color(0xFF2E3192),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -139,19 +143,33 @@ class _LogoSection extends StatelessWidget {
 class _CompanySection extends StatelessWidget {
   const _CompanySection();
   @override
-  Widget build(BuildContext context) => _linkColumn(context, 'Company', ['About Us', 'Blog', 'Contact Us', 'Career']);
+  Widget build(BuildContext context) => _linkColumn(context, 'Company', [
+    'About Us',
+    'Blog',
+    'Contact Us',
+    'Career',
+  ]);
 }
 
 class _CustomerServiceSection extends StatelessWidget {
   const _CustomerServiceSection();
   @override
-  Widget build(BuildContext context) => _linkColumn(context, 'Services', ['My Account', 'Track Order', 'Return', 'FAQ']);
+  Widget build(BuildContext context) => _linkColumn(context, 'Services', [
+    'My Account',
+    'Track Order',
+    'Return',
+    'FAQ',
+  ]);
 }
 
 class _InfoSection extends StatelessWidget {
   const _InfoSection();
   @override
-  Widget build(BuildContext context) => _linkColumn(context, 'Information', ['Privacy', 'Terms', 'Return Policy']);
+  Widget build(BuildContext context) => _linkColumn(context, 'Information', [
+    'Privacy',
+    'Terms',
+    'Return Policy',
+  ]);
 }
 
 /// ===============================
