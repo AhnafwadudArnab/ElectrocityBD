@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
+import '../pages/Profiles/Profile.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({super.key});
@@ -148,7 +149,9 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
 
             /// PROFILE
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Get.to(() => const ProfilePage());
+              },
               icon: const Icon(Icons.person_rounded, color: Colors.white),
             ),
             const SizedBox(width: 300),
