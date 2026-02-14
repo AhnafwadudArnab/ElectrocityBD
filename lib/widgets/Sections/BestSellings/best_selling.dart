@@ -1,27 +1,16 @@
 import 'dart:math';
+
+import 'package:electrocitybd1/widgets/Sections/BestSellings/ProductData.dart';
 import 'package:flutter/material.dart';
-import '../../../Dimensions/responsive_dimensions.dart';
-import '../../Item details/Item_details.dart';
+
+import '../../../pages/Templates/Dyna_products.dart';
 
 class BestSellingBox extends StatelessWidget {
   const BestSellingBox({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final productImages = [
-      'assets/Products/1.png',
-      'assets/Products/2.jpg',
-      'assets/Products/3.jpg',
-      'assets/Products/4.jpg',
-    ];
-
-    final items = List.generate(productImages.length, (i) => i + 1);
-
-    int randomPrice({int min = 300, int max = 2000}) {
-      final rnd = Random();
-      final steps = ((max - min) ~/ 10) + 1;
-      return min + rnd.nextInt(steps) * 10;
-    }
+    final products = SampleProducts.bestSellingProducts;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,16 +24,12 @@ class BestSellingBox extends StatelessWidget {
         ),
 
         /// INDIVIDUAL PRODUCT CARDS
-        ...items.map((i) {
-          final price = randomPrice();
-          final imagePath = productImages[i - 1];
-
+        ...products.map((product) {
           return Container(
-            margin: const EdgeInsets.only(bottom: 10), // Space between cards
+            margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
-              // Red border added to each product card
               border: Border.all(color: Colors.red, width: 1),
               boxShadow: [
                 BoxShadow(
@@ -60,12 +45,7 @@ class BestSellingBox extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ItemDetailsPage(
-                      title: 'Product $i',
-                      imageUrl: imagePath,
-                      price: price,
-                      rating: 4.5,
-                    ),
+                    builder: (_) => UniversalProductDetails(product: product),
                   ),
                 );
               },
@@ -76,11 +56,17 @@ class BestSellingBox extends StatelessWidget {
                     // Product Image
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        imagePath,
+                      child: Image.network(
+                        product.images.first,
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 60,
+                          height: 60,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.image),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -90,7 +76,7 @@ class BestSellingBox extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Product $i',
+                            product.name,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -120,7 +106,7 @@ class BestSellingBox extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'Tk $price',
+                          '৳ ${product.priceBDT.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.red,
