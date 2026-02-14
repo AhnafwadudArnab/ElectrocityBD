@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 
@@ -100,6 +101,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
+    final horizontalPadding = r.value(
+      mobile: 16.0,
+      tablet: 40.0,
+      smallDesktop: 60.0,
+      desktop: 100.0,
+    );
+    final verticalPadding = r.value(
+      mobile: 20.0,
+      tablet: 30.0,
+      smallDesktop: 35.0,
+      desktop: 40.0,
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const Header(),
@@ -108,25 +123,33 @@ class _ProfilePageState extends State<ProfilePage> {
           // Scrollable Profile Content with Padding
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 100,
-                vertical: 40,
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
               ),
               child: Column(
                 children: [
-                  SizedBox(height: 80),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 95),
-                      // Sidebar Navigation
-                      SizedBox(width: 350, child: _buildSidebar()),
-                      const SizedBox(width: 60),
-                      // Profile Form
-                      Expanded(flex: 4, child: _buildProfileForm()),
-                    ],
-                  ),
-                  const SizedBox(height: 150),
+                  SizedBox(height: r.hp(8)),
+                  r.isTablet || r.isMobile || r.isSmallMobile
+                      ? Column(
+                          children: [
+                            _buildSidebar(),
+                            SizedBox(height: r.hp(3)),
+                            _buildProfileForm(),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(width: r.wp(5)),
+                            // Sidebar Navigation
+                            SizedBox(width: r.wp(25), child: _buildSidebar()),
+                            SizedBox(width: r.wp(5)),
+                            // Profile Form
+                            Expanded(flex: 4, child: _buildProfileForm()),
+                          ],
+                        ),
+                  SizedBox(height: r.hp(12)),
                 ],
               ),
             ),
@@ -139,6 +162,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildSidebar() {
+    final r = AppResponsive.of(context);
     List<String> menuItems = [
       "Personal Information",
       "My Orders",
@@ -158,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
             });
           },
           child: Container(
-            margin: const EdgeInsets.only(bottom: 10),
+            margin: EdgeInsets.only(bottom: r.value(mobile: 8, desktop: 10)),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFFFFD23F) : Colors.white,
               borderRadius: BorderRadius.circular(8),
@@ -168,6 +192,7 @@ class _ProfilePageState extends State<ProfilePage> {
               title: Text(
                 item,
                 style: TextStyle(
+                  fontSize: AppDimensions.bodyFont(context),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -199,6 +224,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildPersonalInfo() {
+    final r = AppResponsive.of(context);
+    final padding = AppDimensions.padding(context);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -206,7 +234,7 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -214,9 +242,12 @@ class _ProfilePageState extends State<ProfilePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Personal Information",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: AppDimensions.titleFont(context),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (!isEditingPersonalInfo)
                   IconButton(
@@ -229,46 +260,63 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             // Profile Image (Fixed - no edit)
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.grey.shade300, width: 2),
               ),
-              child: const CircleAvatar(
-                radius: 65,
-                backgroundImage: NetworkImage(
+              child: CircleAvatar(
+                radius: AppDimensions.imageSize(context) / 2,
+                backgroundImage: const NetworkImage(
                   'https://via.placeholder.com/150',
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: padding * 1.5),
             // Form Fields
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildEditableTextField(
-                        "First Name *",
-                        "Leslie",
-                        controller: firstNameController,
-                        enabled: isEditingPersonalInfo,
+                r.isMobile || r.isSmallMobile
+                    ? Column(
+                        children: [
+                          _buildEditableTextField(
+                            "First Name *",
+                            "Leslie",
+                            controller: firstNameController,
+                            enabled: isEditingPersonalInfo,
+                          ),
+                          _buildEditableTextField(
+                            "Last Name *",
+                            "Cooper",
+                            controller: lastNameController,
+                            enabled: isEditingPersonalInfo,
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: _buildEditableTextField(
+                              "First Name *",
+                              "Leslie",
+                              controller: firstNameController,
+                              enabled: isEditingPersonalInfo,
+                            ),
+                          ),
+                          SizedBox(width: padding),
+                          Expanded(
+                            child: _buildEditableTextField(
+                              "Last Name *",
+                              "Cooper",
+                              controller: lastNameController,
+                              enabled: isEditingPersonalInfo,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: _buildEditableTextField(
-                        "Last Name *",
-                        "Cooper",
-                        controller: lastNameController,
-                        enabled: isEditingPersonalInfo,
-                      ),
-                    ),
-                  ],
-                ),
                 _buildEditableTextField(
                   "Email *",
                   "example@gmail.com",
@@ -282,25 +330,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   enabled: isEditingPersonalInfo,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
+                  padding: EdgeInsets.only(bottom: padding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         "Gender *",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: AppDimensions.bodyFont(context),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: padding / 2),
                       DropdownButtonFormField<String>(
                         value: selectedGender,
                         disabledHint: Text(selectedGender),
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 15,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: padding,
+                            vertical: padding * 0.75,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -336,61 +384,118 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             // Action Buttons
             if (isEditingPersonalInfo)
-              Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Colors.red, Colors.yellow],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          _updatePersonalInfo();
-                        },
-                        borderRadius: BorderRadius.circular(30),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 12,
+              r.isMobile || r.isSmallMobile
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Colors.red, Colors.yellow],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          child: Text(
-                            "Save Changes",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                _updatePersonalInfo();
+                              },
+                              borderRadius: BorderRadius.circular(30),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: padding,
+                                  vertical: padding * 0.75,
+                                ),
+                                child: Text(
+                                  "Save Changes",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: AppDimensions.bodyFont(context),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        SizedBox(height: padding),
+                        OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              isEditingPersonalInfo = false;
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade400),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: padding,
+                              vertical: padding * 0.75,
+                            ),
+                          ),
+                          child: const Text("Cancel"),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Colors.red, Colors.yellow],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                _updatePersonalInfo();
+                              },
+                              borderRadius: BorderRadius.circular(30),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: padding * 1.5,
+                                  vertical: padding * 0.75,
+                                ),
+                                child: Text(
+                                  "Save Changes",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: AppDimensions.bodyFont(context),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: padding),
+                        OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              isEditingPersonalInfo = false;
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade400),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: padding * 1.5,
+                              vertical: padding * 0.75,
+                            ),
+                          ),
+                          child: const Text("Cancel"),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 15),
-                  OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        isEditingPersonalInfo = false;
-                      });
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade400),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text("Cancel"),
-                  ),
-                ],
-              ),
           ],
         ),
       ),
@@ -398,6 +503,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildMyOrders() {
+    final padding = AppDimensions.padding(context);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -405,23 +512,26 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "My Orders",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             ListView.builder(
               shrinkWrap: true,
               itemCount: 3,
               itemBuilder: (context, index) {
                 return Card(
-                  margin: const EdgeInsets.only(bottom: 15),
+                  margin: EdgeInsets.only(bottom: padding),
                   child: Padding(
-                    padding: const EdgeInsets.all(15),
+                    padding: EdgeInsets.all(padding * 0.75),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -430,15 +540,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               "Order #${1001 + index}",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: AppDimensions.bodyFont(context),
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            SizedBox(height: padding / 4),
                             Text(
                               "Placed on: 2024-01-${15 + index}",
-                              style: TextStyle(color: Colors.grey.shade600),
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: AppDimensions.smallFont(context),
+                              ),
                             ),
                           ],
                         ),
@@ -446,16 +559,16 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               "৳${150 + (index * 50)}",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: AppDimensions.bodyFont(context),
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            SizedBox(height: padding / 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: padding * 0.75,
+                                vertical: padding / 4,
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.green.shade100,
@@ -465,7 +578,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 "Delivered",
                                 style: TextStyle(
                                   color: Colors.green.shade700,
-                                  fontSize: 12,
+                                  fontSize: AppDimensions.smallFont(context),
                                 ),
                               ),
                             ),
@@ -484,6 +597,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildManageAddress() {
+    final padding = AppDimensions.padding(context);
+    final r = AppResponsive.of(context);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -491,56 +607,73 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Manage Address",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             // Existing Addresses
             ListView.builder(
               shrinkWrap: true,
               itemCount: addresses.length,
               itemBuilder: (context, index) {
                 return Card(
-                  margin: const EdgeInsets.only(bottom: 15),
+                  margin: EdgeInsets.only(bottom: padding),
                   child: Padding(
-                    padding: const EdgeInsets.all(15),
+                    padding: EdgeInsets.all(padding * 0.75),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              addresses[index]["name"]!,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                addresses[index]["name"]!,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: AppDimensions.bodyFont(context),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              addresses[index]["address"]!,
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ],
+                              SizedBox(height: padding / 4),
+                              Text(
+                                addresses[index]["address"]!,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: AppDimensions.smallFont(context),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         Row(
                           children: [
                             TextButton(
                               onPressed: () {},
-                              child: const Text("Edit"),
+                              child: Text(
+                                "Edit",
+                                style: TextStyle(
+                                  fontSize: AppDimensions.smallFont(context),
+                                ),
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
                                 _deleteAddress(index);
                               },
-                              child: const Text(
+                              child: Text(
                                 "Delete",
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: AppDimensions.smallFont(context),
+                                ),
                               ),
                             ),
                           ],
@@ -551,73 +684,109 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             const Divider(),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: padding),
+            Text(
               "Add New Address",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.bodyFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 15),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    "First Name *",
-                    "Ex. John",
-                    controller: addressFirstNameController,
+            SizedBox(height: padding),
+            r.isMobile || r.isSmallMobile
+                ? Column(
+                    children: [
+                      _buildTextField(
+                        "First Name *",
+                        "Ex. John",
+                        controller: addressFirstNameController,
+                      ),
+                      _buildTextField(
+                        "Last Name *",
+                        "Ex. Doe",
+                        controller: addressLastNameController,
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          "First Name *",
+                          "Ex. John",
+                          controller: addressFirstNameController,
+                        ),
+                      ),
+                      SizedBox(width: padding),
+                      Expanded(
+                        child: _buildTextField(
+                          "Last Name *",
+                          "Ex. Doe",
+                          controller: addressLastNameController,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: _buildTextField(
-                    "Last Name *",
-                    "Ex. Doe",
-                    controller: addressLastNameController,
-                  ),
-                ),
-              ],
-            ),
             _buildTextField(
               "Street Address *",
               "Enter Street Address",
               controller: streetAddressController,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    "City *",
-                    "Select City",
-                    controller: cityController,
+            r.isMobile || r.isSmallMobile
+                ? Column(
+                    children: [
+                      _buildTextField(
+                        "City *",
+                        "Select City",
+                        controller: cityController,
+                      ),
+                      _buildTextField(
+                        "Zip Code *",
+                        "Enter Zip Code",
+                        controller: zipCodeController,
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          "City *",
+                          "Select City",
+                          controller: cityController,
+                        ),
+                      ),
+                      SizedBox(width: padding),
+                      Expanded(
+                        child: _buildTextField(
+                          "Zip Code *",
+                          "Enter Zip Code",
+                          controller: zipCodeController,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: _buildTextField(
-                    "Zip Code *",
-                    "Enter Zip Code",
-                    controller: zipCodeController,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             ElevatedButton(
               onPressed: _addAddress,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1B7340),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 15,
+                padding: EdgeInsets.symmetric(
+                  horizontal: padding * 1.5,
+                  vertical: padding * 0.75,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Add Address",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: AppDimensions.bodyFont(context),
+                ),
               ),
             ),
           ],
@@ -627,6 +796,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildPaymentMethod() {
+    final padding = AppDimensions.padding(context);
+    final r = AppResponsive.of(context);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -634,15 +806,18 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Payment Methods",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             // Dynamic Payment Methods
             ListView.builder(
               shrinkWrap: true,
@@ -654,14 +829,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             const Divider(),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: padding),
+            Text(
               "Add New Credit/Debit Card",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.bodyFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 15),
+            SizedBox(height: padding),
             _buildTextField(
               "Card Holder Name *",
               "Ex. John Doe",
@@ -672,25 +850,40 @@ class _ProfilePageState extends State<ProfilePage> {
               "1234 5678 9012 3456",
               controller: cardNumberController,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    "Expiry Date *",
-                    "MM/YY",
-                    controller: expiryDateController,
+            r.isMobile || r.isSmallMobile
+                ? Column(
+                    children: [
+                      _buildTextField(
+                        "Expiry Date *",
+                        "MM/YY",
+                        controller: expiryDateController,
+                      ),
+                      _buildTextField(
+                        "CVV *",
+                        "***",
+                        controller: cvvController,
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          "Expiry Date *",
+                          "MM/YY",
+                          controller: expiryDateController,
+                        ),
+                      ),
+                      SizedBox(width: padding),
+                      Expanded(
+                        child: _buildTextField(
+                          "CVV *",
+                          "***",
+                          controller: cvvController,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: _buildTextField(
-                    "CVV *",
-                    "***",
-                    controller: cvvController,
-                  ),
-                ),
-              ],
-            ),
             Row(
               children: [
                 Checkbox(
@@ -701,25 +894,33 @@ class _ProfilePageState extends State<ProfilePage> {
                     });
                   },
                 ),
-                const Text("Save card for future payments"),
+                Expanded(
+                  child: Text(
+                    "Save card for future payments",
+                    style: TextStyle(fontSize: AppDimensions.bodyFont(context)),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 15),
+            SizedBox(height: padding),
             ElevatedButton(
               onPressed: _addPaymentMethod,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1B7340),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 15,
+                padding: EdgeInsets.symmetric(
+                  horizontal: padding * 1.5,
+                  vertical: padding * 0.75,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Add Card",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: AppDimensions.bodyFont(context),
+                ),
               ),
             ),
           ],
@@ -729,18 +930,29 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildPaymentItem(String title, String action) {
+    final padding = AppDimensions.padding(context);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: padding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: AppDimensions.bodyFont(context),
+              ),
+            ),
+          ),
           TextButton(
             onPressed: () {},
             child: Text(
               action,
               style: TextStyle(
                 color: action == "Delete" ? Colors.red : Colors.blue,
+                fontSize: AppDimensions.smallFont(context),
               ),
             ),
           ),
@@ -750,6 +962,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildPasswordManager() {
+    final padding = AppDimensions.padding(context);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -757,15 +971,18 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Change Password",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: padding * 1.5),
             _buildPasswordField(
               "Current Password *",
               "Enter current password",
@@ -781,22 +998,25 @@ class _ProfilePageState extends State<ProfilePage> {
               "Confirm password",
               confirmPasswordController,
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: padding),
             ElevatedButton(
               onPressed: _updatePassword,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1B7340),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 15,
+                padding: EdgeInsets.symmetric(
+                  horizontal: padding * 1.5,
+                  vertical: padding * 0.75,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Update Password",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: AppDimensions.bodyFont(context),
+                ),
               ),
             ),
           ],
@@ -810,21 +1030,26 @@ class _ProfilePageState extends State<ProfilePage> {
     String hint,
     TextEditingController controller,
   ) {
+    final padding = AppDimensions.padding(context);
+
     // Determine which flag to use based on the label
     bool isCurrentPassword = label.contains("Current");
     bool isNewPassword = label.contains("New");
     bool isConfirmPassword = label.contains("Confirm");
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: AppDimensions.bodyFont(context),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: padding / 2),
           TextField(
             controller: controller,
             obscureText: isCurrentPassword
@@ -834,6 +1059,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 : !showConfirmPassword,
             decoration: InputDecoration(
               hintText: hint,
+              hintStyle: TextStyle(fontSize: AppDimensions.smallFont(context)),
               suffixIcon: IconButton(
                 icon: Icon(
                   isCurrentPassword
@@ -860,9 +1086,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   });
                 },
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 15,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: padding,
+                vertical: padding * 0.75,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -889,24 +1115,30 @@ class _ProfilePageState extends State<ProfilePage> {
     TextEditingController? controller,
     bool enabled = true,
   }) {
+    final padding = AppDimensions.padding(context);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: AppDimensions.bodyFont(context),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: padding / 2),
           TextField(
             controller: controller,
             readOnly: !enabled,
             decoration: InputDecoration(
               hintText: hint,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 15,
+              hintStyle: TextStyle(fontSize: AppDimensions.smallFont(context)),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: padding,
+                vertical: padding * 0.75,
               ),
               filled: !enabled,
               fillColor: !enabled ? Colors.grey.shade100 : Colors.white,
@@ -934,6 +1166,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildLogout() {
+    final padding = AppDimensions.padding(context);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -941,22 +1175,28 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(padding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.logout, size: 80, color: Colors.grey.shade400),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: padding),
+            Text(
               "Logout",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppDimensions.titleFont(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 15),
-            const Text(
+            SizedBox(height: padding),
+            Text(
               "Are you sure you want to logout?",
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: AppDimensions.bodyFont(context),
+              ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: padding * 1.5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -968,29 +1208,35 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey.shade300,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 15,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: padding * 1.5,
+                      vertical: padding * 0.75,
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Cancel",
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: AppDimensions.bodyFont(context),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 20),
+                SizedBox(width: padding),
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 15,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: padding * 1.5,
+                      vertical: padding * 0.75,
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Logout",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: AppDimensions.bodyFont(context),
+                    ),
                   ),
                 ),
               ],
@@ -1007,16 +1253,21 @@ class _ProfilePageState extends State<ProfilePage> {
     bool isDropdown = false,
     TextEditingController? controller,
   }) {
+    final padding = AppDimensions.padding(context);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: AppDimensions.bodyFont(context),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: padding / 2),
           TextField(
             controller: controller,
             decoration: InputDecoration(
@@ -1024,9 +1275,9 @@ class _ProfilePageState extends State<ProfilePage> {
               suffixIcon: isDropdown
                   ? const Icon(Icons.keyboard_arrow_down)
                   : null,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 15,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: padding,
+                vertical: padding * 0.75,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
