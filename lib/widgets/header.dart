@@ -31,7 +31,13 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         padding: EdgeInsets.symmetric(
-          horizontal: r.value(mobile: 8, tablet: 12, desktop: 16),
+          horizontal: r.value(
+            smallMobile: 8,
+            mobile: 8,
+            tablet: 12,
+            smallDesktop: 14,
+            desktop: 16,
+          ),
         ),
         child: Row(
           children: [
@@ -72,7 +78,13 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                   if (!isVerySmall)
                     Padding(
                       padding: EdgeInsets.symmetric(
-                        horizontal: r.value(mobile: 6, tablet: 10, desktop: 12),
+                        horizontal: r.value(
+                          smallMobile: 6,
+                          mobile: 6,
+                          tablet: 10,
+                          smallDesktop: 11,
+                          desktop: 12,
+                        ),
                       ),
                       child: Text(
                         'ElectroCityBD',
@@ -80,8 +92,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: r.value(
+                            smallMobile: 14,
                             mobile: 14,
                             tablet: 16,
+                            smallDesktop: 17,
                             desktop: 18,
                           ),
                         ),
@@ -92,7 +106,15 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
 
             /// SPACER
-            SizedBox(width: r.value(mobile: 8, tablet: 12, desktop: 20)),
+            SizedBox(
+              width: r.value(
+                smallMobile: 8,
+                mobile: 8,
+                tablet: 12,
+                smallDesktop: 16,
+                desktop: 20,
+              ),
+            ),
 
             /// SEARCH ICON (instead of full search bar on small screens)
             if (isSmall)
@@ -106,6 +128,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               Expanded(
                 child: Container(
                   height: r.value(
+                    smallMobile: 32,
                     mobile: 32,
                     tablet: 36,
                     smallDesktop: 38,
@@ -113,11 +136,23 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   //outside header Padding
                   margin: EdgeInsets.symmetric(
-                    horizontal: r.value(mobile: 6, tablet: 8, desktop: 250),
+                    horizontal: r.value(
+                      smallMobile: 6,
+                      mobile: 6,
+                      tablet: 8,
+                      smallDesktop: 100,
+                      desktop: 200,
+                    ),
                   ),
                   //inside header padding
                   padding: EdgeInsets.symmetric(
-                    horizontal: r.value(mobile: 8, tablet: 10, desktop: 12),
+                    horizontal: r.value(
+                      smallMobile: 8,
+                      mobile: 8,
+                      tablet: 10,
+                      smallDesktop: 11,
+                      desktop: 12,
+                    ),
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -128,10 +163,22 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                       Icon(
                         Icons.search,
                         color: Colors.black54,
-                        size: r.value(mobile: 16, tablet: 18, desktop: 20),
+                        size: r.value(
+                          smallMobile: 16,
+                          mobile: 16,
+                          tablet: 18,
+                          smallDesktop: 19,
+                          desktop: 20,
+                        ),
                       ),
                       SizedBox(
-                        width: r.value(mobile: 4, tablet: 6, desktop: 8),
+                        width: r.value(
+                          smallMobile: 4,
+                          mobile: 4,
+                          tablet: 6,
+                          smallDesktop: 7,
+                          desktop: 8,
+                        ),
                       ),
                       Expanded(
                         child: TextField(
@@ -140,8 +187,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                             hintText: 'Search here...',
                             hintStyle: TextStyle(
                               fontSize: r.value(
+                                smallMobile: 11,
                                 mobile: 11,
                                 tablet: 12,
+                                smallDesktop: 13,
                                 desktop: 14,
                               ),
                             ),
@@ -152,7 +201,13 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                       Icon(
                         Icons.tune,
                         color: Colors.black54,
-                        size: r.value(mobile: 16, tablet: 18, desktop: 20),
+                        size: r.value(
+                          smallMobile: 16,
+                          mobile: 16,
+                          tablet: 18,
+                          smallDesktop: 19,
+                          desktop: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -161,13 +216,32 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
 
             /// SPACER
             if (!isSmall)
-              /// FAVORITE (hide on small)
-              if (!isSmall)
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.favorite_border, color: Colors.white),
+              SizedBox(
+                width: r.value(
+                  smallMobile: 4,
+                  mobile: 4,
+                  tablet: 6,
+                  smallDesktop: 8,
+                  desktop: 20,
                 ),
-            SizedBox(width: r.value(mobile: 4, tablet: 6, desktop: 20)),
+              ),
+
+            /// FAVORITE (hide on small)
+            if (!isSmall)
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.favorite_border, color: Colors.white),
+              ),
+
+            SizedBox(
+              width: r.value(
+                smallMobile: 4,
+                mobile: 4,
+                tablet: 6,
+                smallDesktop: 8,
+                desktop: 20,
+              ),
+            ),
 
             /// CART
             Stack(
@@ -196,7 +270,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ],
             ),
-            SizedBox(width: r.value(mobile: 4, tablet: 6, desktop: 20)),
+
+            SizedBox(
+              width: r.value(
+                smallMobile: 4,
+                mobile: 4,
+                tablet: 6,
+                smallDesktop: 8,
+                desktop: 20,
+              ),
+            ),
 
             /// PROFILE
             IconButton(
@@ -208,7 +291,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               },
               icon: const Icon(Icons.person_rounded, color: Colors.white),
             ),
-            SizedBox(width: r.value(mobile: 4, tablet: 6, desktop: 200)),
+
+            SizedBox(
+              width: r.value(
+                smallMobile: 4,
+                mobile: 4,
+                tablet: 6,
+                smallDesktop: 100,
+                desktop: 200,
+              ),
+            ),
           ],
         ),
       ),

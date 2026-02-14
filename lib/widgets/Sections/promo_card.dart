@@ -23,7 +23,13 @@ class PromoCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Container(
-        height: r.value(mobile: 70.0, tablet: 80.0, desktop: 90.0),
+        height: r.value(
+          smallMobile: 65.0,
+          mobile: 70.0,
+          tablet: 80.0,
+          smallDesktop: 85.0,
+          desktop: 90.0,
+        ),
         padding: EdgeInsets.all(AppDimensions.padding(context) * 0.8),
         decoration: BoxDecoration(
           color: color.withOpacity(0.95),

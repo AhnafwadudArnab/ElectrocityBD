@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/Sections/BestSellings/ProductData.dart';
+import '../../widgets/app_drawer.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import 'all_products_template.dart';
@@ -50,20 +51,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const Header(),
-      drawer: r.isMobile || r.isTablet ? _buildDrawer() : null,
+      drawer: r.isMobile || r.isTablet ? const AppDrawer() : null,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Back Button and Breadcrumb
             _buildBreadcrumb(r),
-
-            // Main Product Content
             _buildProductContent(r),
-
-            // Recommended Products
             _buildRecommendedProducts(r),
-
-            // Footer
             const FooterSection(),
           ],
         ),
@@ -75,31 +69,32 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: r.value(mobile: 16, tablet: 40, desktop: 100),
-        vertical: r.value(mobile: 12, tablet: 16, desktop: 20),
+        horizontal: r.value(
+          smallMobile: 16,
+          mobile: 16,
+          tablet: 40,
+          smallDesktop: 80,
+          desktop: 100,
+        ),
+        vertical: r.value(
+          smallMobile: 12,
+          mobile: 12,
+          tablet: 16,
+          smallDesktop: 18,
+          desktop: 20,
+        ),
       ),
       child: Row(
         children: [
-          // Back Button
-          // Container(
-          //   decoration: BoxDecoration(
-          //     border: Border.all(color: Colors.grey[300]!),
-          //     borderRadius: BorderRadius.circular(8),
-          //   ),
-          //   child: IconButton(
-          //     icon: Icon(
-          //       Icons.arrow_back,
-          //       size: r.value(mobile: 18, tablet: 20, desktop: 20),
-          //     ),
-          //     onPressed: () => Navigator.pop(context),
-          //     tooltip: 'Go Back',
-          //     padding: EdgeInsets.all(
-          //       r.value(mobile: 8, tablet: 10, desktop: 12),
-          //     ),
-          //   ),
-          // ),
-          SizedBox(width: r.value(mobile: 12, tablet: 14, desktop: 16)),
-          // Breadcrumb
+          SizedBox(
+            width: r.value(
+              smallMobile: 12,
+              mobile: 12,
+              tablet: 14,
+              smallDesktop: 15,
+              desktop: 16,
+            ),
+          ),
           Expanded(
             child: Wrap(
               spacing: 4,
@@ -171,15 +166,35 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: r.value(mobile: 16, tablet: 40, desktop: 100),
-        vertical: r.value(mobile: 12, tablet: 16, desktop: 20),
+        horizontal: r.value(
+          smallMobile: 16,
+          mobile: 16,
+          tablet: 40,
+          smallDesktop: 80,
+          desktop: 100,
+        ),
+        vertical: r.value(
+          smallMobile: 12,
+          mobile: 12,
+          tablet: 16,
+          smallDesktop: 18,
+          desktop: 20,
+        ),
       ),
       child: Column(
         children: [
           isSmallScreen
               ? _buildMobileProductLayout(r)
               : _buildDesktopProductLayout(r),
-          SizedBox(height: r.value(mobile: 40, tablet: 60, desktop: 80)),
+          SizedBox(
+            height: r.value(
+              smallMobile: 40,
+              mobile: 40,
+              tablet: 60,
+              smallDesktop: 70,
+              desktop: 80,
+            ),
+          ),
           _buildTabsSection(r),
         ],
       ),
@@ -191,7 +206,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildImageGallery(r),
-        SizedBox(height: r.value(mobile: 20, tablet: 30)),
+        SizedBox(
+          height: r.value(
+            smallMobile: 20,
+            mobile: 20,
+            tablet: 30,
+            smallDesktop: 30,
+            desktop: 30,
+          ),
+        ),
         _buildProductInfo(r),
       ],
     );
@@ -202,14 +225,28 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(flex: 1, child: _buildImageGallery(r)),
-        SizedBox(width: r.value(mobile: 20, tablet: 40, desktop: 60)),
+        SizedBox(
+          width: r.value(
+            smallMobile: 20,
+            mobile: 20,
+            tablet: 40,
+            smallDesktop: 50,
+            desktop: 60,
+          ),
+        ),
         Expanded(flex: 1, child: _buildProductInfo(r)),
       ],
     );
   }
 
   Widget _buildImageGallery(AppResponsive r) {
-    final imageHeight = r.value(mobile: 300.0, tablet: 400.0, desktop: 500.0);
+    final imageHeight = r.value(
+      smallMobile: 280.0,
+      mobile: 300.0,
+      tablet: 400.0,
+      smallDesktop: 450.0,
+      desktop: 500.0,
+    );
 
     return Column(
       children: [
@@ -224,9 +261,23 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
           ),
         ),
-        SizedBox(height: r.value(mobile: 12, tablet: 16, desktop: 20)),
         SizedBox(
-          height: r.value(mobile: 60.0, tablet: 70.0, desktop: 80.0),
+          height: r.value(
+            smallMobile: 12,
+            mobile: 12,
+            tablet: 16,
+            smallDesktop: 18,
+            desktop: 20,
+          ),
+        ),
+        SizedBox(
+          height: r.value(
+            smallMobile: 60.0,
+            mobile: 60.0,
+            tablet: 70.0,
+            smallDesktop: 75.0,
+            desktop: 80.0,
+          ),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: widget.product.images.length,
@@ -235,10 +286,28 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 onTap: () => setState(() => _activeImageIndex = index),
                 child: Container(
                   margin: EdgeInsets.only(
-                    right: r.value(mobile: 8.0, tablet: 10.0, desktop: 10.0),
+                    right: r.value(
+                      smallMobile: 8.0,
+                      mobile: 8.0,
+                      tablet: 10.0,
+                      smallDesktop: 10.0,
+                      desktop: 10.0,
+                    ),
                   ),
-                  width: r.value(mobile: 60.0, tablet: 70.0, desktop: 80.0),
-                  height: r.value(mobile: 60.0, tablet: 70.0, desktop: 80.0),
+                  width: r.value(
+                    smallMobile: 60.0,
+                    mobile: 60.0,
+                    tablet: 70.0,
+                    smallDesktop: 75.0,
+                    desktop: 80.0,
+                  ),
+                  height: r.value(
+                    smallMobile: 60.0,
+                    mobile: 60.0,
+                    tablet: 70.0,
+                    smallDesktop: 75.0,
+                    desktop: 80.0,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: _activeImageIndex == index
@@ -268,11 +337,25 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
         Text(
           widget.product.name,
           style: TextStyle(
-            fontSize: r.value(mobile: 24.0, tablet: 32.0, desktop: 38.0),
+            fontSize: r.value(
+              smallMobile: 22.0,
+              mobile: 24.0,
+              tablet: 32.0,
+              smallDesktop: 35.0,
+              desktop: 38.0,
+            ),
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: r.value(mobile: 10, tablet: 12, desktop: 15)),
+        SizedBox(
+          height: r.value(
+            smallMobile: 10,
+            mobile: 10,
+            tablet: 12,
+            smallDesktop: 13,
+            desktop: 15,
+          ),
+        ),
         Row(
           children: [
             ...List.generate(
@@ -280,13 +363,25 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               (_) => Icon(
                 Icons.star,
                 color: Colors.amber,
-                size: r.value(mobile: 16.0, tablet: 18.0, desktop: 20.0),
+                size: r.value(
+                  smallMobile: 16.0,
+                  mobile: 16.0,
+                  tablet: 18.0,
+                  smallDesktop: 19.0,
+                  desktop: 20.0,
+                ),
               ),
             ),
             Icon(
               Icons.star_half,
               color: Colors.amber,
-              size: r.value(mobile: 16.0, tablet: 18.0, desktop: 20.0),
+              size: r.value(
+                smallMobile: 16.0,
+                mobile: 16.0,
+                tablet: 18.0,
+                smallDesktop: 19.0,
+                desktop: 20.0,
+              ),
             ),
             const SizedBox(width: 8),
             Text(
@@ -298,16 +393,38 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
           ],
         ),
-        SizedBox(height: r.value(mobile: 10, tablet: 12, desktop: 15)),
+        SizedBox(
+          height: r.value(
+            smallMobile: 10,
+            mobile: 10,
+            tablet: 12,
+            smallDesktop: 13,
+            desktop: 15,
+          ),
+        ),
         Text(
           "৳ ${widget.product.priceBDT.toStringAsFixed(0)}",
           style: TextStyle(
-            fontSize: r.value(mobile: 20.0, tablet: 24.0, desktop: 26.0),
+            fontSize: r.value(
+              smallMobile: 20.0,
+              mobile: 20.0,
+              tablet: 24.0,
+              smallDesktop: 25.0,
+              desktop: 26.0,
+            ),
             color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: r.value(mobile: 15, tablet: 20, desktop: 25)),
+        SizedBox(
+          height: r.value(
+            smallMobile: 15,
+            mobile: 15,
+            tablet: 20,
+            smallDesktop: 22,
+            desktop: 25,
+          ),
+        ),
         Text(
           widget.product.description,
           style: TextStyle(
@@ -316,7 +433,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             fontSize: AppDimensions.bodyFont(context),
           ),
         ),
-        SizedBox(height: r.value(mobile: 25, tablet: 30, desktop: 40)),
+        SizedBox(
+          height: r.value(
+            smallMobile: 25,
+            mobile: 25,
+            tablet: 30,
+            smallDesktop: 35,
+            desktop: 40,
+          ),
+        ),
         _buildQuantityAndActions(r),
       ],
     );
@@ -329,8 +454,20 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
           children: [
             Container(
               padding: EdgeInsets.symmetric(
-                horizontal: r.value(mobile: 8.0, tablet: 10.0, desktop: 12.0),
-                vertical: r.value(mobile: 6.0, tablet: 7.0, desktop: 8.0),
+                horizontal: r.value(
+                  smallMobile: 8.0,
+                  mobile: 8.0,
+                  tablet: 10.0,
+                  smallDesktop: 11.0,
+                  desktop: 12.0,
+                ),
+                vertical: r.value(
+                  smallMobile: 6.0,
+                  mobile: 6.0,
+                  tablet: 7.0,
+                  smallDesktop: 7.5,
+                  desktop: 8.0,
+                ),
               ),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[300]!),
@@ -347,8 +484,10 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: r.value(
+                        smallMobile: 10.0,
                         mobile: 10.0,
                         tablet: 12.0,
+                        smallDesktop: 13.0,
                         desktop: 15.0,
                       ),
                     ),
@@ -368,7 +507,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 ],
               ),
             ),
-            SizedBox(width: r.value(mobile: 12, tablet: 16, desktop: 20)),
+            SizedBox(
+              width: r.value(
+                smallMobile: 12,
+                mobile: 12,
+                tablet: 16,
+                smallDesktop: 18,
+                desktop: 20,
+              ),
+            ),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {},
@@ -376,13 +523,17 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   backgroundColor: Colors.orange,
                   padding: EdgeInsets.symmetric(
                     horizontal: r.value(
+                      smallMobile: 20.0,
                       mobile: 20.0,
                       tablet: 30.0,
+                      smallDesktop: 35.0,
                       desktop: 40.0,
                     ),
                     vertical: r.value(
+                      smallMobile: 14.0,
                       mobile: 14.0,
                       tablet: 16.0,
+                      smallDesktop: 18.0,
                       desktop: 20.0,
                     ),
                   ),
@@ -402,7 +553,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
           ],
         ),
-        SizedBox(height: r.value(mobile: 12, tablet: 16, desktop: 20)),
+        SizedBox(
+          height: r.value(
+            smallMobile: 12,
+            mobile: 12,
+            tablet: 16,
+            smallDesktop: 18,
+            desktop: 20,
+          ),
+        ),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
@@ -412,8 +571,20 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.black,
               padding: EdgeInsets.symmetric(
-                horizontal: r.value(mobile: 20.0, tablet: 30.0, desktop: 40.0),
-                vertical: r.value(mobile: 14.0, tablet: 16.0, desktop: 20.0),
+                horizontal: r.value(
+                  smallMobile: 20.0,
+                  mobile: 20.0,
+                  tablet: 30.0,
+                  smallDesktop: 35.0,
+                  desktop: 40.0,
+                ),
+                vertical: r.value(
+                  smallMobile: 14.0,
+                  mobile: 14.0,
+                  tablet: 16.0,
+                  smallDesktop: 18.0,
+                  desktop: 20.0,
+                ),
               ),
               side: const BorderSide(color: Colors.grey),
               shape: RoundedRectangleBorder(
@@ -453,13 +624,25 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
           ),
         ),
         SizedBox(
-          height: r.value(mobile: 200.0, tablet: 250.0, desktop: 300.0),
+          height: r.value(
+            smallMobile: 200.0,
+            mobile: 200.0,
+            tablet: 250.0,
+            smallDesktop: 275.0,
+            desktop: 300.0,
+          ),
           child: TabBarView(
             controller: _tabController,
             children: [
               SingleChildScrollView(
                 padding: EdgeInsets.all(
-                  r.value(mobile: 16.0, tablet: 24.0, desktop: 30.0),
+                  r.value(
+                    smallMobile: 16.0,
+                    mobile: 16.0,
+                    tablet: 24.0,
+                    smallDesktop: 27.0,
+                    desktop: 30.0,
+                  ),
                 ),
                 child: Text(
                   widget.product.description,
@@ -482,18 +665,42 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
   Widget _buildSpecsTable(AppResponsive r) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(
-        r.value(mobile: 16.0, tablet: 24.0, desktop: 30.0),
+        r.value(
+          smallMobile: 16.0,
+          mobile: 16.0,
+          tablet: 24.0,
+          smallDesktop: 27.0,
+          desktop: 30.0,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: widget.product.additionalInfo.entries.map((entry) {
           return Container(
             padding: EdgeInsets.symmetric(
-              vertical: r.value(mobile: 10.0, tablet: 11.0, desktop: 12.0),
-              horizontal: r.value(mobile: 12.0, tablet: 14.0, desktop: 16.0),
+              vertical: r.value(
+                smallMobile: 10.0,
+                mobile: 10.0,
+                tablet: 11.0,
+                smallDesktop: 11.5,
+                desktop: 12.0,
+              ),
+              horizontal: r.value(
+                smallMobile: 12.0,
+                mobile: 12.0,
+                tablet: 14.0,
+                smallDesktop: 15.0,
+                desktop: 16.0,
+              ),
             ),
             margin: EdgeInsets.only(
-              bottom: r.value(mobile: 6.0, tablet: 7.0, desktop: 8.0),
+              bottom: r.value(
+                smallMobile: 6.0,
+                mobile: 6.0,
+                tablet: 7.0,
+                smallDesktop: 7.5,
+                desktop: 8.0,
+              ),
             ),
             decoration: BoxDecoration(
               color: Colors.grey[50],
@@ -533,17 +740,37 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
     return Center(
       child: Padding(
         padding: EdgeInsets.all(
-          r.value(mobile: 16.0, tablet: 24.0, desktop: 30.0),
+          r.value(
+            smallMobile: 16.0,
+            mobile: 16.0,
+            tablet: 24.0,
+            smallDesktop: 27.0,
+            desktop: 30.0,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.rate_review_outlined,
-              size: r.value(mobile: 50.0, tablet: 55.0, desktop: 60.0),
+              size: r.value(
+                smallMobile: 50.0,
+                mobile: 50.0,
+                tablet: 55.0,
+                smallDesktop: 57.0,
+                desktop: 60.0,
+              ),
               color: Colors.grey,
             ),
-            SizedBox(height: r.value(mobile: 12, tablet: 16, desktop: 20)),
+            SizedBox(
+              height: r.value(
+                smallMobile: 12,
+                mobile: 12,
+                tablet: 16,
+                smallDesktop: 18,
+                desktop: 20,
+              ),
+            ),
             Text(
               "No reviews yet for this product.",
               style: TextStyle(
@@ -552,7 +779,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: r.value(mobile: 6, tablet: 8, desktop: 10)),
+            SizedBox(
+              height: r.value(
+                smallMobile: 6,
+                mobile: 6,
+                tablet: 8,
+                smallDesktop: 9,
+                desktop: 10,
+              ),
+            ),
             Text(
               "Be the first to review!",
               style: TextStyle(
@@ -576,7 +811,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        vertical: r.value(mobile: 30.0, tablet: 40.0, desktop: 50.0),
+        vertical: r.value(
+          smallMobile: 30.0,
+          mobile: 30.0,
+          tablet: 40.0,
+          smallDesktop: 45.0,
+          desktop: 50.0,
+        ),
       ),
       color: Colors.white,
       child: Column(
@@ -584,7 +825,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
         children: [
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: r.value(mobile: 16.0, tablet: 40.0, desktop: 100.0),
+              horizontal: r.value(
+                smallMobile: 16.0,
+                mobile: 16.0,
+                tablet: 40.0,
+                smallDesktop: 80.0,
+                desktop: 100.0,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -593,8 +840,10 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   "You May Also Like",
                   style: TextStyle(
                     fontSize: r.value(
+                      smallMobile: 20.0,
                       mobile: 20.0,
                       tablet: 24.0,
+                      smallDesktop: 26.0,
                       desktop: 28.0,
                     ),
                     fontWeight: FontWeight.bold,
@@ -613,13 +862,33 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               ],
             ),
           ),
-          SizedBox(height: r.value(mobile: 16, tablet: 24, desktop: 30)),
           SizedBox(
-            height: r.value(mobile: 280.0, tablet: 300.0, desktop: 320.0),
+            height: r.value(
+              smallMobile: 16,
+              mobile: 16,
+              tablet: 24,
+              smallDesktop: 27,
+              desktop: 30,
+            ),
+          ),
+          SizedBox(
+            height: r.value(
+              smallMobile: 280.0,
+              mobile: 280.0,
+              tablet: 300.0,
+              smallDesktop: 310.0,
+              desktop: 320.0,
+            ),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(
-                horizontal: r.value(mobile: 16.0, tablet: 40.0, desktop: 100.0),
+                horizontal: r.value(
+                  smallMobile: 16.0,
+                  mobile: 16.0,
+                  tablet: 40.0,
+                  smallDesktop: 80.0,
+                  desktop: 100.0,
+                ),
               ),
               itemCount: relatedProducts.length,
               itemBuilder: (context, index) {
@@ -633,7 +902,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
   }
 
   Widget _buildHorizontalProductCard(ProductData product, AppResponsive r) {
-    final cardWidth = r.value(mobile: 180.0, tablet: 220.0, desktop: 250.0);
+    final cardWidth = r.value(
+      smallMobile: 180.0,
+      mobile: 180.0,
+      tablet: 220.0,
+      smallDesktop: 235.0,
+      desktop: 250.0,
+    );
 
     return GestureDetector(
       onTap: () {
@@ -647,7 +922,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
       child: Container(
         width: cardWidth,
         margin: EdgeInsets.only(
-          right: r.value(mobile: 12.0, tablet: 16.0, desktop: 20.0),
+          right: r.value(
+            smallMobile: 12.0,
+            mobile: 12.0,
+            tablet: 16.0,
+            smallDesktop: 18.0,
+            desktop: 20.0,
+          ),
         ),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -664,9 +945,14 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
             Container(
-              height: r.value(mobile: 150.0, tablet: 180.0, desktop: 200.0),
+              height: r.value(
+                smallMobile: 150.0,
+                mobile: 150.0,
+                tablet: 180.0,
+                smallDesktop: 190.0,
+                desktop: 200.0,
+              ),
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
@@ -697,8 +983,10 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                       child: Icon(
                         Icons.favorite_border,
                         size: r.value(
+                          smallMobile: 16.0,
                           mobile: 16.0,
                           tablet: 17.0,
+                          smallDesktop: 17.5,
                           desktop: 18.0,
                         ),
                         color: Colors.grey,
@@ -708,11 +996,16 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 ],
               ),
             ),
-            // Product Info
             Expanded(
               child: Padding(
                 padding: EdgeInsets.all(
-                  r.value(mobile: 10.0, tablet: 12.0, desktop: 15.0),
+                  r.value(
+                    smallMobile: 10.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 13.0,
+                    desktop: 15.0,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,8 +1027,10 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                           Icons.star,
                           color: Colors.amber,
                           size: r.value(
+                            smallMobile: 14.0,
                             mobile: 14.0,
                             tablet: 15.0,
+                            smallDesktop: 15.5,
                             desktop: 16.0,
                           ),
                         ),
@@ -758,7 +1053,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                       ],
                     ),
                     SizedBox(
-                      height: r.value(mobile: 6, tablet: 8, desktop: 10),
+                      height: r.value(
+                        smallMobile: 6,
+                        mobile: 6,
+                        tablet: 8,
+                        smallDesktop: 9,
+                        desktop: 10,
+                      ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -768,8 +1069,10 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                             "৳ ${product.priceBDT.toStringAsFixed(0)}",
                             style: TextStyle(
                               fontSize: r.value(
+                                smallMobile: 15.0,
                                 mobile: 15.0,
                                 tablet: 16.0,
+                                smallDesktop: 17.0,
                                 desktop: 18.0,
                               ),
                               fontWeight: FontWeight.bold,
@@ -779,7 +1082,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                         ),
                         Container(
                           padding: EdgeInsets.all(
-                            r.value(mobile: 5.0, tablet: 5.5, desktop: 6.0),
+                            r.value(
+                              smallMobile: 5.0,
+                              mobile: 5.0,
+                              tablet: 5.5,
+                              smallDesktop: 5.7,
+                              desktop: 6.0,
+                            ),
                           ),
                           decoration: BoxDecoration(
                             color: Colors.orange,
@@ -788,8 +1097,10 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                           child: Icon(
                             Icons.shopping_cart,
                             size: r.value(
+                              smallMobile: 14.0,
                               mobile: 14.0,
                               tablet: 15.0,
+                              smallDesktop: 15.5,
                               desktop: 16.0,
                             ),
                             color: Colors.white,
@@ -803,76 +1114,6 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.orange, Colors.orangeAccent],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 35, color: Colors.orange),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'ElectroCityBD',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
-            onTap: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.category),
-            title: const Text('Categories'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: const Text('My Cart'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.favorite),
-            title: const Text('Wishlist'),
-            onTap: () {},
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {},
-          ),
-        ],
       ),
     );
   }

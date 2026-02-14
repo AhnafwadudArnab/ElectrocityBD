@@ -104,12 +104,14 @@ class _ProfilePageState extends State<ProfilePage> {
     final r = AppResponsive.of(context);
     final horizontalPadding = r.value(
       mobile: 16.0,
+      smallMobile: 16.0,
       tablet: 40.0,
       smallDesktop: 60.0,
       desktop: 100.0,
     );
     final verticalPadding = r.value(
       mobile: 20.0,
+      smallMobile: 20.0,
       tablet: 30.0,
       smallDesktop: 35.0,
       desktop: 40.0,
@@ -182,7 +184,15 @@ class _ProfilePageState extends State<ProfilePage> {
             });
           },
           child: Container(
-            margin: EdgeInsets.only(bottom: r.value(mobile: 8, desktop: 10)),
+            margin: EdgeInsets.only(
+              bottom: r.value(
+                mobile: 8,
+                smallMobile: 8,
+                tablet: 10,
+                smallDesktop: 10,
+                desktop: 10,
+              ),
+            ),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFFFFD23F) : Colors.white,
               borderRadius: BorderRadius.circular(8),

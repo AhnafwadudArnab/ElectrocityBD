@@ -21,19 +21,19 @@ class AppResponsive {
   bool get isSmallDesktop => width >= 1024 && width < 1440; // 1024px
   bool get isDesktop => width >= 1440; // 1440px, 4K
 
-  /// Flexible value selector
+  /// Flexible value selector - ALL 5 PARAMETERS REQUIRED
   T value<T>({
+    required T smallMobile,
     required T mobile,
-    T? smallMobile,
-    T? tablet,
-    T? smallDesktop,
-    T? desktop,
+    required T tablet,
+    required T smallDesktop,
+    required T desktop,
   }) {
-    if (isDesktop) return desktop ?? smallDesktop ?? tablet ?? mobile;
-    if (isSmallDesktop) return smallDesktop ?? tablet ?? mobile;
-    if (isTablet) return tablet ?? mobile;
-    if (isSmallMobile) return smallMobile ?? mobile;
-    return mobile;
+    if (isSmallMobile) return smallMobile;
+    if (isMobile) return mobile;
+    if (isTablet) return tablet;
+    if (isSmallDesktop) return smallDesktop;
+    return desktop;
   }
 
   /// Percentage width
@@ -51,65 +51,65 @@ class AppDimensions {
   static double padding(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 8,
-      mobile: 12,
-      tablet: 16,
-      smallDesktop: 20,
-      desktop: 24,
+      smallMobile: 12,
+      mobile: 16,
+      tablet: 20,
+      smallDesktop: 24,
+      desktop: 32,
     );
   }
 
   static double cardWidth(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 240,
-      mobile: 260,
-      tablet: 280,
-      smallDesktop: 300,
-      desktop: 320,
+      smallMobile: 150,
+      mobile: 180,
+      tablet: 220,
+      smallDesktop: 250,
+      desktop: 280,
     );
   }
 
   static double cardHeight(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 100,
-      mobile: 110,
-      tablet: 120,
-      smallDesktop: 130,
-      desktop: 140,
+      smallMobile: 200,
+      mobile: 240,
+      tablet: 280,
+      smallDesktop: 320,
+      desktop: 360,
     );
   }
 
   static double imageSize(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 60,
-      mobile: 70,
-      tablet: 80,
-      smallDesktop: 90,
-      desktop: 95,
+      smallMobile: 120,
+      mobile: 150,
+      tablet: 180,
+      smallDesktop: 200,
+      desktop: 220,
     );
   }
 
   static double titleFont(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 13,
-      mobile: 14,
-      tablet: 16,
-      smallDesktop: 17,
-      desktop: 18,
+      smallMobile: 18,
+      mobile: 20,
+      tablet: 24,
+      smallDesktop: 28,
+      desktop: 32,
     );
   }
 
   static double bodyFont(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 11,
-      mobile: 12,
-      tablet: 14,
-      smallDesktop: 15,
+      smallMobile: 13,
+      mobile: 14,
+      tablet: 15,
+      smallDesktop: 16,
       desktop: 16,
     );
   }
@@ -117,22 +117,44 @@ class AppDimensions {
   static double smallFont(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 9,
-      mobile: 10,
-      tablet: 12,
-      smallDesktop: 13,
+      smallMobile: 11,
+      mobile: 12,
+      tablet: 13,
+      smallDesktop: 14,
       desktop: 14,
     );
   }
 
-  static double navButtonSize(BuildContext context) {
+  static double buttonHeight(BuildContext context) {
     final r = AppResponsive.of(context);
     return r.value(
-      smallMobile: 0, // hidden on mobile
-      mobile: 0,
-      tablet: 32,
-      smallDesktop: 34,
-      desktop: 36,
+      smallMobile: 40,
+      mobile: 45,
+      tablet: 50,
+      smallDesktop: 52,
+      desktop: 54,
+    );
+  }
+
+  static double iconSize(BuildContext context) {
+    final r = AppResponsive.of(context);
+    return r.value(
+      smallMobile: 20,
+      mobile: 22,
+      tablet: 24,
+      smallDesktop: 26,
+      desktop: 28,
+    );
+  }
+
+  static double borderRadius(BuildContext context) {
+    final r = AppResponsive.of(context);
+    return r.value(
+      smallMobile: 8,
+      mobile: 10,
+      tablet: 12,
+      smallDesktop: 14,
+      desktop: 16,
     );
   }
 }
@@ -149,60 +171,24 @@ class ResponsiveExample extends StatelessWidget {
     final r = AppResponsive.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Responsive Demo")),
       body: Padding(
         padding: EdgeInsets.all(AppDimensions.padding(context)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Device Type:",
-              style: TextStyle(
-                fontSize: AppDimensions.titleFont(context),
-                fontWeight: FontWeight.bold,
-              ),
+              'Title',
+              style: TextStyle(fontSize: AppDimensions.titleFont(context)),
             ),
-            const SizedBox(height: 10),
-
-            Text(
-              r.isSmallMobile
-                  ? "Small Mobile (320px)"
-                  : r.isMobile
-                  ? "Mobile (375-425px)"
-                  : r.isTablet
-                  ? "Tablet (768px)"
-                  : r.isSmallDesktop
-                  ? "Small Desktop (1024px)"
-                  : "Desktop (1440px+)",
-              style: TextStyle(fontSize: AppDimensions.bodyFont(context)),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// Responsive Card Example
+            SizedBox(height: r.hp(2)),
             Container(
               width: AppDimensions.cardWidth(context),
               height: AppDimensions.cardHeight(context),
               decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(
-                child: Text(
-                  "Responsive Card",
-                  style: TextStyle(fontSize: AppDimensions.bodyFont(context)),
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadius(context),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// Percentage Example
-            Container(
-              width: r.wp(50), // 50% of screen width
-              height: r.hp(10), // 10% of screen height
-              color: Colors.orange.shade200,
-              child: const Center(child: Text("50% Width Container")),
             ),
           ],
         ),
