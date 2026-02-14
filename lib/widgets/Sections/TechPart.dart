@@ -274,7 +274,7 @@ class _TechpartState extends State<Techpart> {
       child: Row(
         children: [
           const Text(
-            '1-12 of 356 results',
+            '1-12 of 36 results',
             style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
           const Spacer(),
