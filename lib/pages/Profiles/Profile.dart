@@ -103,62 +103,201 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
     final horizontalPadding = r.value(
-      mobile: 16.0,
       smallMobile: 16.0,
+      mobile: 16.0,
       tablet: 40.0,
       smallDesktop: 60.0,
       desktop: 100.0,
     );
     final verticalPadding = r.value(
-      mobile: 20.0,
       smallMobile: 20.0,
+      mobile: 20.0,
       tablet: 30.0,
       smallDesktop: 35.0,
       desktop: 40.0,
     );
 
+    final isMobileOrTablet = r.isTablet || r.isMobile || r.isSmallMobile;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const Header(),
-      body: Column(
-        children: [
-          // Scrollable Profile Content with Padding
-          Expanded(
-            child: SingleChildScrollView(
+      // Add Drawer for Mobile & Tablet
+      drawer: isMobileOrTablet ? _buildProfileDrawer() : null,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Profile Content
+            Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: horizontalPadding,
                 vertical: verticalPadding,
               ),
               child: Column(
                 children: [
-                  SizedBox(height: r.hp(8)),
-                  r.isTablet || r.isMobile || r.isSmallMobile
-                      ? Column(
-                          children: [
-                            _buildSidebar(),
-                            SizedBox(height: r.hp(3)),
-                            _buildProfileForm(),
-                          ],
-                        )
-                      : Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(width: r.wp(5)),
-                            // Sidebar Navigation
-                            SizedBox(width: r.wp(25), child: _buildSidebar()),
-                            SizedBox(width: r.wp(5)),
-                            // Profile Form
-                            Expanded(flex: 4, child: _buildProfileForm()),
-                          ],
-                        ),
-                  SizedBox(height: r.hp(12)),
+                  SizedBox(height: verticalPadding),
+                  // Desktop Layout - Show Sidebar
+                  if (!isMobileOrTablet)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Sidebar Navigation
+                        Expanded(flex: 1, child: _buildSidebar()),
+                        SizedBox(width: horizontalPadding),
+                        // Profile Form
+                        Expanded(flex: 3, child: _buildProfileForm()),
+                      ],
+                    ),
+                  // Mobile & Tablet Layout - Only Show Form
+                  if (isMobileOrTablet) _buildProfileForm(),
+                  SizedBox(height: verticalPadding * 2),
                 ],
               ),
             ),
+            // Footer - Full Width, always at bottom
+            const FooterSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Profile Menu Drawer for Mobile & Tablet
+  Widget _buildProfileDrawer() {
+    final padding = AppDimensions.padding(context);
+    List<String> menuItems = [
+      "Personal Information",
+      "My Orders",
+      "Manage Address",
+      "Payment Method",
+      "Password Manager",
+      "Logout",
+    ];
+
+    return Drawer(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange, Colors.orangeAccent],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          // Footer - Full Width
-          const FooterSection(),
-        ],
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Drawer Header
+              Container(
+                padding: EdgeInsets.all(padding * 1.5),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.white,
+                      backgroundImage: const NetworkImage(
+                        'https://via.placeholder.com/150',
+                      ),
+                    ),
+                    SizedBox(height: padding),
+                    Text(
+                      "${firstNameController.text} ${lastNameController.text}",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: AppDimensions.titleFont(context),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: padding / 4),
+                    Text(
+                      emailController.text,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: AppDimensions.smallFont(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: Colors.white, thickness: 1, height: 1),
+              // Menu Items
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(
+                    vertical: padding,
+                    horizontal: padding / 2,
+                  ),
+                  children: menuItems.map((item) {
+                    bool isSelected = item == selectedMenu;
+                    IconData icon;
+
+                    switch (item) {
+                      case "Personal Information":
+                        icon = Icons.person;
+                        break;
+                      case "My Orders":
+                        icon = Icons.shopping_bag;
+                        break;
+                      case "Manage Address":
+                        icon = Icons.location_on;
+                        break;
+                      case "Payment Method":
+                        icon = Icons.payment;
+                        break;
+                      case "Password Manager":
+                        icon = Icons.lock;
+                        break;
+                      case "Logout":
+                        icon = Icons.logout;
+                        break;
+                      default:
+                        icon = Icons.circle;
+                    }
+
+                    return Container(
+                      margin: EdgeInsets.only(bottom: padding / 2),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          icon,
+                          color: isSelected ? Colors.orange : Colors.white,
+                          size: 24,
+                        ),
+                        title: Text(
+                          item,
+                          style: TextStyle(
+                            fontSize: AppDimensions.bodyFont(context),
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            color: isSelected ? Colors.orange : Colors.white,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: isSelected ? Colors.orange : Colors.white,
+                          size: 20,
+                        ),
+                        onTap: () {
+                          setState(() {
+                            selectedMenu = item;
+                          });
+                          Navigator.pop(
+                            context,
+                          ); // Close drawer after selection
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -186,8 +325,8 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Container(
             margin: EdgeInsets.only(
               bottom: r.value(
-                mobile: 8,
                 smallMobile: 8,
+                mobile: 8,
                 tablet: 10,
                 smallDesktop: 10,
                 desktop: 10,
@@ -271,16 +410,24 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
             SizedBox(height: padding),
-            // Profile Image (Fixed - no edit)
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300, width: 2),
-              ),
-              child: CircleAvatar(
-                radius: AppDimensions.imageSize(context) / 2,
-                backgroundImage: const NetworkImage(
-                  'https://via.placeholder.com/150',
+            // Profile Image
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: r.value(
+                    smallMobile: 50,
+                    mobile: 50,
+                    tablet: 60,
+                    smallDesktop: 65,
+                    desktop: 70,
+                  ),
+                  backgroundImage: const NetworkImage(
+                    'https://via.placeholder.com/150',
+                  ),
                 ),
               ),
             ),
@@ -536,6 +683,7 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(height: padding),
             ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: 3,
               itemBuilder: (context, index) {
                 return Card(
@@ -629,9 +777,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SizedBox(height: padding),
-            // Existing Addresses
             ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: addresses.length,
               itemBuilder: (context, index) {
                 return Card(
@@ -779,23 +927,26 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
             SizedBox(height: padding),
-            ElevatedButton(
-              onPressed: _addAddress,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B7340),
-                padding: EdgeInsets.symmetric(
-                  horizontal: padding * 1.5,
-                  vertical: padding * 0.75,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _addAddress,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B7340),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: padding * 1.5,
+                    vertical: padding * 0.75,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                "Add Address",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: AppDimensions.bodyFont(context),
+                child: Text(
+                  "Add Address",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: AppDimensions.bodyFont(context),
+                  ),
                 ),
               ),
             ),
@@ -828,9 +979,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SizedBox(height: padding),
-            // Dynamic Payment Methods
             ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: paymentMethods.length,
               itemBuilder: (context, index) {
                 return _buildPaymentItem(
@@ -913,23 +1064,26 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
             SizedBox(height: padding),
-            ElevatedButton(
-              onPressed: _addPaymentMethod,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B7340),
-                padding: EdgeInsets.symmetric(
-                  horizontal: padding * 1.5,
-                  vertical: padding * 0.75,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _addPaymentMethod,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B7340),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: padding * 1.5,
+                    vertical: padding * 0.75,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                "Add Card",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: AppDimensions.bodyFont(context),
+                child: Text(
+                  "Add Card",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: AppDimensions.bodyFont(context),
+                  ),
                 ),
               ),
             ),
@@ -1009,23 +1163,26 @@ class _ProfilePageState extends State<ProfilePage> {
               confirmPasswordController,
             ),
             SizedBox(height: padding),
-            ElevatedButton(
-              onPressed: _updatePassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B7340),
-                padding: EdgeInsets.symmetric(
-                  horizontal: padding * 1.5,
-                  vertical: padding * 0.75,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _updatePassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B7340),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: padding * 1.5,
+                    vertical: padding * 0.75,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                "Update Password",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: AppDimensions.bodyFont(context),
+                child: Text(
+                  "Update Password",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: AppDimensions.bodyFont(context),
+                  ),
                 ),
               ),
             ),
@@ -1042,7 +1199,6 @@ class _ProfilePageState extends State<ProfilePage> {
   ) {
     final padding = AppDimensions.padding(context);
 
-    // Determine which flag to use based on the label
     bool isCurrentPassword = label.contains("Current");
     bool isNewPassword = label.contains("New");
     bool isConfirmPassword = label.contains("Confirm");
@@ -1185,7 +1341,7 @@ class _ProfilePageState extends State<ProfilePage> {
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: EdgeInsets.all(padding),
+        padding: EdgeInsets.all(padding * 2),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1310,7 +1466,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Update Methods
   void _updatePersonalInfo() {
-    // Validate inputs (optional)
     if (firstNameController.text.isEmpty ||
         lastNameController.text.isEmpty ||
         emailController.text.isEmpty ||
@@ -1321,22 +1476,16 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    // Update state with new values
     setState(() {
       isEditingPersonalInfo = false;
-      // Values are already in controllers, just exit edit mode
     });
 
-    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Profile updated successfully!"),
         backgroundColor: Colors.green,
       ),
     );
-
-    // Optional: Make API call to save to backend
-    // await saveProfileToBackend();
   }
 
   void _addAddress() {
@@ -1356,7 +1505,6 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     });
 
-    // Clear controllers
     addressFirstNameController.clear();
     addressLastNameController.clear();
     streetAddressController.clear();
