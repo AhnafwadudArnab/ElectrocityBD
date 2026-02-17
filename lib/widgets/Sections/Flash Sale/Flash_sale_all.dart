@@ -35,7 +35,178 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
       'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Electric Screwdriver',
+      'price': 45.0,
+      'category': 'Hand Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'LED Light'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Nail Gun',
+      'price': 95.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Pneumatic', 'Ergonomic Grip'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Brad Nailer',
+      'price': 65.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Pneumatic', 'Compact'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Staple Gun',
+      'price': 35.0,
+      'category': 'Hand Tools',
+      'brand': 'Brand C',
+      'specs': ['Manual', 'Ergonomic Grip'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Air Compressor',
+      'price': 180.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Corded', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Wet & Dry Vacuum',
+      'price': 145.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'LED Light'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Orbital Sander',
+      'price': 75.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Heat Gun',
+      'price': 55.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Corded', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Pneumatic Wrench',
+      'price': 105.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Pneumatic', 'Compact'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Reciprocating Saw',
+      'price': 115.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'LED Light', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Tile Cutter',
+      'price': 85.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Electric', 'Precision'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Polisher',
+      'price': 135.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Chainsaw',
+      'price': 220.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'LED Light'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Hedge Trimmer',
+      'price': 95.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Cordless', 'Ergonomic Grip'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Impact Driver',
+      'price': 115.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Cordless', 'LED Light'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Rotary Tool',
+      'price': 65.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Wood Chipper',
+      'price': 195.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Electric', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Pressure Washer',
+      'price': 175.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Electric', 'Variable Speed'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+    },
+    {
+      'title': 'Oscillating Multi-Tool',
+      'price': 85.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'Variable Speed', 'LED Light'],
+      'image':
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
     },
     {
       'title': 'Impact Drill',
