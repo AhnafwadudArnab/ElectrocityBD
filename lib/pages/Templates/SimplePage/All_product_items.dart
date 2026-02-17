@@ -16,78 +16,179 @@ class AllProductItemsPage extends StatefulWidget {
 }
 
 class _AllProductItemsPageState extends State<AllProductItemsPage> {
-  static const _products = [
+  static const int _rowsPerPage = 3;
+  static const double _priceMin = 0;
+  static const double _priceMax = 500;
+  static const imgPath = "assets/Products";
+
+  int _currentPage = 1;
+  String _selectedSort = 'featured';
+
+  // NEW: State for filters
+  final List<String> _selectedCategories = [];
+  final List<String> _selectedBrands = [];
+  final List<String> _selectedSpecifications = [];
+
+  static const List<Map<String, Object>> _flashSaleprod = [
     {
       'title': 'Rotary Hammer Drill',
       'price': 125.0,
-      'image':
-          'https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?auto=format&fit=crop&w=900&q=60',
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
+      'image': "$imgPath/1.png",
     },
     {
-      'title': 'Impact Drill',
-      'price': 89.0,
-      'image':
-          'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=60',
+      'title': 'Electric Screwdriver',
+      'price': 45.0,
+      'category': 'Hand Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'LED Light'],
+      'image': "$imgPath/2.jpg",
     },
     {
-      'title': 'Tool Kit',
-      'price': 155.0,
-      'image':
-          'https://images.unsplash.com/photo-1505798577917-a65157d3320a?auto=format&fit=crop&w=900&q=60',
+      'title': 'Nail Gun',
+      'price': 95.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Pneumatic', 'Ergonomic Grip'],
+      'image': "$imgPath/3.jpg",
     },
     {
-      'title': 'Circular Saw',
-      'price': 99.0,
-      'image':
-          'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=60',
+      'title': 'Brad Nailer',
+      'price': 65.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Pneumatic', 'Compact'],
+      'image': "$imgPath/4.jpg",
     },
     {
-      'title': 'Cordless Drill',
-      'price': 110.0,
-      'image':
-          'https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=900&q=60',
+      'title': 'Staple Gun',
+      'price': 35.0,
+      'category': 'Hand Tools',
+      'brand': 'Brand C',
+      'specs': ['Manual', 'Ergonomic Grip'],
+      'image': "$imgPath/5.jpg",
     },
     {
-      'title': 'Jigsaw',
-      'price': 78.0,
-      'image':
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=60',
+      'title': 'Air Compressor',
+      'price': 180.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Corded', 'Variable Speed'],
+      'image': "$imgPath/3.jpg",
+    },
+    {
+      'title': 'Wet & Dry Vacuum',
+      'price': 145.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'LED Light'],
+      'image': "$imgPath/6.jpg",
     },
     {
       'title': 'Angle Grinder',
-      'price': 69.0,
-      'image':
-          'https://images.unsplash.com/photo-1505798577917-a65157d3320a?auto=format&fit=crop&w=900&q=60',
+      'price': 110.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
+      'image': "$imgPath/7.png",
     },
     {
-      'title': 'Corded Drill',
-      'price': 52.0,
-      'image':
-          'https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=900&q=60',
+      'title': 'Jigsaw',
+      'price': 85.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'Variable Speed'],
+      'image': "$imgPath/2.jpg",
     },
     {
-      'title': 'Power Sander',
-      'price': 84.0,
-      'image':
-          'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=60',
+      'title': 'Circular Saw',
+      'price': 105.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'Laser Guide'],
+      'image': "$imgPath/4.jpg",
     },
     {
-      'title': 'Precision Drill',
-      'price': 61.0,
-      'image':
-          'https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?auto=format&fit=crop&w=900&q=60',
+      'title': 'Orbital Sander',
+      'price': 75.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
+      'image': "$imgPath/5.jpg",
     },
     {
-      'title': 'Compact Saw',
-      'price': 73.0,
-      'image':
-          'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=60',
+      'title': 'Power Drill',
+      'price': 95.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'Variable Speed', 'LED Light'],
+      'image': "$imgPath/6.jpg",
     },
     {
-      'title': 'Bench Drill',
-      'price': 132.0,
-      'image':
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=60',
+      'title': 'Nail Gun',
+      'price': 95.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Pneumatic', 'Ergonomic Grip'],
+      'image': "$imgPath/3.jpg",
+    },
+    {
+      'title': 'Brad Nailer',
+      'price': 65.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Pneumatic', 'Compact'],
+      'image': "$imgPath/4.jpg",
+    },
+    {
+      'title': 'Staple Gun',
+      'price': 35.0,
+      'category': 'Hand Tools',
+      'brand': 'Brand C',
+      'specs': ['Manual', 'Ergonomic Grip'],
+      'image': "$imgPath/5.jpg",
+    },
+    {
+      'title': 'Air Compressor',
+      'price': 180.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Corded', 'Variable Speed'],
+      'image': "$imgPath/3.jpg",
+    },
+    {
+      'title': 'Wet & Dry Vacuum',
+      'price': 145.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'LED Light'],
+      'image': "$imgPath/6.jpg",
+    },
+    {
+      'title': 'Angle Grinder',
+      'price': 110.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
+      'image': "$imgPath/7.png",
+    },
+    {
+      'title': 'Jigsaw',
+      'price': 85.0,
+      'category': 'Power Tools',
+      'brand': 'Brand C',
+      'specs': ['Cordless', 'Variable Speed'],
+      'image': "$imgPath/2.jpg",
+    },
+    {
+      'title': 'Circular Saw',
+      'price': 105.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'Laser Guide'],
+      'image': "$imgPath/4.jpg",
     },
   ];
 
@@ -96,34 +197,71 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
   @override
   void initState() {
     super.initState();
-    _priceRange = RangeValues(_minPrice, _maxPrice);
+    _priceRange = const RangeValues(_priceMin, _priceMax);
   }
 
-  double get _minPrice => _products
-      .map((p) => p['price'] as double)
-      .reduce((a, b) => a < b ? a : b);
-
-  double get _maxPrice => _products
-      .map((p) => p['price'] as double)
-      .reduce((a, b) => a > b ? a : b);
-
+  // UPDATED: Filtering logic now includes categories and brands
   List<Map<String, Object>> _filteredProducts() {
-    return _products.where((p) {
+    return _flashSaleprod.where((p) {
       final price = p['price'] as double;
-      return price >= _priceRange.start && price <= _priceRange.end;
+      final category = p['category'] as String;
+      final brand = p['brand'] as String;
+      final specs = (p['specs'] as List<String>?) ?? const <String>[];
+
+      final matchesPrice =
+          price >= _priceRange.start && price <= _priceRange.end;
+      final matchesCategory =
+          _selectedCategories.isEmpty || _selectedCategories.contains(category);
+      final matchesBrand =
+          _selectedBrands.isEmpty || _selectedBrands.contains(brand);
+      final matchesSpecs =
+          _selectedSpecifications.isEmpty ||
+          _selectedSpecifications.any(specs.contains);
+
+      return matchesPrice && matchesCategory && matchesBrand && matchesSpecs;
     }).toList();
+  }
+
+  List<Map<String, Object>> _sortedProducts(List<Map<String, Object>> items) {
+    final sorted = List<Map<String, Object>>.from(items);
+    if (_selectedSort == 'price_low') {
+      sorted.sort(
+        (a, b) => (a['price'] as double).compareTo(b['price'] as double),
+      );
+    } else if (_selectedSort == 'price_high') {
+      sorted.sort(
+        (a, b) => (b['price'] as double).compareTo(a['price'] as double),
+      );
+    } else if (_selectedSort == 'title') {
+      sorted.sort(
+        (a, b) => (a['title'] as String).compareTo(b['title'] as String),
+      );
+    }
+    return sorted;
+  }
+
+  void _toggleFilter(List<String> list, String value) {
+    setState(() {
+      if (list.contains(value)) {
+        list.remove(value);
+      } else {
+        list.add(value);
+      }
+      _currentPage = 1; // Reset to page 1 on filter change
+    });
   }
 
   void _openDetails(Map<String, Object> item, int index) {
     final product = ProductData(
       id: 'all_$index',
       name: item['title'] as String,
-      category: 'All Products',
+      category: item['category'] as String,
       priceBDT: item['price'] as double,
       images: [item['image'] as String],
       description: 'Detailed information about ${item['title']}.',
       additionalInfo: {
-        'Category': 'All Products',
+        'Category': item['category'] as String,
+        'Brand': item['brand'] as String,
         'Price': 'Tk ${(item['price'] as double).toStringAsFixed(0)}',
       },
     );
@@ -194,7 +332,7 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
                           width: sideWidth,
                           child: _buildFilterPanel(r, context),
                         ),
-                        SizedBox(width: AppDimensions.padding(context)),
+                        const SizedBox(width: 20),
                         Expanded(child: _buildProductsSection(r, gridCount)),
                       ],
                     ),
@@ -226,9 +364,6 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
         ),
       ),
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppDimensions.padding(context),
-        ),
         alignment: Alignment.center,
         decoration: BoxDecoration(color: Colors.black.withOpacity(0.25)),
         child: Column(
@@ -255,140 +390,140 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
   }
 
   Widget _buildFilterPanel(AppResponsive r, BuildContext context) {
-    final min = _minPrice;
-    final max = _maxPrice;
-
     return Container(
-      padding: EdgeInsets.all(AppDimensions.padding(context)),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         border: Border.all(color: Colors.grey[200]!),
-        borderRadius: BorderRadius.circular(
-          AppDimensions.borderRadius(context),
-        ),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
+            'Filters',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 20),
+          const Text(
             'Filter by Price',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
           const SizedBox(height: 8),
           SliderTheme(
             data: SliderThemeData(
               activeTrackColor: Colors.amber[700],
               thumbColor: Colors.amber[700],
-              inactiveTrackColor: Colors.grey[300],
+              overlayColor: Colors.amber.withOpacity(0.2),
+              valueIndicatorColor: Colors.amber[700],
             ),
             child: RangeSlider(
               values: _priceRange,
-              min: min,
-              max: max,
-              onChanged: (values) {
+              min: _priceMin,
+              max: _priceMax,
+              divisions: 50,
+              labels: RangeLabels(
+                'Tk ${_priceRange.start.round()}',
+                'Tk ${_priceRange.end.round()}',
+              ),
+              onChanged: (RangeValues values) {
                 setState(() {
                   _priceRange = values;
+                  _currentPage = 1;
                 });
               },
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Price: ${_priceRange.start.toStringAsFixed(0)} - ${_priceRange.end.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-              SizedBox(
-                height: 28,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Filter', style: TextStyle(fontSize: 12)),
-                ),
-              ),
+          Text(
+            'Price: Tk ${_priceRange.start.round()} — Tk ${_priceRange.end.round()}',
+            style: const TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 24),
+          _filterSection(
+            title: 'Categories',
+            options: ['Power Tools', 'Hand Tools', 'Accessories'],
+            selectedList: _selectedCategories,
+          ),
+          const SizedBox(height: 16),
+          _filterSection(
+            title: 'Brands',
+            options: ['Brand A', 'Brand B', 'Brand C'],
+            selectedList: _selectedBrands,
+          ),
+          const SizedBox(height: 16),
+          _filterSection(
+            title: 'Specifications',
+            options: [
+              'Cordless',
+              'Corded',
+              'Variable Speed',
+              'LED Light',
+              'Ergonomic Grip',
             ],
+            selectedList: _selectedSpecifications,
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Categories',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          _filterItem('Drilling (7)'),
-          _filterItem('Concrete (4)'),
-          _filterItem('Saw (6)'),
-          _filterItem('Power Tools (8)'),
-          _filterItem('Featured (5)'),
-          const SizedBox(height: 16),
-          const Text(
-            'Featured Products',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          _miniProduct('Hammer Drill', 112),
-          _miniProduct('Precision Drill', 80),
-          _miniProduct('Compact Saw', 73),
         ],
       ),
     );
   }
 
-  Widget _filterItem(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(label, style: const TextStyle(fontSize: 12)),
+  Widget _filterSection({
+    required String title,
+    required List<String> options,
+    required List<String> selectedList,
+  }) {
+    return ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: EdgeInsets.zero,
+      initiallyExpanded: true,
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+      children: options
+          .map((opt) => _filterCheckItem(opt, selectedList))
+          .toList(),
     );
   }
 
-  Widget _miniProduct(String name, double price) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(fontSize: 12)),
-                Text(
-                  'Tk ${price.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.redAccent),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget _filterCheckItem(String label, List<String> selectedList) {
+    return CheckboxListTile(
+      value: selectedList.contains(label),
+      onChanged: (_) => _toggleFilter(selectedList, label),
+      dense: true,
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      title: Text(label, style: const TextStyle(fontSize: 12)),
     );
   }
 
   Widget _buildProductsSection(AppResponsive r, int gridCount) {
-    final items = _filteredProducts();
+    final filtered = _filteredProducts();
+    final items = _sortedProducts(filtered);
+    final perPage = gridCount * _rowsPerPage;
+    final totalPages = (items.length / perPage).ceil().clamp(1, 999);
+
+    if (_currentPage > totalPages) _currentPage = totalPages;
+
+    final startIndex = (_currentPage - 1) * perPage;
+    final pageItems = items.skip(startIndex).take(perPage).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
-              child: Text(
-                'All Products',
-                style: TextStyle(fontSize: 12, color: Colors.black54),
-              ),
+            Text(
+              'Showing ${pageItems.length} of ${items.length} results',
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
             DropdownButton<String>(
-              value: 'featured',
+              value: _selectedSort,
+              underline: const SizedBox(),
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
               items: const [
-                DropdownMenuItem(value: 'featured', child: Text('Sort by')),
+                DropdownMenuItem(value: 'featured', child: Text('Featured')),
                 DropdownMenuItem(
                   value: 'price_low',
                   child: Text('Price: Low to High'),
@@ -397,59 +532,72 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
                   value: 'price_high',
                   child: Text('Price: High to Low'),
                 ),
+                DropdownMenuItem(value: 'title', child: Text('Name: A to Z')),
               ],
-              onChanged: (_) {},
+              onChanged: (value) {
+                if (value != null) setState(() => _selectedSort = value);
+              },
             ),
           ],
         ),
         const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: gridCount,
-            childAspectRatio: r.value(
-              smallMobile: 0.72,
-              mobile: 0.74,
-              tablet: 0.78,
-              smallDesktop: 0.8,
-              desktop: 0.82,
+        if (pageItems.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: Text("No products found for these filters."),
             ),
-            crossAxisSpacing: r.value(
-              smallMobile: 10,
-              mobile: 12,
-              tablet: 14,
-              smallDesktop: 16,
-              desktop: 18,
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: pageItems.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: gridCount,
+              childAspectRatio: 0.75,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
-            mainAxisSpacing: r.value(
-              smallMobile: 10,
-              mobile: 12,
-              tablet: 14,
-              smallDesktop: 16,
-              desktop: 18,
-            ),
+            itemBuilder: (context, index) {
+              final item = pageItems[index];
+              return _productCard(
+                title: item['title'] as String,
+                price: item['price'] as double,
+                image: item['image'] as String,
+                context: context,
+                onTap: () => _openDetails(item, index),
+              );
+            },
           ),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return _productCard(
-              title: item['title'] as String,
-              price: item['price'] as double,
-              image: item['image'] as String,
-              context: context,
-              onTap: () => _openDetails(item, index),
-            );
-          },
+        const SizedBox(height: 24),
+        _buildPagination(totalPages),
+      ],
+    );
+  }
+
+  Widget _buildPagination(int totalPages) {
+    if (totalPages <= 1) return const SizedBox();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: _currentPage > 1
+              ? () => setState(() => _currentPage--)
+              : null,
+          icon: const Icon(Icons.chevron_left),
         ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _pageChip('1', isActive: true),
-            _pageChip('2'),
-            _pageChip('3'),
-          ],
+        for (var i = 1; i <= totalPages; i++)
+          _pageChip(
+            i.toString(),
+            isActive: _currentPage == i,
+            onTap: () => setState(() => _currentPage = i),
+          ),
+        IconButton(
+          onPressed: _currentPage < totalPages
+              ? () => setState(() => _currentPage++)
+              : null,
+          icon: const Icon(Icons.chevron_right),
         ),
       ],
     );
@@ -464,14 +612,10 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey[200]!),
-          borderRadius: BorderRadius.circular(
-            AppDimensions.borderRadius(context),
-          ),
-          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,39 +623,35 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(10),
+                  top: Radius.circular(8),
                 ),
                 child: Image.network(
                   image,
                   fit: BoxFit.cover,
                   width: double.infinity,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.image, size: 32),
-                  ),
                 ),
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(AppDimensions.padding(context) * 0.6),
+              padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: AppDimensions.smallFont(context),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.star, size: 12, color: Colors.amber),
                       Icon(Icons.star, size: 12, color: Colors.amber),
                       Icon(Icons.star, size: 12, color: Colors.amber),
-                      Icon(Icons.star_half, size: 12, color: Colors.amber),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -520,6 +660,7 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
                     style: const TextStyle(
                       color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
                   ),
                 ],
@@ -531,21 +672,24 @@ class _AllProductItemsPageState extends State<AllProductItemsPage> {
     );
   }
 
-  Widget _pageChip(String label, {bool isActive = false}) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isActive ? Colors.amber : Colors.white,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          color: isActive ? Colors.white : Colors.black87,
+  Widget _pageChip(
+    String label, {
+    bool isActive = false,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: ActionChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.black,
+            fontSize: 12,
+          ),
         ),
+        backgroundColor: isActive ? Colors.amber : Colors.white,
+        onPressed: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }
