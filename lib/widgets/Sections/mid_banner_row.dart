@@ -11,15 +11,15 @@ class MidBannerRow extends StatelessWidget {
     final banners = [
       {
         //'label': 'Super Deals',
-        'img': 'assets/Deals/1.png',
+        'img': 'assets/1.png',
       },
       {
         //'label': 'Up To 60% Off',
-        'img': 'assets/Deals/2.png',
+        'img': 'assets/2.png',
       },
       {
         //'label': 'Up To 60% Off',
-        'img': 'assets/Deals/3.png',
+        'img': 'assets/3.png',
       },
     ];
 

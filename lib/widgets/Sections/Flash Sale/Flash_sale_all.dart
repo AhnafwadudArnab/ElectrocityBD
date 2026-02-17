@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
@@ -9,7 +8,7 @@ import '../../../widgets/header.dart';
 class FlashSaleAll extends StatefulWidget {
   final String breadcrumbLabel;
 
-  const FlashSaleAll({super.key, this.breadcrumbLabel = 'All Products'});
+  const FlashSaleAll({super.key, this.breadcrumbLabel = 'Flash Sale Products'});
 
   @override
   State<FlashSaleAll> createState() => _FlashSaleAllState();
@@ -24,13 +23,28 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   int _currentPage = 1;
   String _selectedSort = 'featured';
 
-  // NEW: State for filters
   final List<String> _selectedCategories = [];
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
 
+  // UPDATED: Standardized Data with BD Market Prices
   static const List<Map<String, Object>> _flashSaleprod = [
     {
+      'title': 'Circular Saw',
+      'price': 7200.0,
+      'category': 'Power Tools',
+      'brand': 'Brand A',
+      'specs': ['Corded', 'Laser Guide'],
+      'image': "$imgPath/Circular Saw.jpg",
+    },
+    {
+      'title': 'Orbital Sander',
+      'price': 3800.0,
+      'category': 'Power Tools',
+      'brand': 'Brand B',
+      'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
+      'image': "$imgPath/Orbital Sander.jpg",
+    },{
       'title': 'Rotary Hammer Drill',
       'price': 6500.0,
       'category': 'Power Tools',
@@ -127,6 +141,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       'image': "$imgPath/Power Drill.jpg",
     },
   ];
+
   late RangeValues _priceRange;
 
   @override
@@ -135,7 +150,6 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     _priceRange = const RangeValues(_priceMin, _priceMax);
   }
 
-  // UPDATED: Filtering logic now includes categories and brands
   List<Map<String, Object>> _filteredProducts() {
     return _flashSaleprod.where((p) {
       final price = p['price'] as double;
@@ -182,7 +196,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       } else {
         list.add(value);
       }
-      _currentPage = 1; // Reset to page 1 on filter change
+      _currentPage = 1;
     });
   }
 
@@ -193,7 +207,8 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       category: item['category'] as String,
       priceBDT: item['price'] as double,
       images: [item['image'] as String],
-      description: 'Detailed information about ${item['title']}.',
+      description:
+          'High quality industrial ${item['title']} for professional use.',
       additionalInfo: {
         'Category': item['category'] as String,
         'Brand': item['brand'] as String,
@@ -245,13 +260,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                   smallDesktop: 32,
                   desktop: 48,
                 ),
-                vertical: r.value(
-                  smallMobile: 12,
-                  mobile: 12,
-                  tablet: 16,
-                  smallDesktop: 18,
-                  desktop: 20,
-                ),
+                vertical: 20,
               ),
               child: isNarrow
                   ? Column(
@@ -268,7 +277,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                           width: sideWidth,
                           child: _buildFilterPanel(r, context),
                         ),
-                        const SizedBox(width: 20),
+                        const SizedBox(width: 24),
                         Expanded(child: _buildProductsSection(r, gridCount)),
                       ],
                     ),
@@ -280,6 +289,8 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
+  // --- UI Components ---
+
   Widget _buildBanner(AppResponsive r, BuildContext context) {
     return Container(
       height: r.value(
@@ -290,36 +301,25 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
         desktop: 200,
       ),
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        image: const DecorationImage(
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        image: DecorationImage(
           image: NetworkImage(
-            'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=60',
+            'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80',
           ),
           fit: BoxFit.cover,
+          opacity: 0.6,
         ),
       ),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: Colors.black.withOpacity(0.25)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'STORE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Home  /  ${widget.breadcrumbLabel}',
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
-            ),
-          ],
+      child: Center(
+        child: Text(
+          widget.breadcrumbLabel.toUpperCase(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2,
+          ),
         ),
       ),
     );
@@ -329,73 +329,51 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Colors.white,
         border: Border.all(color: Colors.grey[200]!),
         borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Filters',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
-          const SizedBox(height: 20),
+          const Divider(height: 30),
           const Text(
-            'Filter by Price',
+            'Price Range',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
-          const SizedBox(height: 8),
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: Colors.amber[700],
-              thumbColor: Colors.amber[700],
-              overlayColor: Colors.amber.withOpacity(0.2),
-              valueIndicatorColor: Colors.amber[700],
-            ),
-            child: RangeSlider(
-              values: _priceRange,
-              min: _priceMin,
-              max: _priceMax,
-              divisions: 50,
-              labels: RangeLabels(
-                'Tk ${_priceRange.start.round()}',
-                'Tk ${_priceRange.end.round()}',
-              ),
-              onChanged: (RangeValues values) {
-                setState(() {
-                  _priceRange = values;
-                  _currentPage = 1;
-                });
-              },
-            ),
+          RangeSlider(
+            values: _priceRange,
+            min: _priceMin,
+            max: _priceMax,
+            activeColor: Colors.amber[700],
+            inactiveColor: Colors.grey[300],
+            onChanged: (val) => setState(() => _priceRange = val),
           ),
           Text(
-            'Price: Tk ${_priceRange.start.round()} — Tk ${_priceRange.end.round()}',
+            'Tk ${_priceRange.start.round()} - Tk ${_priceRange.end.round()}',
             style: const TextStyle(fontSize: 12),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _filterSection(
             title: 'Categories',
-            options: ['Power Tools', 'Hand Tools', 'Accessories'],
+            options: ['Power Tools', 'Hand Tools'],
             selectedList: _selectedCategories,
           ),
-          const SizedBox(height: 16),
           _filterSection(
             title: 'Brands',
             options: ['Brand A', 'Brand B', 'Brand C'],
             selectedList: _selectedBrands,
           ),
-          const SizedBox(height: 16),
           _filterSection(
-            title: 'Specifications',
-            options: [
-              'Cordless',
-              'Corded',
-              'Variable Speed',
-              'LED Light',
-              'Ergonomic Grip',
-            ],
+            title: 'Specs',
+            options: ['Cordless', 'Corded', 'Variable Speed', 'LED Light'],
             selectedList: _selectedSpecifications,
           ),
         ],
@@ -409,57 +387,53 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     required List<String> selectedList,
   }) {
     return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      childrenPadding: EdgeInsets.zero,
-      initiallyExpanded: true,
       title: Text(
         title,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
       ),
+      tilePadding: EdgeInsets.zero,
+      initiallyExpanded: true,
       children: options
-          .map((opt) => _filterCheckItem(opt, selectedList))
+          .map(
+            (opt) => CheckboxListTile(
+              title: Text(opt, style: const TextStyle(fontSize: 12)),
+              value: selectedList.contains(opt),
+              onChanged: (_) => _toggleFilter(selectedList, opt),
+              controlAffinity: ListTileControlAffinity.leading,
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+          )
           .toList(),
     );
   }
 
-  Widget _filterCheckItem(String label, List<String> selectedList) {
-    return CheckboxListTile(
-      value: selectedList.contains(label),
-      onChanged: (_) => _toggleFilter(selectedList, label),
-      dense: true,
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(fontSize: 12)),
-    );
-  }
-
   Widget _buildProductsSection(AppResponsive r, int gridCount) {
-    final filtered = _filteredProducts();
-    final items = _sortedProducts(filtered);
+    final items = _sortedProducts(_filteredProducts());
     final perPage = gridCount * _rowsPerPage;
-    final totalPages = (items.length / perPage).ceil().clamp(1, 999);
-
-    if (_currentPage > totalPages) _currentPage = totalPages;
-
-    final startIndex = (_currentPage - 1) * perPage;
-    final pageItems = items.skip(startIndex).take(perPage).toList();
+    final totalPages = (items.length / perPage).ceil().clamp(1, 99).toInt();
+    final pageItems = items
+        .skip((_currentPage - 1) * perPage)
+        .take(perPage)
+        .toList();
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Showing ${pageItems.length} of ${items.length} results',
-              style: const TextStyle(fontSize: 12, color: Colors.black54),
+              'Found ${items.length} items',
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
             ),
             DropdownButton<String>(
               value: _selectedSort,
               underline: const SizedBox(),
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
               items: const [
-                DropdownMenuItem(value: 'featured', child: Text('Featured')),
+                DropdownMenuItem(
+                  value: 'featured',
+                  child: Text('Sort: Featured'),
+                ),
                 DropdownMenuItem(
                   value: 'price_low',
                   child: Text('Price: Low to High'),
@@ -468,73 +442,33 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                   value: 'price_high',
                   child: Text('Price: High to Low'),
                 ),
-                DropdownMenuItem(value: 'title', child: Text('Name: A to Z')),
               ],
-              onChanged: (value) {
-                if (value != null) setState(() => _selectedSort = value);
-              },
+              onChanged: (v) => setState(() => _selectedSort = v!),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        if (pageItems.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40),
-              child: Text("No products found for these filters."),
-            ),
-          )
-        else
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: pageItems.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: gridCount,
-              childAspectRatio: 0.75,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemBuilder: (context, index) {
-              final item = pageItems[index];
-              return _productCard(
-                title: item['title'] as String,
-                price: item['price'] as double,
-                image: item['image'] as String,
-                context: context,
-                onTap: () => _openDetails(item, index),
-              );
-            },
-          ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        pageItems.isEmpty
+            ? const Center(child: Text("No products match your filters."))
+            : GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: pageItems.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: gridCount,
+                  childAspectRatio: 0.72,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                ),
+                itemBuilder: (context, index) => _productCard(
+                  title: pageItems[index]['title'] as String,
+                  price: pageItems[index]['price'] as double,
+                  image: pageItems[index]['image'] as String,
+                  onTap: () => _openDetails(pageItems[index], index),
+                ),
+              ),
+        const SizedBox(height: 30),
         _buildPagination(totalPages),
-      ],
-    );
-  }
-
-  Widget _buildPagination(int totalPages) {
-    if (totalPages <= 1) return const SizedBox();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          onPressed: _currentPage > 1
-              ? () => setState(() => _currentPage--)
-              : null,
-          icon: const Icon(Icons.chevron_left),
-        ),
-        for (var i = 1; i <= totalPages; i++)
-          _pageChip(
-            i.toString(),
-            isActive: _currentPage == i,
-            onTap: () => setState(() => _currentPage = i),
-          ),
-        IconButton(
-          onPressed: _currentPage < totalPages
-              ? () => setState(() => _currentPage++)
-              : null,
-          icon: const Icon(Icons.chevron_right),
-        ),
       ],
     );
   }
@@ -543,7 +477,6 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     required String title,
     required double price,
     required String image,
-    required BuildContext context,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -557,19 +490,14 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(8),
-                ),
-                child: Image.asset(
-                  image,
-                  fit: BoxFit.contain,
-                  width: double.infinity,
-                ),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                width: double.infinity,
+                child: Image.asset(image, fit: BoxFit.contain),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -578,25 +506,17 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Row(
-                    children: [
-                      Icon(Icons.star, size: 12, color: Colors.amber),
-                      Icon(Icons.star, size: 12, color: Colors.amber),
-                      Icon(Icons.star, size: 12, color: Colors.amber),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Tk ${price.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '৳ ${price.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      color: Colors.amber[900],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -608,24 +528,20 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  Widget _pageChip(
-    String label, {
-    bool isActive = false,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: ActionChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.black,
-            fontSize: 12,
+  Widget _buildPagination(int totalPages) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        totalPages,
+        (i) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: ChoiceChip(
+            label: Text('${i + 1}'),
+            selected: _currentPage == i + 1,
+            onSelected: (s) => setState(() => _currentPage = i + 1),
+            selectedColor: Colors.amber,
           ),
         ),
-        backgroundColor: isActive ? Colors.amber : Colors.white,
-        onPressed: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }

@@ -16,4 +16,7 @@ class ProductData {
     required this.description,
     required this.additionalInfo,
   });
+
+  // Helper to get formatted price anywhere in the app
+  String get formattedPrice => "৳ ${priceBDT.toStringAsFixed(0)}";
 }

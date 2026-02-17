@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../Dimensions/responsive_dimensions.dart';
 
 class PromoCard extends StatelessWidget {
