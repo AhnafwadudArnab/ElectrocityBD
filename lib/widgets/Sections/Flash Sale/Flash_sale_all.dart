@@ -12,10 +12,10 @@ class FlashSaleAll extends StatefulWidget {
   const FlashSaleAll({super.key, this.breadcrumbLabel = 'All Products'});
 
   @override
-  State<FlashSaleAll> createState() => _AllProductItemsPageState();
+  State<FlashSaleAll> createState() => _FlashSaleAllState();
 }
 
-class _AllProductItemsPageState extends State<FlashSaleAll> {
+class _FlashSaleAllState extends State<FlashSaleAll> {
   static const int _rowsPerPage = 3;
   static const double _priceMin = 0;
   static const double _priceMax = 500;

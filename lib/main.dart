@@ -1,5 +1,4 @@
 import 'package:electrocitybd1/pages/home_page.dart';
-import 'package:electrocitybd1/widgets/Sections/Flash%20Sale/Flash_sale_all.dart';
 import 'package:flutter/material.dart';
 
 void main() {
