@@ -18,8 +18,8 @@ class FlashSaleAll extends StatefulWidget {
 class _FlashSaleAllState extends State<FlashSaleAll> {
   static const int _rowsPerPage = 3;
   static const double _priceMin = 0;
-  static const double _priceMax = 500;
-  static const imgPath = "assets/Products";
+  static const double _priceMax = 50000;
+  static const imgPath = "assets/flash";
 
   int _currentPage = 1;
   String _selectedSort = 'featured';
@@ -32,7 +32,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   static const List<Map<String, Object>> _flashSaleprod = [
     {
       'title': 'Rotary Hammer Drill',
-      'price': 125.0,
+      'price': 6500.0, // Avg for 800W-1050W (Total/Ingco)
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
@@ -40,7 +40,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Electric Screwdriver',
-      'price': 45.0,
+      'price': 2200.0, // Typical 4V-12V cordless sets
       'category': 'Hand Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'LED Light'],
@@ -48,7 +48,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Nail Gun',
-      'price': 95.0,
+      'price': 4800.0, // Standard pneumatic F30 models
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Pneumatic', 'Ergonomic Grip'],
@@ -56,7 +56,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Brad Nailer',
-      'price': 65.0,
+      'price': 3500.0,
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Pneumatic', 'Compact'],
@@ -64,7 +64,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Staple Gun',
-      'price': 35.0,
+      'price': 1250.0, // Manual heavy duty
       'category': 'Hand Tools',
       'brand': 'Brand C',
       'specs': ['Manual', 'Ergonomic Grip'],
@@ -72,7 +72,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Air Compressor',
-      'price': 180.0,
+      'price': 13500.0, // 24L portable oil-free
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed'],
@@ -80,7 +80,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Wet & Dry Vacuum',
-      'price': 145.0,
+      'price': 11000.0, // Standard 12L-15L models
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'LED Light'],
@@ -88,7 +88,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Angle Grinder',
-      'price': 110.0,
+      'price': 3200.0, // Standard 4" (100mm) corded
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
@@ -96,7 +96,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Jigsaw',
-      'price': 85.0,
+      'price': 5500.0, // 500W-650W electric models
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed'],
@@ -104,7 +104,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Circular Saw',
-      'price': 105.0,
+      'price': 7200.0, // 185mm / 7 inch standard
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Laser Guide'],
@@ -112,7 +112,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Orbital Sander',
-      'price': 75.0,
+      'price': 3800.0,
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
@@ -120,78 +120,13 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     {
       'title': 'Power Drill',
-      'price': 95.0,
+      'price': 4200.0, // 10mm-13mm Impact/Impactless
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed', 'LED Light'],
       'image': "$imgPath/6.jpg",
     },
-    {
-      'title': 'Nail Gun',
-      'price': 95.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Pneumatic', 'Ergonomic Grip'],
-      'image': "$imgPath/3.jpg",
-    },
-    {
-      'title': 'Brad Nailer',
-      'price': 65.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Pneumatic', 'Compact'],
-      'image': "$imgPath/4.jpg",
-    },
-    {
-      'title': 'Staple Gun',
-      'price': 35.0,
-      'category': 'Hand Tools',
-      'brand': 'Brand C',
-      'specs': ['Manual', 'Ergonomic Grip'],
-      'image': "$imgPath/5.jpg",
-    },
-    {
-      'title': 'Air Compressor',
-      'price': 180.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Corded', 'Variable Speed'],
-      'image': "$imgPath/3.jpg",
-    },
-    {
-      'title': 'Wet & Dry Vacuum',
-      'price': 145.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Corded', 'LED Light'],
-      'image': "$imgPath/6.jpg",
-    },
-    {
-      'title': 'Angle Grinder',
-      'price': 110.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/7.png",
-    },
-    {
-      'title': 'Jigsaw',
-      'price': 85.0,
-      'category': 'Power Tools',
-      'brand': 'Brand C',
-      'specs': ['Cordless', 'Variable Speed'],
-      'image': "$imgPath/2.jpg",
-    },
-    {
-      'title': 'Circular Saw',
-      'price': 105.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Corded', 'Laser Guide'],
-      'image': "$imgPath/4.jpg",
-    },
   ];
-
   late RangeValues _priceRange;
 
   @override
@@ -253,7 +188,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
   void _openDetails(Map<String, Object> item, int index) {
     final product = ProductData(
-      id: 'all_$index',
+      id: '${item['title']}_${item['price']}',
       name: item['title'] as String,
       category: item['category'] as String,
       priceBDT: item['price'] as double,
@@ -263,6 +198,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
         'Category': item['category'] as String,
         'Brand': item['brand'] as String,
         'Price': 'Tk ${(item['price'] as double).toStringAsFixed(0)}',
+        'Specifications': (item['specs'] as List<String>).join(', '),
       },
     );
 
