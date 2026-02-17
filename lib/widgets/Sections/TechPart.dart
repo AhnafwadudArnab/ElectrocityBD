@@ -12,9 +12,9 @@ class Techpart extends StatefulWidget {
 }
 
 class _TechpartState extends State<Techpart> {
-  int _itemsToShow = 12;
-  final int _itemsPerPage = 12;
-  final int _totalItems = 36;
+  static const int _rowsPerPage = 2;
+  int _itemsToShow = 0;
+  int _itemsPerPage = 0;
   String _selectedSort = 'featured';
 
   final List<Map<String, dynamic>> products = [
@@ -23,6 +23,120 @@ class _TechpartState extends State<Techpart> {
       'price': '৳9,400',
       'rating': 5,
       'image': 'assets/images/monitor1.png',
+    },
+    {
+      'name': 'Intel Core i7 12th Gen',
+      'price': '৳45,999',
+      'rating': 5,
+      'image': 'assets/images/processor1.png',
+    },
+    {
+      'name': 'AMD Ryzen 7 5800X',
+      'price': '৳38,500',
+      'rating': 5,
+      'image': 'assets/images/processor2.png',
+    },
+    {
+      'name': 'NVIDIA RTX 4070',
+      'price': '৳89,999',
+      'rating': 5,
+      'image': 'assets/images/gpu1.png',
+    },
+    {
+      'name': '16GB DDR4 RAM Kingston',
+      'price': '৳6,999',
+      'rating': 4,
+      'image': 'assets/images/ram1.png',
+    },
+    {
+      'name': '1TB SSD NVMe M.2',
+      'price': '৳8,500',
+      'rating': 4,
+      'image': 'assets/images/ssd1.png',
+    },
+    {
+      'name': '650W Modular PSU',
+      'price': '৳5,999',
+      'rating': 4,
+      'image': 'assets/images/psu1.png',
+    },
+    {
+      'name': 'RGB CPU Cooler Tower',
+      'price': '৳3,500',
+      'rating': 4,
+      'image': 'assets/images/cooler1.png',
+    },
+    {
+      'name': 'Mechanical Gaming Keyboard RGB',
+      'price': '৳4,999',
+      'rating': 5,
+      'image': 'assets/images/keyboard1.png',
+    },
+    {
+      'name': 'Gaming Mouse Wireless Pro',
+      'price': '৳2,999',
+      'rating': 4,
+      'image': 'assets/images/mouse1.png',
+    },
+    {
+      'name': 'USB-C Docking Station',
+      'price': '৳7,999',
+      'rating': 4,
+      'image': 'assets/images/dock1.png',
+    },
+    {
+      'name': 'External SSD 2TB Type-C',
+      'price': '৳18,999',
+      'rating': 5,
+      'image': 'assets/images/external_ssd1.png',
+    },
+    {
+      'name': 'Laptop Stand Aluminum',
+      'price': '৳1,999',
+      'rating': 4,
+      'image': 'assets/images/stand1.png',
+    },
+    {
+      'name': 'Webcam 1080P Full HD',
+      'price': '৳3,499',
+      'rating': 4,
+      'image': 'assets/images/webcam1.png',
+    },
+    {
+      'name': 'USB Hub 3.0 7-Port',
+      'price': '৳999',
+      'rating': 3,
+      'image': 'assets/images/hub1.png',
+    },
+    {
+      'name': 'Wireless Charger Fast',
+      'price': '৳2,499',
+      'rating': 4,
+      'image': 'assets/images/charger1.png',
+    },
+    {
+      'name': 'HDMI 2.1 Cable 2M',
+      'price': '৳599',
+      'rating': 4,
+      'image': 'assets/images/cable1.png',
+    },
+    {
+      'name': 'Headphone Stand Premium',
+      'price': '৳1,499',
+      'rating': 4,
+      'image': 'assets/images/headset_stand1.png',
+    },
+    {
+      'name': 'Monitor Arm Mount Dual',
+      'price': '৳4,999',
+      'rating': 5,
+      'image': 'assets/images/mount1.png',
+    },
+    {
+      'name': 'Cable Management Kit Pro',
+      'price': '৳899',
+      'rating': 4,
+      'image': 'assets/images/cable_mgmt1.png',
     },
     {
       'name': 'Samsung 24" Monitor',
@@ -94,8 +208,10 @@ class _TechpartState extends State<Techpart> {
   ];
 
   void _loadMore() {
+    final total = _sortedProducts().length;
     setState(() {
-      _itemsToShow += _itemsPerPage;
+      final pageSize = _itemsPerPage > 0 ? _itemsPerPage : total;
+      _itemsToShow = (_itemsToShow + pageSize).clamp(0, total);
     });
   }
 
@@ -126,7 +242,7 @@ class _TechpartState extends State<Techpart> {
     return ProductData(
       id: 'tech_$index',
       name: product['name'] as String,
-      category: 'Tech Part',
+      category: 'All Products',
       priceBDT: _parsePrice(product['price'] as String),
       images: [product['image'] as String],
       description: 'Tech part from our latest collection.',
@@ -158,6 +274,18 @@ class _TechpartState extends State<Techpart> {
       smallDesktop: 4,
       desktop: 5,
     );
+    final total = _sortedProducts().length;
+    final itemsPerPage = crossAxisCount * _rowsPerPage;
+
+    if (_itemsPerPage != itemsPerPage || _itemsToShow == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _itemsPerPage = itemsPerPage;
+          _itemsToShow = itemsPerPage.clamp(0, total);
+        });
+      });
+    }
 
     return SingleChildScrollView(
       child: Row(
@@ -170,33 +298,39 @@ class _TechpartState extends State<Techpart> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildTopBar(),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: r.value(
-                        smallMobile: 6.0,
-                        mobile: 8.0,
-                        tablet: 12.0,
-                        smallDesktop: 14.0,
-                        desktop: 16.0,
-                      ),
-                      mainAxisSpacing: r.value(
-                        smallMobile: 6.0,
-                        mobile: 8.0,
-                        tablet: 12.0,
-                        smallDesktop: 14.0,
-                        desktop: 16.0,
-                      ),
-                    ),
-                    itemCount: _sortedProducts().take(_itemsToShow).length,
-                    itemBuilder: (context, index) =>
-                        _buildProductCard(index, _sortedProducts()),
+                  Builder(
+                    builder: (context) {
+                      final sorted = _sortedProducts();
+                      final visibleCount = _itemsToShow.clamp(0, sorted.length);
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: r.value(
+                            smallMobile: 6.0,
+                            mobile: 8.0,
+                            tablet: 12.0,
+                            smallDesktop: 14.0,
+                            desktop: 16.0,
+                          ),
+                          mainAxisSpacing: r.value(
+                            smallMobile: 6.0,
+                            mobile: 8.0,
+                            tablet: 12.0,
+                            smallDesktop: 14.0,
+                            desktop: 16.0,
+                          ),
+                        ),
+                        itemCount: visibleCount,
+                        itemBuilder: (context, index) =>
+                            _buildProductCard(index, sorted),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
-                  if (_itemsToShow < _totalItems)
+                  if (_itemsToShow < _sortedProducts().length)
                     ElevatedButton(
                       onPressed: _loadMore,
                       style: ElevatedButton.styleFrom(
@@ -356,6 +490,7 @@ class _TechpartState extends State<Techpart> {
               if (v == null) return;
               setState(() {
                 _selectedSort = v;
+                _itemsToShow = _itemsPerPage;
               });
             },
           ),
