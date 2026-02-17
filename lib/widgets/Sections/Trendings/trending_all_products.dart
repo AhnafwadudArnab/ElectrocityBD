@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
+
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../widgets/footer.dart';
 import '../../../widgets/header.dart';
 
-class FlashSaleAll extends StatefulWidget {
+class TrendingAllProducts extends StatefulWidget {
   final String breadcrumbLabel;
 
-  const FlashSaleAll({super.key, this.breadcrumbLabel = 'Flash Sale Products'});
+  const TrendingAllProducts({
+    super.key,
+    this.breadcrumbLabel = 'Trending Products',
+  });
 
   @override
-  State<FlashSaleAll> createState() => _FlashSaleAllState();
+  State<TrendingAllProducts> createState() => _TrendingAllProducts();
 }
 
-class _FlashSaleAllState extends State<FlashSaleAll> {
+class _TrendingAllProducts extends State<TrendingAllProducts> {
   static const int _rowsPerPage = 3;
   static const double _priceMin = 0;
   static const double _priceMax = 50000;
-  static const imgPath = "assets/flash";
+  static const imgPath = "assets/prod";
 
   int _currentPage = 1;
   String _selectedSort = 'featured';
@@ -30,116 +34,212 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   // UPDATED: Standardized Data with BD Market Prices
   static const List<Map<String, Object>> _flashSaleprod = [
     {
-      'title': 'Circular Saw',
+      'title': 'Air Fryer',
       'price': 7200.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Appliances',
       'brand': 'Brand A',
-      'specs': ['Corded', 'Laser Guide'],
-      'image': "$imgPath/Circular Saw.jpg",
+      'specs': ['Electric', 'Digital Control'],
+      'image': "$imgPath/air_fryer.jpg",
     },
     {
-      'title': 'Orbital Sander',
+      'title': 'Blender',
       'price': 3800.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Appliances',
       'brand': 'Brand B',
-      'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-      'image': "$imgPath/Orbital Sander.jpg",
+      'specs': ['Electric', 'Multiple Speed'],
+      'image': "$imgPath/blender.jpg",
     },
     {
-      'title': 'Rotary Hammer Drill',
+      'title': 'Coffee Maker',
       'price': 6500.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Appliances',
       'brand': 'Brand A',
-      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/Rotary Hammer Drill.jpg",
+      'specs': ['Electric', 'Auto Brew'],
+      'image': "$imgPath/catllee.jpg",
     },
     {
-      'title': 'Electric Screwdriver',
+      'title': 'Charger Fan',
       'price': 2200.0,
-      'category': 'Hand Tools',
+      'category': 'Electronics',
       'brand': 'Brand C',
-      'specs': ['Cordless', 'LED Light'],
-      'image': "$imgPath/Screwdriver.jpg",
+      'specs': ['Electric', 'USB Charging'],
+      'image': "$imgPath/chargerfan.jpg",
     },
     {
-      'title': 'Nail Gun',
+      'title': 'Chopper',
       'price': 4800.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Tools',
       'brand': 'Brand B',
-      'specs': ['Pneumatic', 'Ergonomic Grip'],
-      'image': "$imgPath/Nail Gun.jpg",
+      'specs': ['Electric', 'Compact'],
+      'image': "$imgPath/chopper.jpg",
     },
     {
-      'title': 'Brad Nailer',
+      'title': 'Curry Cooker',
       'price': 3500.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Appliances',
       'brand': 'Brand A',
-      'specs': ['Pneumatic', 'Compact'],
-      'image': "$imgPath/Brad Nailer.jpg",
+      'specs': ['Electric', 'Non-stick'],
+      'image': "$imgPath/curry_cooker.jpg",
     },
     {
-      'title': 'Staple Gun',
+      'title': 'Electric Stove',
       'price': 1250.0,
-      'category': 'Hand Tools',
+      'category': 'Kitchen Appliances',
       'brand': 'Brand C',
-      'specs': ['Manual', 'Ergonomic Grip'],
-      'image': "$imgPath/Staple.jpg",
+      'specs': ['Electric', 'Portable'],
+      'image': "$imgPath/elec_stove.jpg",
     },
     {
-      'title': 'Air Compressor',
+      'title': 'Fan',
       'price': 13500.0,
-      'category': 'Power Tools',
+      'category': 'Electronics',
       'brand': 'Brand B',
-      'specs': ['Corded', 'Variable Speed'],
-      'image': "$imgPath/Air Compressor.jpg",
+      'specs': ['Electric', 'Variable Speed'],
+      'image': "$imgPath/fan2.jpg",
     },
     {
-      'title': 'Wet & Dry Vacuum',
+      'title': 'Grinder',
       'price': 11000.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Tools',
       'brand': 'Brand A',
-      'specs': ['Corded', 'LED Light'],
-      'image': "$imgPath/Wet & Dry Vacuum.jpg",
+      'specs': ['Electric', 'High Power'],
+      'image': "$imgPath/grinder.jpg",
     },
     {
-      'title': 'Angle Grinder',
+      'title': 'Hair Dryer',
       'price': 3200.0,
-      'category': 'Power Tools',
+      'category': 'Personal Care',
       'brand': 'Brand B',
-      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/Angle Grinder.jpg",
+      'specs': ['Electric', 'Multiple Heat'],
+      'image': "$imgPath/hair_drier.jpg",
     },
     {
-      'title': 'Jigsaw',
+      'title': 'Hand Blender',
       'price': 5500.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Tools',
       'brand': 'Brand C',
-      'specs': ['Cordless', 'Variable Speed'],
-      'image': "$imgPath/Jigsaw.jpg",
+      'specs': ['Cordless', 'Compact'],
+      'image': "$imgPath/hand_blender.jpg",
     },
     {
-      'title': 'Circular Saw',
+      'title': 'Hand Blender Pro',
       'price': 7200.0,
-      'category': 'Power Tools',
+      'category': 'Kitchen Tools',
       'brand': 'Brand A',
-      'specs': ['Corded', 'Laser Guide'],
-      'image': "$imgPath/Circular Saw.jpg",
+      'specs': ['Electric', 'Powerful'],
+      'image': "$imgPath/hand_blender23.jpg",
     },
     {
-      'title': 'Orbital Sander',
+      'title': 'Head Massager',
       'price': 3800.0,
-      'category': 'Power Tools',
+      'category': 'Personal Care',
       'brand': 'Brand B',
-      'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-      'image': "$imgPath/Orbital Sander.jpg",
+      'specs': ['Electric', 'Vibration'],
+      'image': "$imgPath/head_massager.jpg",
     },
     {
-      'title': 'Power Drill',
+      'title': 'Portable Fan',
       'price': 4200.0,
-      'category': 'Power Tools',
+      'category': 'Electronics',
       'brand': 'Brand C',
-      'specs': ['Cordless', 'Variable Speed', 'LED Light'],
-      'image': "$imgPath/Power Drill.jpg",
+      'specs': ['Electric', 'USB Powered'],
+      'image': "$imgPath/hFan3.jpg",
+    },
+    {
+      'title': 'Induction Stove',
+      'price': 8500.0,
+      'category': 'Kitchen Appliances',
+      'brand': 'Brand A',
+      'specs': ['Electric', 'Fast Heating'],
+      'image': "$imgPath/induction_stove.jpg",
+    },
+    {
+      'title': 'Iron',
+      'price': 2800.0,
+      'category': 'Home Appliances',
+      'brand': 'Brand B',
+      'specs': ['Electric', 'Steam'],
+      'image': "$imgPath/iron.jpg",
+    },
+    {
+      'title': 'Massage Gun',
+      'price': 6200.0,
+      'category': 'Personal Care',
+      'brand': 'Brand C',
+      'specs': ['Electric', 'Portable'],
+      'image': "$imgPath/massage_gun.jpg",
+    },
+    {
+      'title': 'Mini Cooker',
+      'price': 3500.0,
+      'category': 'Kitchen Appliances',
+      'brand': 'Brand A',
+      'specs': ['Electric', 'Compact'],
+      'image': "$imgPath/mini_cooker.jpg",
+    },
+    {
+      'title': 'Mini Cooker Deluxe',
+      'price': 4200.0,
+      'category': 'Kitchen Appliances',
+      'brand': 'Brand B',
+      'specs': ['Electric', 'Multi-function'],
+      'image': "$imgPath/mini2cokker.jpg",
+    },
+    {
+      'title': 'Mini Hand Blender',
+      'price': 2500.0,
+      'category': 'Kitchen Tools',
+      'brand': 'Brand C',
+      'specs': ['Electric', 'Lightweight'],
+      'image': "$imgPath/minihand.jpg",
+    },
+    {
+      'title': 'Oven',
+      'price': 12000.0,
+      'category': 'Kitchen Appliances',
+      'brand': 'Brand A',
+      'specs': ['Electric', 'Convection'],
+      'image': "$imgPath/oven.jpg",
+    },
+    {
+      'title': 'Rice Cooker',
+      'price': 5500.0,
+      'category': 'Kitchen Appliances',
+      'brand': 'Brand B',
+      'specs': ['Electric', 'Auto Cook'],
+      'image': "$imgPath/rice_cooker.jpg",
+    },
+    {
+      'title': 'Rice Cooker Pro',
+      'price': 7800.0,
+      'category': 'Kitchen Appliances',
+      'brand': 'Brand C',
+      'specs': ['Electric', 'Digital'],
+      'image': "$imgPath/riceCooker2.jpg",
+    },
+    {
+      'title': 'Hair Styling Tool',
+      'price': 3200.0,
+      'category': 'Personal Care',
+      'brand': 'Brand A',
+      'specs': ['Electric', 'Ceramic'],
+      'image': "$imgPath/tele_sett.jpg",
+    },
+    {
+      'title': 'Trimmer Pro',
+      'price': 4500.0,
+      'category': 'Personal Care',
+      'brand': 'Brand B',
+      'specs': ['Cordless', 'Rechargeable'],
+      'image': "$imgPath/trimmeer2.jpg",
+    },
+    {
+      'title': 'Trimmer',
+      'price': 2800.0,
+      'category': 'Personal Care',
+      'brand': 'Brand C',
+      'specs': ['Electric', 'Compact'],
+      'image': "$imgPath/trimmer.jpg",
     },
   ];
 
@@ -494,7 +594,16 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 width: double.infinity,
-                child: Image.asset(image, fit: BoxFit.contain),
+                child: Image.asset(
+                  image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: Icon(Icons.image_not_supported),
+                    );
+                  },
+                ),
               ),
             ),
             Padding(

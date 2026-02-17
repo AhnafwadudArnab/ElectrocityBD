@@ -2,9 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../../Dimensions/responsive_dimensions.dart';
-import '../../pages/Templates/Dyna_products.dart';
-import '../../pages/Templates/all_products_template.dart';
+import '../../../Dimensions/responsive_dimensions.dart';
+import '../../../pages/Templates/Dyna_products.dart';
+import '../../../pages/Templates/all_products_template.dart';
+import 'trending_all_products.dart';
 
 
 class TrendingItem {
@@ -107,7 +108,14 @@ class TrendingItems extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            TextButton(onPressed: () {}, child: const Text('See All')),
+            TextButton(onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const TrendingAllProducts(),
+                ),
+              );
+            }, child: const Text('See All')),
           ],
         ),
         const SizedBox(height: 8),

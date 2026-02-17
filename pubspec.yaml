@@ -78,4 +78,5 @@ flutter:
     - assets/Hero banner logos/
     - assets/Deals of the Day/
     - assets/flash/
+    - assets/prod/
     - assets/data/products.json
