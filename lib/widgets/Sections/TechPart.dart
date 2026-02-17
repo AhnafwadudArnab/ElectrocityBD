@@ -1,8 +1,8 @@
 import 'package:electrocitybd1/pages/Templates/Dyna_products.dart';
-import 'package:electrocitybd1/pages/Templates/for%20One%20Product/all_products_template.dart';
 import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../pages/Templates/all_products_template.dart';
 
 class Techpart extends StatefulWidget {
   const Techpart({super.key});

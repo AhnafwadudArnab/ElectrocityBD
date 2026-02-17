@@ -1,4 +1,4 @@
-import  'package:electrocitybd1/pages/Templates/for%20One%20Product/all_products_template.dart';
+import  'package:electrocitybd1/pages/Templates/all_products_template.dart';
 
 class SampleProducts {
   static final List<ProductData> bestSellingProducts = [

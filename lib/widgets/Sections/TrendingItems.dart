@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/Templates/Dyna_products.dart';
-import '../../pages/Templates/for%20One%20Product/all_products_template.dart';
+import '../../pages/Templates/all_products_template.dart';
 
 
 class TrendingItem {
