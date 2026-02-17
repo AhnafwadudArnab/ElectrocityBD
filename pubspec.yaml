@@ -78,3 +78,4 @@ flutter:
     - assets/Brand Logo/
     - assets/Hero banner logos/
     - assets/Deals of the Day/
+    - assets/data/products.json
