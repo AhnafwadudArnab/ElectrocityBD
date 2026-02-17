@@ -19,6 +19,8 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
   static const int _rowsPerPage = 3;
   static const double _priceMin = 0;
   static const double _priceMax = 500;
+  static const imgPath = "assets/Products";
+
   int _currentPage = 1;
   String _selectedSort = 'featured';
 
@@ -34,8 +36,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': "$imgPath/1.png",
     },
     {
       'title': 'Electric Screwdriver',
@@ -43,8 +44,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Hand Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'LED Light'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': "$imgPath/2.jpg",
     },
     {
       'title': 'Nail Gun',
@@ -52,8 +52,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Pneumatic', 'Ergonomic Grip'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': "$imgPath/3.jpg",
     },
     {
       'title': 'Brad Nailer',
@@ -61,8 +60,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Pneumatic', 'Compact'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': "$imgPath/4.jpg",
     },
     {
       'title': 'Staple Gun',
@@ -70,8 +68,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Hand Tools',
       'brand': 'Brand C',
       'specs': ['Manual', 'Ergonomic Grip'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': "$imgPath/5.jpg",
     },
     {
       'title': 'Air Compressor',
@@ -79,8 +76,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': "$imgPath/3.jpg",
     },
     {
       'title': 'Wet & Dry Vacuum',
@@ -88,8 +84,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'LED Light'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+         'image': "$imgPath/6.jpg",
     },
     {
       'title': 'Orbital Sander',
@@ -97,8 +92,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Heat Gun',
@@ -106,8 +100,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Pneumatic Wrench',
@@ -115,8 +108,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Pneumatic', 'Compact'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Reciprocating Saw',
@@ -124,8 +116,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'LED Light', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Tile Cutter',
@@ -133,8 +124,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Electric', 'Precision'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Polisher',
@@ -142,8 +132,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Chainsaw',
@@ -151,8 +140,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'LED Light'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Hedge Trimmer',
@@ -160,8 +148,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Cordless', 'Ergonomic Grip'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Impact Driver',
@@ -169,8 +156,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Cordless', 'LED Light'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Rotary Tool',
@@ -178,8 +164,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Wood Chipper',
@@ -187,8 +172,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Electric', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Pressure Washer',
@@ -196,8 +180,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Electric', 'Variable Speed'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Oscillating Multi-Tool',
@@ -205,8 +188,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed', 'LED Light'],
-      'image':
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Impact Drill',
@@ -214,8 +196,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Tool Kit',
@@ -223,8 +204,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Hand Tools',
       'brand': 'Brand A',
       'specs': ['Ergonomic Grip', 'LED Light'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Circular Saw',
@@ -232,8 +212,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Corded', 'Variable Speed'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Cordless Drill',
@@ -241,8 +220,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Cordless', 'LED Light', 'Variable Speed'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Jigsaw',
@@ -250,8 +228,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed', 'LED Light'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Angle Grinder',
@@ -259,8 +236,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Corded', 'Ergonomic Grip'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Corded Drill',
@@ -268,8 +244,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Power Sander',
@@ -277,8 +252,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Ergonomic Grip'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Precision Drill',
@@ -286,8 +260,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Cordless', 'LED Light'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Compact Saw',
@@ -295,8 +268,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
     {
       'title': 'Bench Drill',
@@ -304,8 +276,7 @@ class _AllProductItemsPageState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed', 'LED Light'],
-      'image':
-          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=60',
+      'image': imgPath,
     },
   ];
 
