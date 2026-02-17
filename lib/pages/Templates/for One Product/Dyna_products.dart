@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../Dimensions/responsive_dimensions.dart';
-import '../../widgets/Sections/BestSellings/ProductData.dart';
-import '../../widgets/app_drawer.dart';
-import '../../widgets/footer.dart';
-import '../../widgets/header.dart';
+import '../../../Dimensions/responsive_dimensions.dart';
+import '../../../widgets/Sections/BestSellings/ProductData.dart';
+import '../../../widgets/app_drawer.dart';
+import '../../../widgets/footer.dart';
+import '../../../widgets/header.dart';
 import 'all_products_template.dart';
 
 class UniversalProductDetails extends StatefulWidget {

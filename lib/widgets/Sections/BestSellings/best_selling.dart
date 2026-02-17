@@ -1,9 +1,7 @@
-import 'dart:math';
-
+import 'package:electrocitybd1/pages/Templates/Dyna_products.dart';
 import 'package:electrocitybd1/widgets/Sections/BestSellings/ProductData.dart';
 import 'package:flutter/material.dart';
 
-import '../../../pages/Templates/Dyna_products.dart';
 
 class BestSellingBox extends StatelessWidget {
   const BestSellingBox({super.key});
