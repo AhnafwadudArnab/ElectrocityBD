@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:electrocitybd1/pages/Templates/SimplePage/All_product_items.dart';
 import 'package:electrocitybd1/pages/Templates/all_products_template.dart';
 import 'package:flutter/material.dart';
 
@@ -119,7 +120,11 @@ class FlashSaleCarousel extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to full flash sale page
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AllProductItemsPage()),
+                  (route) => false,
+                );
               },
               child: const Text('See All'),
             ),
