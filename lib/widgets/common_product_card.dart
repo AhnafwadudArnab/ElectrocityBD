@@ -4,12 +4,19 @@ import 'package:flutter/material.dart';
 import '../Dimensions/responsive_dimensions.dart';
 import '../pages/Templates/Dyna_products.dart';
 
-
 class CommonProductCard extends StatelessWidget {
   final ProductData product;
   final VoidCallback? onTap;
 
   const CommonProductCard({super.key, required this.product, this.onTap});
+
+  ImageProvider _resolveImageProvider(String path) {
+    final lower = path.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +61,7 @@ class CommonProductCard extends StatelessWidget {
                   ),
                   color: Colors.grey[100],
                   image: DecorationImage(
-                    image: NetworkImage(product.images.first),
+                    image: _resolveImageProvider(product.images.first),
                     fit: BoxFit.cover,
                   ),
                 ),

@@ -141,7 +141,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                       mobile: 6,
                       tablet: 8,
                       smallDesktop: 100,
-                      desktop: 200,
+                      desktop: 140,
                     ),
                   ),
                   //inside header padding

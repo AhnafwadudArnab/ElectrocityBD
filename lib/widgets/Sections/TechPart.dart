@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../pages/Templates/Dyna_products.dart';
+import '../../pages/Templates/all_products_template.dart';
 
 class Techpart extends StatefulWidget {
   const Techpart({super.key});
@@ -13,6 +15,7 @@ class _TechpartState extends State<Techpart> {
   int _itemsToShow = 12;
   final int _itemsPerPage = 12;
   final int _totalItems = 36;
+  String _selectedSort = 'featured';
 
   final List<Map<String, dynamic>> products = [
     {
@@ -96,6 +99,55 @@ class _TechpartState extends State<Techpart> {
     });
   }
 
+  double _parsePrice(String value) {
+    final cleaned = value.replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(cleaned) ?? 0.0;
+  }
+
+  List<Map<String, dynamic>> _sortedProducts() {
+    final sorted = List<Map<String, dynamic>>.from(products);
+    if (_selectedSort == 'price_low') {
+      sorted.sort(
+        (a, b) => _parsePrice(
+          a['price'] as String,
+        ).compareTo(_parsePrice(b['price'] as String)),
+      );
+    } else if (_selectedSort == 'price_high') {
+      sorted.sort(
+        (a, b) => _parsePrice(
+          b['price'] as String,
+        ).compareTo(_parsePrice(a['price'] as String)),
+      );
+    }
+    return sorted;
+  }
+
+  ProductData _buildProductData(Map<String, dynamic> product, int index) {
+    return ProductData(
+      id: 'tech_$index',
+      name: product['name'] as String,
+      category: 'Tech Part',
+      priceBDT: _parsePrice(product['price'] as String),
+      images: [product['image'] as String],
+      description: 'Tech part from our latest collection.',
+      additionalInfo: {'Rating': '${product['rating']}'},
+    );
+  }
+
+  void _openDetails(
+    BuildContext context,
+    Map<String, dynamic> product,
+    int index,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            UniversalProductDetails(product: _buildProductData(product, index)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
@@ -139,8 +191,9 @@ class _TechpartState extends State<Techpart> {
                         desktop: 16.0,
                       ),
                     ),
-                    itemCount: _itemsToShow,
-                    itemBuilder: (context, index) => _buildProductCard(index),
+                    itemCount: _sortedProducts().take(_itemsToShow).length,
+                    itemBuilder: (context, index) =>
+                        _buildProductCard(index, _sortedProducts()),
                   ),
                   const SizedBox(height: 24),
                   if (_itemsToShow < _totalItems)
@@ -171,66 +224,74 @@ class _TechpartState extends State<Techpart> {
     );
   }
 
-  Widget _buildProductCard(int index) {
-    final product = products[index % products.length];
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: const Color.fromARGB(255, 187, 108, 108),
-          width: 1,
+  Widget _buildProductCard(
+    int index,
+    List<Map<String, dynamic>> sortedProducts,
+  ) {
+    final product = sortedProducts[index % sortedProducts.length];
+    return InkWell(
+      onTap: () => _openDetails(context, product, index),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: const Color.fromARGB(255, 187, 108, 108),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Center(
-              child: Image.asset(
-                product['image'],
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Icon(Icons.monitor, size: 100, color: Colors.grey[300]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Center(
+                child: Image.asset(
+                  product['image'],
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(Icons.monitor, size: 100, color: Colors.grey[300]),
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product['name'],
-                  style: TextStyle(fontSize: AppDimensions.smallFont(context)),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: List.generate(
-                    5,
-                    (i) => Icon(
-                      Icons.star,
-                      size: 12,
-                      color: i < product['rating']
-                          ? Colors.orange
-                          : Colors.grey[300],
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product['name'],
+                    style: TextStyle(
+                      fontSize: AppDimensions.smallFont(context),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: List.generate(
+                      5,
+                      (i) => Icon(
+                        Icons.star,
+                        size: 12,
+                        color: i < product['rating']
+                            ? Colors.orange
+                            : Colors.grey[300],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  product['price'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: AppDimensions.bodyFont(context),
+                  const SizedBox(height: 8),
+                  Text(
+                    product['price'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: AppDimensions.bodyFont(context),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -279,8 +340,9 @@ class _TechpartState extends State<Techpart> {
           ),
           const Spacer(),
           DropdownButton<String>(
+            value: _selectedSort,
             items: const [
-              DropdownMenuItem(value: 'featured', child: Text('Featured')),
+              DropdownMenuItem(value: 'featured', child: Text('Sort by')),
               DropdownMenuItem(
                 value: 'price_low',
                 child: Text('Price: Low to High'),
@@ -290,8 +352,12 @@ class _TechpartState extends State<Techpart> {
                 child: Text('Price: High to Low'),
               ),
             ],
-            onChanged: (v) {},
-            hint: const Text('Sort by Featured'),
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() {
+                _selectedSort = v;
+              });
+            },
           ),
         ],
       ),

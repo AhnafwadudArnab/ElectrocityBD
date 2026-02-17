@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../pages/Templates/Dyna_products.dart';
+import '../../pages/Templates/all_products_template.dart';
 
 class FlashSaleItem {
   final String image;
@@ -22,6 +24,31 @@ class FlashSaleItem {
 
 class FlashSaleCarousel extends StatelessWidget {
   const FlashSaleCarousel({super.key});
+
+  ProductData _buildProductData(FlashSaleItem product, int index) {
+    return ProductData(
+      id: 'flash_$index',
+      name: product.title,
+      category: 'Flash Sale',
+      priceBDT: product.discountedPrice.toDouble(),
+      images: [product.image],
+      description: 'Limited time flash sale deal.',
+      additionalInfo: {
+        'Original Price': 'Tk ${product.originalPrice}',
+        'Time Remaining': product.timeRemaining,
+      },
+    );
+  }
+
+  void _openDetails(BuildContext context, FlashSaleItem product, int index) {
+    final details = _buildProductData(product, index);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UniversalProductDetails(product: details),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,154 +151,169 @@ class FlashSaleCarousel extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final product = flashSaleProducts[index];
 
-                      return Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Glass-style panel
-                          Positioned(
-                            top: 16,
-                            left: 0,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                child: Container(
-                                  width: 190,
-                                  height: 210,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.12),
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _openDetails(context, product, index),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Glass-style panel
+                              Positioned(
+                                top: 16,
+                                left: 0,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 8,
+                                      sigmaY: 8,
+                                    ),
+                                    child: Container(
+                                      width: 190,
+                                      height: 210,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.12),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
 
-                          // Main product card
-                          Container(
-                            width: 204,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color.fromARGB(
-                                  255,
-                                  98,
-                                  169,
-                                  216,
-                                ), // Using red border color
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // Product Image
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(12),
-                                    ),
-                                    child: Image.asset(
-                                      product.image,
-                                      fit: BoxFit.fill,
-                                      width: double.infinity,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(Icons.error),
-                                    ),
+                              // Main product card
+                              Container(
+                                width: 204,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color.fromARGB(
+                                      255,
+                                      98,
+                                      169,
+                                      216,
+                                    ), // Using red border color
+                                    width: 1.5,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Product Title
-                                      Text(
-                                        product.title,
-                                        style: const TextStyle(fontSize: 13),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // Product Image
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(12),
+                                            ),
+                                        child: Image.asset(
+                                          product.image,
+                                          fit: BoxFit.fill,
+                                          width: double.infinity,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(Icons.error),
+                                        ),
                                       ),
-                                      const SizedBox(height: 6),
-                                      // Original Price & Discounted Price
-                                      Row(
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
+                                          // Product Title
                                           Text(
-                                            'Tk ${product.originalPrice}',
+                                            product.title,
                                             style: const TextStyle(
-                                              decoration:
-                                                  TextDecoration.lineThrough,
-                                              color: Colors.grey,
-                                              fontSize: 12,
+                                              fontSize: 13,
                                             ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Tk ${product.discountedPrice}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      // Time Remaining
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.timer,
-                                            size: 14,
-                                            color: Colors.orange,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            product.timeRemaining,
-                                            style: const TextStyle(
-                                              color: Colors.orange,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          ElevatedButton(
-                                            onPressed: () {},
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.orange,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 6,
-                                                  ),
-                                            ),
-                                            child: const Text(
-                                              'Add',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
+                                          const SizedBox(height: 6),
+                                          // Original Price & Discounted Price
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Tk ${product.originalPrice}',
+                                                style: const TextStyle(
+                                                  decoration: TextDecoration
+                                                      .lineThrough,
+                                                  color: Colors.grey,
+                                                  fontSize: 12,
+                                                ),
                                               ),
-                                            ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Tk ${product.discountedPrice}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          // Time Remaining
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.timer,
+                                                size: 14,
+                                                color: Colors.orange,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                product.timeRemaining,
+                                                style: const TextStyle(
+                                                  color: Colors.orange,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const Spacer(),
+                                              ElevatedButton(
+                                                onPressed: () {},
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.orange,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 6,
+                                                      ),
+                                                ),
+                                                child: const Text(
+                                                  'Add',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       );
                     },
                   ),

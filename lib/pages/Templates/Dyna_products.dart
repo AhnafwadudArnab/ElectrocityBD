@@ -21,6 +21,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _activeImageIndex = 0;
+  int _quantity = 1;
+
+  ImageProvider _resolveImageProvider(String path) {
+    final lower = path.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
+  }
 
   @override
   void initState() {
@@ -256,7 +265,9 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             color: const Color(0xFFF7F7F7),
             borderRadius: BorderRadius.circular(8),
             image: DecorationImage(
-              image: NetworkImage(widget.product.images[_activeImageIndex]),
+              image: _resolveImageProvider(
+                widget.product.images[_activeImageIndex],
+              ),
               fit: BoxFit.contain,
             ),
           ),
@@ -317,7 +328,9 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                     ),
                     borderRadius: BorderRadius.circular(8),
                     image: DecorationImage(
-                      image: NetworkImage(widget.product.images[index]),
+                      image: _resolveImageProvider(
+                        widget.product.images[index],
+                      ),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -475,11 +488,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove, size: 18),
-                    onPressed: () {},
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  _quantityButton(
+                    icon: Icons.remove,
+                    onTap: () {
+                      setState(() {
+                        if (_quantity > 1) {
+                          _quantity -= 1;
+                        }
+                      });
+                    },
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(
@@ -492,17 +509,19 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                       ),
                     ),
                     child: Text(
-                      "1",
+                      "$_quantity",
                       style: TextStyle(
                         fontSize: AppDimensions.bodyFont(context),
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add, size: 18),
-                    onPressed: () {},
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  _quantityButton(
+                    icon: Icons.add,
+                    onTap: () {
+                      setState(() {
+                        _quantity += 1;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -594,6 +613,17 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _quantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: SizedBox(width: 28, height: 28, child: Icon(icon, size: 18)),
     );
   }
 
@@ -959,7 +989,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 ),
                 color: Colors.grey[100],
                 image: DecorationImage(
-                  image: NetworkImage(product.images.first),
+                  image: _resolveImageProvider(product.images.first),
                   fit: BoxFit.cover,
                 ),
               ),
