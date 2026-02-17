@@ -74,7 +74,6 @@ flutter:
   assets:
     - assets/
     - assets/Products/
-    - assets/Deals/
     - assets/Brand Logo/
     - assets/Hero banner logos/
     - assets/Deals of the Day/

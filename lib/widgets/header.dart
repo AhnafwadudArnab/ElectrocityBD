@@ -132,7 +132,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                     mobile: 32,
                     tablet: 36,
                     smallDesktop: 38,
-                    desktop: 45,
+                    desktop: 48,
                   ),
                   //outside header Padding
                   margin: EdgeInsets.symmetric(
@@ -141,7 +141,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                       mobile: 6,
                       tablet: 8,
                       smallDesktop: 100,
-                      desktop: 140,
+                      desktop: 120,
                     ),
                   ),
                   //inside header padding
@@ -222,7 +222,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                   mobile: 4,
                   tablet: 6,
                   smallDesktop: 8,
-                  desktop: 20,
+                  desktop: 10,
                 ),
               ),
 
@@ -239,7 +239,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 mobile: 4,
                 tablet: 6,
                 smallDesktop: 8,
-                desktop: 20,
+                desktop: 10,
               ),
             ),
 

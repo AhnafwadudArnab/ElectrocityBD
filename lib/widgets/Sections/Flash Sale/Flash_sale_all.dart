@@ -32,27 +32,27 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   static const List<Map<String, Object>> _flashSaleprod = [
     {
       'title': 'Rotary Hammer Drill',
-      'price': 6500.0, // Avg for 800W-1050W (Total/Ingco)
+      'price': 6500.0,
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/1.png",
+      'image': "$imgPath/Rotary Hammer Drill.jpg",
     },
     {
       'title': 'Electric Screwdriver',
-      'price': 2200.0, // Typical 4V-12V cordless sets
+      'price': 2200.0,
       'category': 'Hand Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'LED Light'],
-      'image': "$imgPath/2.jpg",
+      'image': "$imgPath/Screwdriver.jpg",
     },
     {
       'title': 'Nail Gun',
-      'price': 4800.0, // Standard pneumatic F30 models
+      'price': 4800.0,
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Pneumatic', 'Ergonomic Grip'],
-      'image': "$imgPath/3.jpg",
+      'image': "$imgPath/Nail Gun.jpg",
     },
     {
       'title': 'Brad Nailer',
@@ -60,55 +60,55 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Pneumatic', 'Compact'],
-      'image': "$imgPath/4.jpg",
+      'image': "$imgPath/Brad Nailer.jpg",
     },
     {
       'title': 'Staple Gun',
-      'price': 1250.0, // Manual heavy duty
+      'price': 1250.0,
       'category': 'Hand Tools',
       'brand': 'Brand C',
       'specs': ['Manual', 'Ergonomic Grip'],
-      'image': "$imgPath/5.jpg",
+      'image': "$imgPath/Staple.jpg",
     },
     {
       'title': 'Air Compressor',
-      'price': 13500.0, // 24L portable oil-free
+      'price': 13500.0,
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed'],
-      'image': "$imgPath/3.jpg",
+      'image': "$imgPath/Air Compressor.jpg",
     },
     {
       'title': 'Wet & Dry Vacuum',
-      'price': 11000.0, // Standard 12L-15L models
+      'price': 11000.0,
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'LED Light'],
-      'image': "$imgPath/6.jpg",
+      'image': "$imgPath/Wet & Dry Vacuum.jpg",
     },
     {
       'title': 'Angle Grinder',
-      'price': 3200.0, // Standard 4" (100mm) corded
+      'price': 3200.0,
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/7.png",
+      'image': "$imgPath/Angle Grinder.jpg",
     },
     {
       'title': 'Jigsaw',
-      'price': 5500.0, // 500W-650W electric models
+      'price': 5500.0,
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed'],
-      'image': "$imgPath/2.jpg",
+      'image': "$imgPath/Jigsaw.jpg",
     },
     {
       'title': 'Circular Saw',
-      'price': 7200.0, // 185mm / 7 inch standard
+      'price': 7200.0,
       'category': 'Power Tools',
       'brand': 'Brand A',
       'specs': ['Corded', 'Laser Guide'],
-      'image': "$imgPath/4.jpg",
+      'image': "$imgPath/Circular Saw.jpg",
     },
     {
       'title': 'Orbital Sander',
@@ -116,15 +116,15 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       'category': 'Power Tools',
       'brand': 'Brand B',
       'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-      'image': "$imgPath/5.jpg",
+      'image': "$imgPath/Orbital Sander.jpg",
     },
     {
       'title': 'Power Drill',
-      'price': 4200.0, // 10mm-13mm Impact/Impactless
+      'price': 4200.0,
       'category': 'Power Tools',
       'brand': 'Brand C',
       'specs': ['Cordless', 'Variable Speed', 'LED Light'],
-      'image': "$imgPath/6.jpg",
+      'image': "$imgPath/Power Drill.jpg",
     },
   ];
   late RangeValues _priceRange;
@@ -561,9 +561,9 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
                 ),
-                child: Image.network(
+                child: Image.asset(
                   image,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   width: double.infinity,
                 ),
               ),
