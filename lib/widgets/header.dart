@@ -132,7 +132,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                     mobile: 32,
                     tablet: 36,
                     smallDesktop: 38,
-                    desktop: 48,
+                    desktop: 50,
                   ),
                   //outside header Padding
                   margin: EdgeInsets.symmetric(

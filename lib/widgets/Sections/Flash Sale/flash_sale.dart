@@ -1,10 +1,7 @@
 import 'dart:ui';
-
-import 'package:electrocitybd1/pages/Templates/SimplePage/All_product_items.dart';
 import 'package:electrocitybd1/pages/Templates/all_products_template.dart';
 import 'package:electrocitybd1/widgets/Sections/Flash%20Sale/Flash_sale_all.dart';
 import 'package:flutter/material.dart';
-
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 
