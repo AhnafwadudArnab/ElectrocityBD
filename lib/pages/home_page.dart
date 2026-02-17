@@ -10,7 +10,7 @@ import '../widgets/Sections/Collections/collections_pages.dart'
     hide MonitorListingPage;
 import '../widgets/Sections/Deals_of_the_day.dart';
 import '../widgets/Sections/FeaturedBrandsStrip.dart';
-import '../widgets/Sections/flash_sale.dart';
+import '../widgets/Sections/Flash Sale/flash_sale.dart';
 import '../widgets/Sections/mid_banner_row.dart';
 import '../widgets/header.dart';
 

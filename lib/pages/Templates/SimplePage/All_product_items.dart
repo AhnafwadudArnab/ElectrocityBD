@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../../Dimensions/responsive_dimensions.dart';
+import '../../../widgets/footer.dart';
+import '../../../widgets/header.dart';
+import '../Dyna_products.dart';
+import '../all_products_template.dart';
 
-class AllProductItemsPage extends StatelessWidget {
-  const AllProductItemsPage({super.key});
+class AllProductItemsPage extends StatefulWidget {
+  final String breadcrumbLabel;
 
+  const AllProductItemsPage({super.key, this.breadcrumbLabel = 'All Products'});
+
+  @override
+  State<AllProductItemsPage> createState() => _AllProductItemsPageState();
+}
+
+class _AllProductItemsPageState extends State<AllProductItemsPage> {
   static const _products = [
     {
       'title': 'Rotary Hammer Drill',
@@ -80,6 +91,51 @@ class AllProductItemsPage extends StatelessWidget {
     },
   ];
 
+  late RangeValues _priceRange;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceRange = RangeValues(_minPrice, _maxPrice);
+  }
+
+  double get _minPrice => _products
+      .map((p) => p['price'] as double)
+      .reduce((a, b) => a < b ? a : b);
+
+  double get _maxPrice => _products
+      .map((p) => p['price'] as double)
+      .reduce((a, b) => a > b ? a : b);
+
+  List<Map<String, Object>> _filteredProducts() {
+    return _products.where((p) {
+      final price = p['price'] as double;
+      return price >= _priceRange.start && price <= _priceRange.end;
+    }).toList();
+  }
+
+  void _openDetails(Map<String, Object> item, int index) {
+    final product = ProductData(
+      id: 'all_$index',
+      name: item['title'] as String,
+      category: 'All Products',
+      priceBDT: item['price'] as double,
+      images: [item['image'] as String],
+      description: 'Detailed information about ${item['title']}.',
+      additionalInfo: {
+        'Category': 'All Products',
+        'Price': 'Tk ${(item['price'] as double).toStringAsFixed(0)}',
+      },
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UniversalProductDetails(product: product),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
@@ -101,6 +157,7 @@ class AllProductItemsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: const Header(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -142,6 +199,7 @@ class AllProductItemsPage extends StatelessWidget {
                       ],
                     ),
             ),
+            const FooterSection(),
           ],
         ),
       ),
@@ -175,8 +233,8 @@ class AllProductItemsPage extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.black.withOpacity(0.25)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
+          children: [
+            const Text(
               'STORE',
               style: TextStyle(
                 color: Colors.white,
@@ -185,10 +243,10 @@ class AllProductItemsPage extends StatelessWidget {
                 letterSpacing: 1.5,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              'Home  /  All Products',
-              style: TextStyle(color: Colors.white70, fontSize: 11),
+              'Home  /  ${widget.breadcrumbLabel}',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
         ),
@@ -197,6 +255,9 @@ class AllProductItemsPage extends StatelessWidget {
   }
 
   Widget _buildFilterPanel(AppResponsive r, BuildContext context) {
+    final min = _minPrice;
+    final max = _maxPrice;
+
     return Container(
       padding: EdgeInsets.all(AppDimensions.padding(context)),
       decoration: BoxDecoration(
@@ -220,23 +281,30 @@ class AllProductItemsPage extends StatelessWidget {
               thumbColor: Colors.amber[700],
               inactiveTrackColor: Colors.grey[300],
             ),
-            child:  RangeSlider(
-              values: RangeValues(25, 80),
-              min: 0,
-              max: 100,
-              onChanged: null,
+            child: RangeSlider(
+              values: _priceRange,
+              min: min,
+              max: max,
+              onChanged: (values) {
+                setState(() {
+                  _priceRange = values;
+                });
+              },
             ),
           ),
           Row(
-            children: const [
+            children: [
               Expanded(
-                child: Text('Price: 25 - 80', style: TextStyle(fontSize: 12)),
+                child: Text(
+                  'Price: ${_priceRange.start.toStringAsFixed(0)} - ${_priceRange.end.toStringAsFixed(0)}',
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
               SizedBox(
                 height: 28,
                 child: ElevatedButton(
-                  onPressed: null,
-                  child: Text('Filter', style: TextStyle(fontSize: 12)),
+                  onPressed: () {},
+                  child: const Text('Filter', style: TextStyle(fontSize: 12)),
                 ),
               ),
             ],
@@ -293,7 +361,7 @@ class AllProductItemsPage extends StatelessWidget {
               children: [
                 Text(name, style: const TextStyle(fontSize: 12)),
                 Text(
-                  '\$${price.toStringAsFixed(0)}',
+                  'Tk ${price.toStringAsFixed(0)}',
                   style: const TextStyle(fontSize: 12, color: Colors.redAccent),
                 ),
               ],
@@ -305,6 +373,7 @@ class AllProductItemsPage extends StatelessWidget {
   }
 
   Widget _buildProductsSection(AppResponsive r, int gridCount) {
+    final items = _filteredProducts();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -312,7 +381,7 @@ class AllProductItemsPage extends StatelessWidget {
           children: [
             const Expanded(
               child: Text(
-                'Showing 1-12 of 12 results',
+                'All Products',
                 style: TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ),
@@ -337,7 +406,7 @@ class AllProductItemsPage extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: _products.length,
+          itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: gridCount,
             childAspectRatio: r.value(
@@ -363,12 +432,13 @@ class AllProductItemsPage extends StatelessWidget {
             ),
           ),
           itemBuilder: (context, index) {
-            final item = _products[index];
+            final item = items[index];
             return _productCard(
               title: item['title'] as String,
               price: item['price'] as double,
               image: item['image'] as String,
               context: context,
+              onTap: () => _openDetails(item, index),
             );
           },
         ),
@@ -390,66 +460,73 @@ class AllProductItemsPage extends StatelessWidget {
     required double price,
     required String image,
     required BuildContext context,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
-        borderRadius: BorderRadius.circular(
-          AppDimensions.borderRadius(context),
-        ),
-        color: Colors.white,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(10),
-              ),
-              child: Image.network(
-                image,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.image, size: 32),
-                ),
-              ),
-            ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[200]!),
+          borderRadius: BorderRadius.circular(
+            AppDimensions.borderRadius(context),
           ),
-          Padding(
-            padding: EdgeInsets.all(AppDimensions.padding(context) * 0.6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: AppDimensions.smallFont(context)),
+          color: Colors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(10),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: const [
-                    Icon(Icons.star, size: 12, color: Colors.amber),
-                    Icon(Icons.star, size: 12, color: Colors.amber),
-                    Icon(Icons.star, size: 12, color: Colors.amber),
-                    Icon(Icons.star_half, size: 12, color: Colors.amber),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '\$${price.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.bold,
+                child: Image.network(
+                  image,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image, size: 32),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: EdgeInsets.all(AppDimensions.padding(context) * 0.6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: AppDimensions.smallFont(context),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: const [
+                      Icon(Icons.star, size: 12, color: Colors.amber),
+                      Icon(Icons.star, size: 12, color: Colors.amber),
+                      Icon(Icons.star, size: 12, color: Colors.amber),
+                      Icon(Icons.star_half, size: 12, color: Colors.amber),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Tk ${price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
