@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../All Pages/CART/Track_ur_orders.dart';
 // Ensure this import matches your actual project structure
 // import '../../All Pages/CART/Orders.dart';
 
@@ -13,11 +15,11 @@ class MyOrdersPage extends StatefulWidget {
 
 class _MyOrdersPageState extends State<MyOrdersPage> {
   late List<OrderModel> orders;
+  String selectedSort = 'All';
 
   @override
   void initState() {
     super.initState();
-    // Create a local copy to allow editing/deleting without affecting the parent immediately
     orders = List.from(widget.orders);
   }
 
@@ -28,7 +30,6 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     }
 
     return SingleChildScrollView(
-      // Added scroll view to prevent overflow
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,9 +39,13 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: orders.length,
+            itemCount: _getSortedOrders().length,
             itemBuilder: (context, orderIndex) {
-              return _buildOrderCard(context, orders[orderIndex], orderIndex);
+              return _buildOrderCard(
+                context,
+                _getSortedOrders()[orderIndex],
+                orderIndex,
+              );
             },
           ),
         ],
@@ -56,9 +61,41 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           'Orders ($count)',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        const Text('Sort by: All ⌄', style: TextStyle(color: Colors.grey)),
+        PopupMenuButton<String>(
+          onSelected: (value) {
+            setState(() {
+              selectedSort = value;
+            });
+          },
+          itemBuilder: (BuildContext context) => [
+            const PopupMenuItem(value: 'All', child: Text('All')),
+            const PopupMenuItem(value: 'Pending', child: Text('Pending')),
+            const PopupMenuItem(value: 'Processing', child: Text('Processing')),
+            const PopupMenuItem(value: 'Delivered', child: Text('Delivered')),
+            const PopupMenuItem(value: 'Cancelled', child: Text('Cancelled')),
+          ],
+          child: Text(
+            'Sort by: $selectedSort ⌄',
+            style: const TextStyle(color: Colors.grey),
+          ),
+        ),
       ],
     );
+  }
+
+  List<OrderModel> _getSortedOrders() {
+    if (selectedSort == 'All') {
+      return orders;
+    } else if (selectedSort == 'Delivered') {
+      return orders.where((order) => order.isDelivered).toList();
+    } else if (selectedSort == 'Pending') {
+      return orders.where((order) => order.status == 'Pending').toList();
+    } else if (selectedSort == 'Processing') {
+      return orders.where((order) => order.status == 'Processing').toList();
+    } else if (selectedSort == 'Cancelled') {
+      return orders.where((order) => order.status == 'Cancelled').toList();
+    }
+    return orders;
   }
 
   Widget _buildOrderCard(
@@ -242,19 +279,24 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             ),
           ),
           _actionButton(
-            order.isDelivered ? 'Add Review' : 'Track',
+            order.isDelivered ? 'Add Review' : 'Track Your Order',
             true,
-            () {},
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TrackOrderPage()),
+              );
+            },
           ),
-          const SizedBox(width: 8),
-          if (!order.isDelivered)
-            TextButton(
-              onPressed: () => _cancelOrder(orderIndex),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.red, fontSize: 13),
-              ),
-            ),
+          // const SizedBox(width: 8),
+          // if (!order.isDelivered)
+          //   TextButton(
+          //     onPressed: () => _cancelOrder(orderIndex),
+          //     child: const Text(
+          //       'Cancel',
+          //       style: TextStyle(color: Colors.red, fontSize: 13),
+          //     ),
+          //   ),
         ],
       ),
     );
@@ -323,8 +365,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             onPressed: () {
               setState(() {
                 orders[orderIndex].items.removeAt(itemIndex);
-                if (orders[orderIndex].items.isEmpty)
+                if (orders[orderIndex].items.isEmpty) {
                   orders.removeAt(orderIndex);
+                }
               });
               Navigator.pop(context);
             },
@@ -335,9 +378,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     );
   }
 
-  void _cancelOrder(int index) {
-    setState(() => orders.removeAt(index));
-  }
+  // void _cancelOrder(int index) {
+  //   setState(() => orders.removeAt(index));
+  // }
 
   Widget _statusBadge(String text, bool delivered) {
     return Container(
@@ -363,7 +406,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary ? const Color(0xFF1B4332) : Colors.white,
+          backgroundColor: primary
+              ? const Color.fromARGB(255, 221, 153, 76)
+              : const Color.fromARGB(255, 37, 32, 32),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
