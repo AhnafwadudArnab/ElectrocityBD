@@ -1,7 +1,9 @@
 import 'package:electrocitybd1/pages/Profiles/Profile.dart';
+import 'package:electrocitybd1/pages/Profiles/WishLists.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
+import '../All Pages/CART/Main_carting.dart';
 import '../Dimensions/responsive_dimensions.dart';
 
 class Header extends StatefulWidget implements PreferredSizeWidget {
@@ -189,7 +191,13 @@ class _HeaderState extends State<Header> {
                 children: [
                   IconButton(
                     //favorite button
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const WishlistPage(),
+                        ),
+                      );
+                    },
                     icon: const Icon(
                       Icons.favorite_border,
                       color: Colors.white,
@@ -203,7 +211,13 @@ class _HeaderState extends State<Header> {
                     children: [
                       IconButton(
                         //cart button
-                        onPressed: () {},
+                       onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ShoppingCartPage(),
+                        ),
+                      );
+                    },
                         icon: const Icon(
                           Icons.shopping_cart_outlined,
                           color: Colors.white,
