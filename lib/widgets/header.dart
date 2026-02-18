@@ -17,6 +17,8 @@ class Header extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HeaderState extends State<Header> {
+  List<dynamic> cartItems = [];
+
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
@@ -211,13 +213,13 @@ class _HeaderState extends State<Header> {
                     children: [
                       IconButton(
                         //cart button
-                       onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const ShoppingCartPage(),
-                        ),
-                      );
-                    },
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ShoppingCartPage(),
+                            ),
+                          );
+                        },
                         icon: const Icon(
                           Icons.shopping_cart_outlined,
                           color: Colors.white,
@@ -227,22 +229,26 @@ class _HeaderState extends State<Header> {
                         padding: EdgeInsets.zero,
                       ),
                       Positioned(
-                        right: 2,
-                        top: 2,
+                        right: 0,
+                        top: 0,
                         child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.black,
-                            shape: BoxShape.circle,
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           constraints: const BoxConstraints(
-                            minWidth: 14,
-                            minHeight: 14,
+                            minWidth: 20,
+                            minHeight: 20,
                           ),
-                          child: const Text(
-                            '4',
+                          child: Text(
+                            cartItems.isEmpty ? '0' : '${cartItems.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white, fontSize: 9),
                           ),
                         ),
                       ),

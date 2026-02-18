@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../pages/home_page.dart';
+import '../../widgets/footer.dart'; // added
+import '../../widgets/header.dart'; // added
+import 'Complete_orders.dart';
+
 class CartItem {
   final String name;
   final String category;
@@ -90,6 +95,19 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const Header(), // added
+      drawer: Drawer(
+        // added
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: const [
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.orange),
+              child: Text('Menu', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         child: Column(
@@ -113,17 +131,35 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Home',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Home',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
                       ),
                       Text(
                         '  /  ',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
                       ),
-                      Text(
-                        'Shopping Cart',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          'Order Completed',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 11,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -340,7 +376,14 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OrderCompletedPage(),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1B4D3E),
                               foregroundColor: Colors.white,
@@ -390,311 +433,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
               ),
             ),
 
-            // Newsletter Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
-              color: Colors.grey[100],
-              child: Column(
-                children: [
-                  Text(
-                    'Our Newsletter',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                        height: 1.3,
-                      ),
-                      children: [
-                        TextSpan(text: 'Subscribe to Our Newsletter to\nGet '),
-                        TextSpan(
-                          text: 'Updates on Our Latest Offers',
-                          style: TextStyle(color: Color(0xFFB8860B)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Get 25% off on your first order just by subscribing to our newsletter',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 300,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Enter Email Address',
-                            hintStyle: TextStyle(color: Colors.grey[400]),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1B4D3E),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Text(
-                          'Subscribe',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Footer
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(48),
-              color: Colors.white,
-              child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Brand Column
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1B4D3E),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.spa,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Beauty Shop.',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Lorem ipsum dolor sit amet, consectetur\nadipiscing elit, sed do eiusmod tempor\nincididunt ut labore et dolore magna.',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                _buildSocialIcon(Icons.facebook),
-                                const SizedBox(width: 8),
-                                _buildSocialIcon(Icons.close),
-                                const SizedBox(width: 8),
-                                _buildSocialIcon(Icons.camera_alt_outlined),
-                                const SizedBox(width: 8),
-                                _buildSocialIcon(Icons.play_circle_outline),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Company Column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Company',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildFooterLink('About Us'),
-                            _buildFooterLink('Blogs'),
-                            _buildFooterLink('Contact Us'),
-                            _buildFooterLink('Career'),
-                          ],
-                        ),
-                      ),
-
-                      // Customer Services Column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Customer Services',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildFooterLink('My Account'),
-                            _buildFooterLink('Track Your Order'),
-                            _buildFooterLink('Return'),
-                            _buildFooterLink('FAQ'),
-                          ],
-                        ),
-                      ),
-
-                      // Our Information Column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Our Information',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildFooterLink('Privacy'),
-                            _buildFooterLink('User Terms & Condition'),
-                            _buildFooterLink('Return Policy'),
-                          ],
-                        ),
-                      ),
-
-                      // Contact Info Column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Contact Info',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              '+0123-456-789',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'example@gmail.com',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '8502 Preston Rd.\nInglewood, Maine\n98380',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 48),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Copyright © 2025 Beauty Shop Website. All Rights Reserved.',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            'English',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 16,
-                            color: Colors.grey[600],
-                          ),
-                          Text(
-                            '  |  ',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            'BDT',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            const FooterSection(), // added
           ],
         ),
       ),
