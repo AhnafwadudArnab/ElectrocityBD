@@ -35,19 +35,34 @@ class _SignupState extends State<Signup> {
     super.dispose();
   }
 
+  // --- FIXED: Added Navigation inside the Logic Function ---
   Future<void> _onSignup() async {
+    // 1. Validate Form
     if (!_formKey.currentState!.validate()) return;
 
+    // 2. Start Loading
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 900));
 
+    // 3. Simulate Network Delay
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // 4. Stop Loading
     setState(() => _isLoading = false);
 
+    // 5. Show Success Feedback
     Get.snackbar(
       'Sign Up',
       'Account created successfully!',
       snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.white,
+      colorText: Colors.black,
+      margin: const EdgeInsets.all(15),
+      duration: const Duration(seconds: 2),
     );
+
+    // 6. Navigate to Login Page
+    // Using Get.off to prevent user from going back to Signup form
+    Get.off(() => const LogIn());
   }
 
   @override
@@ -57,52 +72,65 @@ class _SignupState extends State<Signup> {
     final isStackedLayout = isCompact || r.isTablet;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F9),
       resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: isCompact
-                        ? MediaQuery.of(context).viewInsets.bottom
-                        : 0,
-                  ),
-                  child: Center(
-                    child: Container(
-                      margin: EdgeInsets.all(AppDimensions.padding(context)),
-                      constraints: BoxConstraints(
-                        maxWidth: r.value(
-                          smallMobile: 360,
-                          mobile: 430,
-                          tablet: 760,
-                          smallDesktop: 1040,
-                          desktop: 1220,
-                        ),
-                        maxHeight: isStackedLayout ? double.infinity : r.hp(78),
-                      ),
-                      child: Card(
-                        elevation: 10,
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.borderRadius(context) + 6,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFD54F), Color(0xFF64B5F6)],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: isCompact
+                          ? MediaQuery.of(context).viewInsets.bottom
+                          : 0,
+                    ),
+                    child: Center(
+                      child: Container(
+                        margin: EdgeInsets.all(AppDimensions.padding(context)),
+                        constraints: BoxConstraints(
+                          maxWidth: r.value(
+                            smallMobile: 360,
+                            mobile: 430,
+                            tablet: 760,
+                            smallDesktop: 1040,
+                            desktop: 1220,
                           ),
+                          maxHeight: isStackedLayout
+                              ? double.infinity
+                              : r.hp(78),
                         ),
-                        child: isStackedLayout
-                            ? _buildStackedLayout(r)
-                            : _buildDesktopLayout(),
+                        child: Card(
+                          elevation: 10,
+                          clipBehavior: Clip.antiAlias,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.borderRadius(context) + 6,
+                            ),
+                          ),
+                          child: isStackedLayout
+                              ? _buildStackedLayout(r)
+                              : _buildDesktopLayout(),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -157,6 +185,8 @@ class _SignupState extends State<Signup> {
               _logoPath,
               height: AppDimensions.imageSize(context) * 0.85,
               fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.bolt, color: Colors.white, size: 50),
             ),
             SizedBox(height: AppDimensions.padding(context) * 0.6),
             Text(
@@ -192,14 +222,14 @@ class _SignupState extends State<Signup> {
           mobile: 16,
           tablet: 24,
           smallDesktop: AppDimensions.padding(context) * 1.4,
-          desktop: AppDimensions.padding(context) * 1.6,
+          desktop: AppDimensions.padding(context) * 1.5,
         ),
         vertical: r.value(
           smallMobile: 12,
           mobile: 14,
           tablet: 18,
           smallDesktop: AppDimensions.padding(context) * 1.1,
-          desktop: AppDimensions.padding(context) * 1.2,
+          desktop: AppDimensions.padding(context) * 0.8,
         ),
       ),
       child: Form(
@@ -211,7 +241,7 @@ class _SignupState extends State<Signup> {
             children: [
               Center(
                 child: Text(
-                  'CREATE ACCOUNT',
+                  'Register Your Account',
                   style: TextStyle(
                     fontSize: AppDimensions.titleFont(context),
                     fontWeight: FontWeight.bold,
@@ -225,7 +255,6 @@ class _SignupState extends State<Signup> {
                 controller: _nameController,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Name is required';
-                  if (v.trim().length < 2) return 'Enter a valid name';
                   return null;
                 },
               ),
@@ -264,9 +293,6 @@ class _SignupState extends State<Signup> {
                   );
                 },
                 validator: (v) {
-                  if (v == null || v.isEmpty) {
-                    return 'Confirm password is required';
-                  }
                   if (v != _passwordController.text) {
                     return 'Passwords do not match';
                   }
@@ -281,6 +307,7 @@ class _SignupState extends State<Signup> {
                   onPressed: _isLoading ? null : _onSignup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFA6E4FF),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         AppDimensions.borderRadius(context),
@@ -289,23 +316,20 @@ class _SignupState extends State<Signup> {
                     elevation: 0,
                   ),
                   child: _isLoading
-                      ? SizedBox(
-                          height: AppDimensions.iconSize(context),
-                          width: AppDimensions.iconSize(context),
-                          child: const CircularProgressIndicator(
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
                             strokeWidth: 2,
+                            color: Colors.white,
                           ),
                         )
                       : const Text(
                           'SIGN UP',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                 ),
               ),
-              SizedBox(height: AppDimensions.padding(context) * 0.25),
               Center(
                 child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -316,10 +340,8 @@ class _SignupState extends State<Signup> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LogIn()),
-                        );
+                        // Regular navigation back to login
+                        Get.off(() => const LogIn());
                       },
                       child: const Text('Login'),
                     ),
@@ -343,7 +365,7 @@ class _SignupState extends State<Signup> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppDimensions.padding(context) * 0.05),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -351,11 +373,11 @@ class _SignupState extends State<Signup> {
             label,
             style: TextStyle(
               fontSize: AppDimensions.smallFont(context),
-              color: Colors.grey,
+              color: Colors.grey[700],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: AppDimensions.padding(context) * 0.35),
+          const SizedBox(height: 6),
           TextFormField(
             controller: controller,
             obscureText: isPassword ? obscureText : false,
@@ -363,7 +385,6 @@ class _SignupState extends State<Signup> {
             validator: validator,
             decoration: InputDecoration(
               isDense: true,
-              errorMaxLines: 2,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
                   AppDimensions.borderRadius(context),
@@ -375,15 +396,16 @@ class _SignupState extends State<Signup> {
                 ),
                 borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
               ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.8,
-                vertical: AppDimensions.padding(context) * 0.75,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
               ),
               suffixIcon: isPassword
                   ? IconButton(
                       onPressed: onTogglePassword,
                       icon: Icon(
                         obscureText ? Icons.visibility_off : Icons.visibility,
+                        size: 20,
                       ),
                     )
                   : null,

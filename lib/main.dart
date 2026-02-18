@@ -1,6 +1,5 @@
+import 'package:electrocitybd1/pages/home_page.dart';
 import'package:flutter/material.dart';
-
-import 'All Pages/Registrations/signup.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,9 +16,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      //home: const HomePage(),
+      home:  HomePage(),
       // home: FlashSaleAll(),
-      home: Signup(),
+      //home: Signup(),
     );
   }
 }

@@ -40,6 +40,7 @@ class _LogInState extends State<LogIn> {
       'Login',
       'Login successful (demo)',
       snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.white,
     );
   }
 
@@ -50,52 +51,69 @@ class _LogInState extends State<LogIn> {
     final isStackedLayout = isCompact || r.isTablet;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F9),
       resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: isCompact
-                        ? MediaQuery.of(context).viewInsets.bottom
-                        : 0,
-                  ),
-                  child: Center(
-                    child: Container(
-                      margin: EdgeInsets.all(AppDimensions.padding(context)),
-                      constraints: BoxConstraints(
-                        maxWidth: r.value(
-                          smallMobile: 360,
-                          mobile: 430,
-                          tablet: 760,
-                          smallDesktop: 1040,
-                          desktop: 1220,
-                        ),
-                        maxHeight: isStackedLayout ? double.infinity : r.hp(74),
-                      ),
-                      child: Card(
-                        elevation: 10,
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.borderRadius(context) + 6,
+      body: Container(
+        // --- Consistent Background Gradient ---
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFD54F), // Yellow
+              Color(0xFF64B5F6), // Blue
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: isCompact
+                          ? MediaQuery.of(context).viewInsets.bottom
+                          : 0,
+                    ),
+                    child: Center(
+                      child: Container(
+                        margin: EdgeInsets.all(AppDimensions.padding(context)),
+                        constraints: BoxConstraints(
+                          maxWidth: r.value(
+                            smallMobile: 360,
+                            mobile: 430,
+                            tablet: 760,
+                            smallDesktop: 1040,
+                            desktop: 1220,
                           ),
+                          maxHeight: isStackedLayout
+                              ? double.infinity
+                              : r.hp(74),
                         ),
-                        child: isStackedLayout
-                            ? _buildStackedLayout(r, isCompact: isCompact)
-                            : _buildDesktopLayout(),
+                        child: Card(
+                          elevation: 10,
+                          clipBehavior: Clip.antiAlias,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.borderRadius(context) + 6,
+                            ),
+                          ),
+                          child: isStackedLayout
+                              ? _buildStackedLayout(r, isCompact: isCompact)
+                              : _buildDesktopLayout(),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -148,22 +166,18 @@ class _LogInState extends State<LogIn> {
               _logoPath,
               height: AppDimensions.imageSize(context) * 0.85,
               fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.flash_on, color: Colors.white, size: 40),
             ),
             SizedBox(height: AppDimensions.padding(context) * 0.8),
-            Text(
-              'Welcome back to\nElectrocity-BD',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: AppDimensions.titleFont(context),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: AppDimensions.padding(context) * 0.6),
-            Text(
-              'Login to access your account\nand connect with suppliers\nacross Bangladesh',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: AppDimensions.bodyFont(context),
+            Center(
+              child: Text(
+                'Welcome back to Electrocity-BD',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: AppDimensions.smallFont(context) * 1.5,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -244,6 +258,7 @@ class _LogInState extends State<LogIn> {
                   onPressed: _isLoading ? null : _onLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFA6E4FF),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         AppDimensions.borderRadius(context),
@@ -252,19 +267,17 @@ class _LogInState extends State<LogIn> {
                     elevation: 0,
                   ),
                   child: _isLoading
-                      ? SizedBox(
-                          height: AppDimensions.iconSize(context),
-                          width: AppDimensions.iconSize(context),
-                          child: const CircularProgressIndicator(
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
                             strokeWidth: 2,
+                            color: Colors.white,
                           ),
                         )
                       : const Text(
                           'Login',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                 ),
               ),
@@ -314,11 +327,11 @@ class _LogInState extends State<LogIn> {
             label,
             style: TextStyle(
               fontSize: AppDimensions.smallFont(context),
-              color: Colors.grey,
+              color: Colors.grey[700],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: AppDimensions.padding(context) * 0.35),
+          const SizedBox(height: 6),
           TextFormField(
             controller: controller,
             obscureText: isPassword ? obscureText : false,
@@ -326,7 +339,6 @@ class _LogInState extends State<LogIn> {
             validator: validator,
             decoration: InputDecoration(
               isDense: true,
-              errorMaxLines: 2,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
                   AppDimensions.borderRadius(context),
@@ -338,15 +350,16 @@ class _LogInState extends State<LogIn> {
                 ),
                 borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
               ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.8,
-                vertical: AppDimensions.padding(context) * 0.75,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
               ),
               suffixIcon: isPassword
                   ? IconButton(
                       onPressed: onTogglePassword,
                       icon: Icon(
                         obscureText ? Icons.visibility_off : Icons.visibility,
+                        size: 20,
                       ),
                     )
                   : null,

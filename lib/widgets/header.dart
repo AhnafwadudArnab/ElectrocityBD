@@ -1,3 +1,4 @@
+import 'package:electrocitybd1/All%20Pages/Registrations/signup.dart';
 import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
@@ -282,15 +283,19 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
             ),
 
             /// PROFILE
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProfilePage()),
-                );
-              },
-              icon: const Icon(Icons.person_rounded, color: Colors.white),
-            ),
+            if (!isVerySmall)
+              IconButton(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Signup(),
+                    ),
+                    (route) => false,
+                  );
+                },
+                icon: const Icon(Icons.person_rounded, color: Colors.white),
+              ),
 
             SizedBox(
               width: r.value(
