@@ -1,270 +1,433 @@
 import 'package:flutter/material.dart';
+// Ensure this import matches your actual project structure
+// import '../../All Pages/CART/Orders.dart';
 
-class MyOrdersPage extends StatelessWidget {
-  const MyOrdersPage({super.key});
+class MyOrdersPage extends StatefulWidget {
+  final List<OrderModel> orders;
+
+  const MyOrdersPage({super.key, required this.orders});
+
+  @override
+  State<MyOrdersPage> createState() => _MyOrdersPageState();
+}
+
+class _MyOrdersPageState extends State<MyOrdersPage> {
+  late List<OrderModel> orders;
+
+  @override
+  void initState() {
+    super.initState();
+    // Create a local copy to allow editing/deleting without affecting the parent immediately
+    orders = List.from(widget.orders);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text("My Account"), centerTitle: true),
-      body: Row(
+    if (orders.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return SingleChildScrollView(
+      // Added scroll view to prevent overflow
+      padding: const EdgeInsets.all(16),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Side Navigation
-          Container(
-            width: 250,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _sidebarItem("Personal Information", false),
-                _sidebarItem("My Orders", true),
-                _sidebarItem("Manage Address", false),
-                _sidebarItem("Payment Method", false),
-                _sidebarItem("Password Manager", false),
-                const Spacer(),
-                _sidebarItem("Logout", false),
-              ],
-            ),
-          ),
-          // Orders List Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Orders (2)",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  // Render the orders
-                  OrderCardWidget(order: mockOrder1),
-                  OrderCardWidget(order: mockOrder2),
-                ],
-              ),
-            ),
+          _buildHeader(orders.length),
+          const SizedBox(height: 20),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: orders.length,
+            itemBuilder: (context, orderIndex) {
+              return _buildOrderCard(context, orders[orderIndex], orderIndex);
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _sidebarItem(String title, bool isActive) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFFBB03B) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: ListTile(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
+  Widget _buildHeader(int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Orders ($count)',
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        onTap: () {},
-      ),
+        const Text('Sort by: All ⌄', style: TextStyle(color: Colors.grey)),
+      ],
     );
   }
-}
 
-// Mock Data for testing
-final mockOrder1 = Order(
-  id: "#SDGT1254FD",
-  totalPayment: "\$640.00",
-  paymentMethod: "Paypal",
-  date: "24 April 2024",
-  status: "Accepted",
-  items: [
-    OrderItem(
-      productName: "Wooden Sofa Chair",
-      imageUrl: "https://via.placeholder.com/50",
-      color: "Grey",
-      quantity: 4,
-    ),
-    OrderItem(
-      productName: "Red Gaming Chair",
-      imageUrl: "https://via.placeholder.com/50",
-      color: "Black",
-      quantity: 2,
-    ),
-  ],
-);
-
-final mockOrder2 = Order(
-  id: "#SDGT7412DF",
-  totalPayment: "\$48.00",
-  paymentMethod: "Cash",
-  date: "12 February 2024",
-  status: "Delivered",
-  items: [
-    OrderItem(
-      productName: "Bar Stool",
-      imageUrl: "https://via.placeholder.com/50",
-      color: "Brown",
-      quantity: 1,
-    ),
-  ],
-);
-
-class OrderItem {
-  final String productName;
-  final String imageUrl;
-  final String color;
-  final int quantity;
-
-  OrderItem({
-    required this.productName,
-    required this.imageUrl,
-    required this.color,
-    required this.quantity,
-  });
-}
-
-class Order {
-  final String id;
-  final String totalPayment;
-  final String paymentMethod;
-  final String date;
-  final String status; // e.g., "Accepted", "Delivered"
-  final List<OrderItem> items;
-
-  Order({
-    required this.id,
-    required this.totalPayment,
-    required this.paymentMethod,
-    required this.date,
-    required this.status,
-    required this.items,
-  });
-}
-
-class OrderCardWidget extends StatelessWidget {
-  final Order order;
-
-  const OrderCardWidget({super.key, required this.order});
-
-  @override
-  Widget build(BuildContext context) {
-    bool isDelivered = order.status == "Delivered";
-
+  Widget _buildOrderCard(
+    BuildContext context,
+    OrderModel order,
+    int orderIndex,
+  ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Header Section
+          // Orange Summary Bar
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
-              color: Color(0xFFFBB03B), // Primary Orange/Yellow
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
+              color: Color(0xFFFDB933),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildHeaderColumn("Order ID", order.id),
-                _buildHeaderColumn("Total Payment", order.totalPayment),
-                _buildHeaderColumn("Payment Method", order.paymentMethod),
-                _buildHeaderColumn(
-                  isDelivered ? "Delivered Date" : "Estimated Delivery",
+                _summaryCol('Order ID', order.id),
+                _summaryCol('Total Payment', '৳${order.total}'),
+                _summaryCol(
+                  'Payment Method',
+                  _formatPaymentMethod(order.paymentMethod),
+                ),
+                _summaryCol(
+                  order.isDelivered ? 'Delivered Date' : 'Estimated Delivery',
                   order.date,
                 ),
               ],
             ),
           ),
-          // Product List
+          // Product Items List
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: order.items.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final item = order.items[index];
-              return ListTile(
-                leading: Image.network(item.imageUrl, width: 50),
-                title: Text(
-                  item.productName,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text("Color: ${item.color} | Qty: ${item.quantity}"),
-              );
+            separatorBuilder: (context, index) =>
+                Divider(height: 1, color: Colors.grey.shade100),
+            itemBuilder: (context, itemIndex) {
+              final item = order.items[itemIndex];
+              return _buildProductRow(context, item, orderIndex, itemIndex);
             },
           ),
-          const Divider(),
-          // Action Buttons
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+          const Divider(height: 1),
+          _buildCardFooter(order, orderIndex),
+        ],
+      ),
+    );
+  }
+
+  String _formatPaymentMethod(String method) {
+    switch (method.toLowerCase()) {
+      case 'bkash':
+        return 'bKash';
+      case 'nagad':
+        return 'Nagad';
+      case 'cash':
+        return 'Cash on Delivery';
+      default:
+        return method;
+    }
+  }
+
+  Widget _getPaymentIcon(String method) {
+    if (method.toLowerCase().contains('bkash')) {
+      return _iconBadge('bKash', const Color(0xFFE2136E));
+    } else if (method.toLowerCase().contains('nagad')) {
+      return _iconBadge('Nagad', const Color(0xFFEF7B0F));
+    }
+    return const Icon(Icons.payment, size: 16);
+  }
+
+  Widget _iconBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductRow(
+    BuildContext context,
+    OrderItem item,
+    int orderIndex,
+    int itemIndex,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.shopping_bag_outlined,
+              color: Colors.orange,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _statusBadge(order.status),
-                const SizedBox(width: 10),
-                Text("Your Order has been ${order.status}"),
-                const Spacer(),
-                if (!isDelivered) ...[
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3922),
-                    ),
-                    child: const Text(
-                      "Track Order",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                  const SizedBox(width: 8),
-                ],
-                OutlinedButton(onPressed: () {}, child: const Text("Invoice")),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Color: ${item.color} | ${item.qty} Qty. | ৳${item.price}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
               ],
             ),
+          ),
+          _buildActionButtons(context, orderIndex, itemIndex),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(
+    BuildContext context,
+    int orderIndex,
+    int itemIndex,
+  ) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => _showDeleteDialog(context, orderIndex, itemIndex),
+          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCardFooter(OrderModel order, int orderIndex) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          _statusBadge(order.status, order.isDelivered),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Order is ${order.status}',
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+          _actionButton(
+            order.isDelivered ? 'Add Review' : 'Track',
+            true,
+            () {},
+          ),
+          const SizedBox(width: 8),
+          if (!order.isDelivered)
+            TextButton(
+              onPressed: () => _cancelOrder(orderIndex),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.red, fontSize: 13),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // DIALOGS & LOGIC
+  void _showEditDialog(BuildContext context, int orderIndex, int itemIndex) {
+    final item = orders[orderIndex].items[itemIndex];
+    final nameCtrl = TextEditingController(text: item.name);
+    final priceCtrl = TextEditingController(text: item.price.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Item'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Product Name'),
+            ),
+            TextField(
+              controller: priceCtrl,
+              decoration: const InputDecoration(labelText: 'Price'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                orders[orderIndex].items[itemIndex] = OrderItem(
+                  name: nameCtrl.text,
+                  color: item.color,
+                  qty: item.qty,
+                  price: double.tryParse(priceCtrl.text) ?? item.price,
+                );
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderColumn(String title, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 12, color: Colors.black54),
-        ),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ],
+  void _showDeleteDialog(BuildContext context, int orderIndex, int itemIndex) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Item?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              setState(() {
+                orders[orderIndex].items.removeAt(itemIndex);
+                if (orders[orderIndex].items.isEmpty)
+                  orders.removeAt(orderIndex);
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _statusBadge(String status) {
+  void _cancelOrder(int index) {
+    setState(() => orders.removeAt(index));
+  }
+
+  Widget _statusBadge(String text, bool delivered) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: status == "Delivered"
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
-        border: Border.all(
-          color: status == "Delivered" ? Colors.green : Colors.orange,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: delivered ? Colors.green.shade50 : Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status,
+        text,
         style: TextStyle(
-          color: status == "Delivered" ? Colors.green : Colors.orange,
-          fontSize: 12,
+          color: delivered ? Colors.green : Colors.orange,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
+
+  Widget _actionButton(String label, bool primary, VoidCallback onTap) {
+    return SizedBox(
+      height: 36,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary ? const Color(0xFF1B4332) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        child: Text(label, style: const TextStyle(fontSize: 12)),
+      ),
+    );
+  }
+
+  Widget _summaryCol(String label, String value) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Colors.black54),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() => const Center(child: Text('No orders found'));
+}
+
+// Ensure these models exist in your Orders.dart file
+class OrderModel {
+  final String id;
+  final String total;
+  final String paymentMethod;
+  final String date;
+  final String status;
+  final bool isDelivered;
+  final List<OrderItem> items;
+
+  OrderModel({
+    required this.id,
+    required this.total,
+    required this.paymentMethod,
+    required this.date,
+    required this.status,
+    required this.isDelivered,
+    required this.items,
+  });
+}
+
+class OrderItem {
+  final String name;
+  final String color;
+  final int qty;
+  final double price;
+  final String? imagePath;
+
+  OrderItem({
+    required this.name,
+    required this.color,
+    required this.qty,
+    required this.price,
+    this.imagePath,
+  });
 }

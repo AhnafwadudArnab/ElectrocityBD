@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
+import 'My_order.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -73,10 +74,40 @@ class _ProfilePageState extends State<ProfilePage> {
     },
   ];
 
+  // Updated Payment Methods - bKash/Nagad
   List<Map<String, String>> paymentMethods = [
-    {"type": "Paypal", "status": "Link Account"},
-    {"type": "VISA •••• •••• •••• 8047", "status": "Delete"},
-    {"type": "Google Pay", "status": "Link Account"},
+    {"type": "bKash", "status": "Link Account"},
+    {"type": "Nagad", "status": "Link Account"},
+    {"type": "Rocket", "status": "Link Account"},
+    {"type": "VISA •••• 8047", "status": "Delete"},
+  ];
+
+  // Orders data in BDT
+  List<OrderModel> myLiveOrders = [
+    OrderModel(
+      id: "#SDGT1254FD",
+      total: "৳64,000.00", // BDT format
+      paymentMethod: "bKash", // bKash payment
+      date: "24 April 2024",
+      status: "Accepted",
+      isDelivered: false,
+      items: [
+        OrderItem(
+          name: "Wooden Sofa Chair",
+          color: "Grey",
+          qty: 4,
+          imagePath: "",
+          price: 16000.00,
+        ),
+        OrderItem(
+          name: "Red Gaming Chair",
+          color: "Black",
+          qty: 2,
+          imagePath: "",
+          price: 8000.00,
+        ),
+      ],
+    ),
   ];
 
   // Responsive helpers
@@ -389,7 +420,7 @@ class _ProfilePageState extends State<ProfilePage> {
       case "Personal Information":
         return _buildPersonalInfo();
       case "My Orders":
-        return _buildMyOrders();
+        return MyOrdersPage(orders: myLiveOrders);
       case "Manage Address":
         return _buildManageAddress();
       case "Payment Method":
@@ -690,101 +721,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMyOrders() {
-    final padding = AppDimensions.padding(context);
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(padding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "My Orders",
-              style: TextStyle(
-                fontSize: AppDimensions.titleFont(context),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: padding),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.only(bottom: padding),
-                  child: Padding(
-                    padding: EdgeInsets.all(padding * 0.75),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Order #${1001 + index}",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: AppDimensions.bodyFont(context),
-                              ),
-                            ),
-                            SizedBox(height: padding / 4),
-                            Text(
-                              "Placed on: 2024-01-${15 + index}",
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: AppDimensions.smallFont(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              "৳${150 + (index * 50)}",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: AppDimensions.bodyFont(context),
-                              ),
-                            ),
-                            SizedBox(height: padding / 4),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: padding * 0.75,
-                                vertical: padding / 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade100,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                "Delivered",
-                                style: TextStyle(
-                                  color: Colors.green.shade700,
-                                  fontSize: AppDimensions.smallFont(context),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildManageAddress() {
     final padding = AppDimensions.padding(context);
     final r = AppResponsive.of(context);
@@ -987,6 +923,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Updated Payment Method with bKash/Nagad
   Widget _buildPaymentMethod() {
     final padding = AppDimensions.padding(context);
     final r = AppResponsive.of(context);
@@ -1010,22 +947,68 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SizedBox(height: padding),
+            // Mobile Banking Section (bKash, Nagad, Rocket)
+            Text(
+              "Mobile Banking",
+              style: TextStyle(
+                fontSize: AppDimensions.bodyFont(context),
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            SizedBox(height: padding / 2),
+            _buildMobileBankingItem("bKash", "Link Account", Colors.pink),
+            _buildMobileBankingItem(
+              "Nagad",
+              "Link Account",
+              Colors.orange.shade700,
+            ),
+            _buildMobileBankingItem("Rocket", "Link Account", Colors.purple),
+
+            SizedBox(height: padding),
+            const Divider(),
+            SizedBox(height: padding),
+
+            // Card Section
+            Text(
+              "Cards",
+              style: TextStyle(
+                fontSize: AppDimensions.bodyFont(context),
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            SizedBox(height: padding / 2),
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: paymentMethods.length,
+              itemCount: paymentMethods
+                  .where(
+                    (p) =>
+                        p["type"]!.contains("VISA") ||
+                        p["type"]!.contains("MasterCard"),
+                  )
+                  .length,
               itemBuilder: (context, index) {
+                var cardMethods = paymentMethods
+                    .where(
+                      (p) =>
+                          p["type"]!.contains("VISA") ||
+                          p["type"]!.contains("MasterCard"),
+                    )
+                    .toList();
                 return _buildPaymentItem(
-                  paymentMethods[index]["type"]!,
-                  paymentMethods[index]["status"]!,
+                  cardMethods[index]["type"]!,
+                  cardMethods[index]["status"]!,
                 );
               },
             ),
+
             SizedBox(height: padding),
             const Divider(),
             SizedBox(height: padding),
             Text(
-              "Add New Credit/Debit Card",
+              "Add New Card",
               style: TextStyle(
                 fontSize: AppDimensions.bodyFont(context),
                 fontWeight: FontWeight.bold,
@@ -1115,6 +1098,74 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.white,
                     fontSize: AppDimensions.bodyFont(context),
                   ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Mobile Banking Item Widget (bKash/Nagad/Rocket)
+  Widget _buildMobileBankingItem(String name, String action, Color color) {
+    final padding = AppDimensions.padding(context);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: padding),
+      child: Container(
+        padding: EdgeInsets.all(padding),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      name[0],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: padding),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: AppDimensions.bodyFont(context),
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () {
+                // Link account functionality
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Link $name account')));
+              },
+              child: Text(
+                action,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: AppDimensions.smallFont(context),
                 ),
               ),
             ),
@@ -1231,7 +1282,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final padding = AppDimensions.padding(context);
 
     bool isCurrentPassword = label.contains("Current");
-    bool isNewPassword = label.contains("New");
+    bool isNewPassword = label.contains("New") && !label.contains("Confirm");
     bool isConfirmPassword = label.contains("Confirm");
 
     return Padding(
