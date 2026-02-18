@@ -1,8 +1,9 @@
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/footer.dart'; // added
-import '../../widgets/header.dart'; // added
+import '../../Dimensions/responsive_dimensions.dart'; // added
+import '../../widgets/footer.dart';
+import '../../widgets/header.dart';
 
 class OrderItem {
   final String name;
@@ -54,10 +55,12 @@ class OrderCompletedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
+    final isCompact = r.isSmallMobile || r.isMobile || r.isTablet;
+
     return Scaffold(
-      appBar: const Header(), // added
+      appBar: const Header(),
       drawer: Drawer(
-        // added
         child: ListView(
           padding: EdgeInsets.zero,
           children: const [
@@ -75,14 +78,22 @@ class OrderCompletedPage extends StatelessWidget {
             // Header
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
+              padding: EdgeInsets.symmetric(
+                vertical: r.value(
+                  smallMobile: 20.0,
+                  mobile: 24.0,
+                  tablet: 30.0,
+                  smallDesktop: 36.0,
+                  desktop: 40.0,
+                ),
+              ),
               color: Colors.grey[100],
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     'Order Completed',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: AppDimensions.titleFont(context),
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -127,8 +138,9 @@ class OrderCompletedPage extends StatelessWidget {
               ),
             ),
 
-            // Success Message
             const SizedBox(height: 40),
+
+            // Success Message
             Container(
               width: 60,
               height: 60,
@@ -155,127 +167,119 @@ class OrderCompletedPage extends StatelessWidget {
 
             // Order Info Bar
             Container(
-              margin: const EdgeInsets.all(24),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              margin: EdgeInsets.symmetric(
+                horizontal: AppDimensions.padding(context),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.padding(context),
+                vertical: 20,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFF1B4D3E),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Order ID',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
+              child: isCompact
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 820),
+                        child: SizedBox(
+                          width: 820,
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: _infoBlock('Order ID', '#SDGT1254FD'),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _infoBlock('Payment Method', 'Paypal'),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _infoBlock(
+                                  'Transaction ID',
+                                  'TR542SSFE',
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _infoBlock(
+                                  'Estimated Delivery Date',
+                                  '26 January 2025',
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFF1B4D3E),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Download Invoice',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          '#SDGT1254FD',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Payment Method',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Paypal',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Transaction ID',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'TR542SSFE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Estimated Delivery Date',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          '26 January 2025',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF1B4D3E),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                    )
+                  : Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: _infoBlock('Order ID', '#SDGT1254FD'),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: _infoBlock('Payment Method', 'Paypal'),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: _infoBlock('Transaction ID', 'TR542SSFE'),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: _infoBlock(
+                            'Estimated Delivery Date',
+                            '26 January 2025',
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF1B4D3E),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text(
+                            'Download Invoice',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      'Download Invoice',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
             ),
 
             // Order Details
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24),
+              margin: EdgeInsets.symmetric(
+                horizontal: AppDimensions.padding(context),
+              ),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -338,15 +342,20 @@ class OrderCompletedPage extends StatelessWidget {
 
             // Features Section
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              padding: EdgeInsets.symmetric(
+                vertical: 32,
+                horizontal: AppDimensions.padding(context),
+              ),
+              child: Wrap(
+                alignment: WrapAlignment.spaceEvenly,
+                spacing: 20,
+                runSpacing: 16,
                 children: [
                   _buildFeatureItem(
                     icon: Icons.local_shipping_outlined,
                     color: const Color(0xFF1B4D3E),
                     title: 'Free Shipping',
-                    subtitle: 'Free shipping for order above \$50',
+                    subtitle: 'Free shipping for order above ৳50',
                   ),
                   _buildFeatureItem(
                     icon: Icons.payment_outlined,
@@ -366,47 +375,106 @@ class OrderCompletedPage extends StatelessWidget {
 
             // Newsletter Section
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-              child: Row(
-                children: [
-                  Text(
-                    'Subscribe to our newsletter',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        hintText: 'Enter your email',
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB8860B),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: const Text('Subscribe'),
-                  ),
-                ],
+              padding: EdgeInsets.symmetric(
+                vertical: 32,
+                horizontal: AppDimensions.padding(context),
               ),
+              child: isCompact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Subscribe to our newsletter',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: AppDimensions.bodyFont(context),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            hintText: 'Enter your email',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFB8860B),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text('Subscribe'),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Text(
+                          'Subscribe to our newsletter',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              hintText: 'Enter your email',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFB8860B),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text('Subscribe'),
+                        ),
+                      ],
+                    ),
             ),
 
-            const FooterSection(), // added
+            const FooterSection(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _infoBlock(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -436,31 +504,34 @@ class OrderCompletedPage extends StatelessWidget {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Text(
-                      item.category,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
+                      Text(
+                        item.category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           Expanded(
+            flex: 1,
             child: Text(
-              '\$${item.subtotal.toStringAsFixed(2)}',
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              '৳${item.subtotal.toStringAsFixed(2)}',
+              textAlign: TextAlign.end,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
