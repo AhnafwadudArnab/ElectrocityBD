@@ -74,9 +74,14 @@ flutter:
   assets:
     - assets/
     - assets/Products/
+    - assets/payments/
+    - assets/payments/amex.png
+    - assets/payments/master.png
+    - assets/payments/paypal.jpg
+    - assets/payments/visa.png
     - assets/Brand Logo/
     - assets/Hero banner logos/
     - assets/Deals of the Day/
     - assets/flash/
     - assets/prod/
-    - assets/data/products.json
+    - assets/Data/products.json

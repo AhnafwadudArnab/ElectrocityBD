@@ -147,16 +147,21 @@ class _LogoSection extends StatelessWidget {
             CircleAvatar(
               backgroundColor: Colors.white,
               radius: AppDimensions.iconSize(context) * 0.8,
-              child: Text(
-                '24',
-                style: TextStyle(
-                  color: Color(0xFF2E3192),
-                  fontWeight: FontWeight.bold,
-                  fontSize: AppDimensions.smallFont(context),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/logo_ecity.png',
+                  width: AppDimensions.iconSize(context) * 1.6,
+                  height: AppDimensions.iconSize(context) * 1.6,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Icon(
+                    Icons.storefront,
+                    color: const Color(0xFF2E3192),
+                    size: AppDimensions.iconSize(context) * 0.9,
+                  ),
                 ),
               ),
             ),
-            SizedBox(width: AppDimensions.padding(context) * 0.6),
+            SizedBox(width: AppDimensions.padding(context) * 0.3),
             Flexible(
               child: Text(
                 'ElectrocityBD',
@@ -275,6 +280,21 @@ class _ContactSection extends StatelessWidget {
             ),
           ],
         ),
+        SizedBox(height: AppDimensions.padding(context) * 1.2),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: AppDimensions.padding(context) * 0.23,
+            runSpacing: AppDimensions.padding(context) * 0.3,
+            children: [
+              _paymentLogo(context, 'assets/payments/amex.png'),
+              _paymentLogo(context, 'assets/payments/master.png'),
+              _paymentLogo(context, 'assets/payments/paypal.jpg'),
+              _paymentLogo(context, 'assets/payments/visa.png'),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -353,6 +373,45 @@ Widget _social(BuildContext context, IconData icon) {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
       icon: FaIcon(icon, color: Colors.white, size: iconSize),
+    ),
+  );
+}
+
+Widget _paymentLogo(BuildContext context, String assetPath) {
+  final r = AppResponsive.of(context);
+  final logoWidth = r.value(
+    smallMobile: 48.0,
+    mobile: 52.0,
+    tablet: 56.0,
+    smallDesktop: 60.0,
+    desktop: 64.0,
+  );
+  final logoHeight = r.value(
+    smallMobile: 28.0,
+    mobile: 30.0,
+    tablet: 32.0,
+    smallDesktop: 34.0,
+    desktop: 36.0,
+  );
+
+  return Container(
+    width: logoWidth,
+    height: logoHeight,
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(
+        AppDimensions.borderRadius(context) * 0.4,
+      ),
+    ),
+    child: Image.asset(
+      assetPath,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Icon(
+        Icons.image_not_supported_outlined,
+        color: const Color(0xFF2E3192),
+        size: logoHeight * 0.5,
+      ),
     ),
   );
 }
