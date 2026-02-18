@@ -58,20 +58,14 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: const Text('My Cart'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to cart page
-            },
+            leading: const Icon(Icons.shopping_cart_outlined),
+            title: const Text('Cart'),
+            onTap: () => Navigator.pushNamed(context, '/cart'),
           ),
           ListTile(
-            leading: const Icon(Icons.favorite),
+            leading: const Icon(Icons.favorite_border),
             title: const Text('Wishlist'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to wishlist page
-            },
+            onTap: () => Navigator.pushNamed(context, '/wishlist'),
           ),
           const Divider(),
           ListTile(

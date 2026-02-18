@@ -16,8 +16,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
+      // initialRoute: '/',
+      // routes: {
+      //   '/': (_) => const HomePage(), // keep your current home widget
+      //   '/cart': (_) => const CartScreen(),
+      //   '/wishlist': (_) => const WishlistScreen(),
+      // },
       home: HomePage(),
-      routes: {'/home': (context) => HomePage()},
       // home: FlashSaleAll(),
       //home: Signup(),
     );
