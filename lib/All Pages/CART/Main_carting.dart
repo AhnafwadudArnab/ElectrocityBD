@@ -383,7 +383,6 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   }
 
   Widget _buildOrderSummary(BuildContext context, {bool fullWidth = false}) {
-    // added
     final r = AppResponsive.of(context);
     final width = fullWidth
         ? double.infinity
@@ -410,14 +409,9 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         children: [
           const Text(
             'Order Summary',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
-          _buildSummaryRow(
-            'Items',
-            '${items.fold(0, (sum, item) => sum + item.quantity)}',
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           _buildSummaryRow('Sub Total', _formatBdt(subTotal)),
           const SizedBox(height: 12),
           _buildSummaryRow('Shipping', _formatBdt(shipping)),
@@ -427,28 +421,27 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           _buildSummaryRow('Coupon Discount', _formatBdt(couponDiscount)),
           const Divider(height: 32),
           _buildSummaryRow('Total', _formatBdt(total), isBold: true),
-          const SizedBox(height: 24),
+
+          const SizedBox(height: 20), // added
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OrderCompletedPage()),
-                );
-              },
+              onPressed: items.isEmpty
+                  ? null
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => OrderCompletedPage()),
+                      );
+                    },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B4D3E),
+                backgroundColor: const Color(0xFFB8860B),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(24),
                 ),
               ),
-              child: const Text(
-                'Proceed to Checkout',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
+              child: Text(items.isEmpty ? 'Cart is Empty' : 'Proceed to Pay'),
             ),
           ),
         ],
