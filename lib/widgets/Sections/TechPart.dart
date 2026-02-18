@@ -17,195 +17,214 @@ class _TechpartState extends State<Techpart> {
   int _itemsPerPage = 0;
   String _selectedSort = 'featured';
 
+  static const List<String> _techImages = [
+    'assets/Products/1.png',
+    'assets/Products/2.jpg',
+    'assets/Products/3.jpg',
+    'assets/Products/4.jpg',
+    'assets/Products/5.jpg',
+    'assets/Products/6.jpg',
+    'assets/Products/7.png',
+  ];
+
   final List<Map<String, dynamic>> products = [
     {
       'name': 'Acer SB220Q bi 21.5 Inches Full HD',
       'price': '৳9,400',
       'rating': 5,
-      'image': 'assets/images/monitor1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Intel Core i7 12th Gen',
       'price': '৳45,999',
       'rating': 5,
-      'image': 'assets/images/processor1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'AMD Ryzen 7 5800X',
       'price': '৳38,500',
       'rating': 5,
-      'image': 'assets/images/processor2.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'NVIDIA RTX 4070',
       'price': '৳89,999',
       'rating': 5,
-      'image': 'assets/images/gpu1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': '16GB DDR4 RAM Kingston',
       'price': '৳6,999',
       'rating': 4,
-      'image': 'assets/images/ram1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': '1TB SSD NVMe M.2',
       'price': '৳8,500',
       'rating': 4,
-      'image': 'assets/images/ssd1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': '650W Modular PSU',
       'price': '৳5,999',
       'rating': 4,
-      'image': 'assets/images/psu1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'RGB CPU Cooler Tower',
       'price': '৳3,500',
       'rating': 4,
-      'image': 'assets/images/cooler1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Mechanical Gaming Keyboard RGB',
       'price': '৳4,999',
       'rating': 5,
-      'image': 'assets/images/keyboard1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Gaming Mouse Wireless Pro',
       'price': '৳2,999',
       'rating': 4,
-      'image': 'assets/images/mouse1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'USB-C Docking Station',
       'price': '৳7,999',
       'rating': 4,
-      'image': 'assets/images/dock1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'External SSD 2TB Type-C',
       'price': '৳18,999',
       'rating': 5,
-      'image': 'assets/images/external_ssd1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Laptop Stand Aluminum',
       'price': '৳1,999',
       'rating': 4,
-      'image': 'assets/images/stand1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Webcam 1080P Full HD',
       'price': '৳3,499',
       'rating': 4,
-      'image': 'assets/images/webcam1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'USB Hub 3.0 7-Port',
       'price': '৳999',
       'rating': 3,
-      'image': 'assets/images/hub1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Wireless Charger Fast',
       'price': '৳2,499',
       'rating': 4,
-      'image': 'assets/images/charger1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'HDMI 2.1 Cable 2M',
       'price': '৳599',
       'rating': 4,
-      'image': 'assets/images/cable1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Headphone Stand Premium',
       'price': '৳1,499',
       'rating': 4,
-      'image': 'assets/images/headset_stand1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Monitor Arm Mount Dual',
       'price': '৳4,999',
       'rating': 5,
-      'image': 'assets/images/mount1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Cable Management Kit Pro',
       'price': '৳899',
       'rating': 4,
-      'image': 'assets/images/cable_mgmt1.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Samsung 24" Monitor',
       'price': '৳14,600',
       'rating': 4,
-      'image': 'assets/images/monitor2.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'BenQ 27" Gaming Monitor',
       'price': '৳29,998',
       'rating': 5,
-      'image': 'assets/images/monitor3.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Dell UltraSharp 32"',
       'price': '৳49,998',
       'rating': 4,
-      'image': 'assets/images/monitor4.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'LG 4K Monitor 32"',
       'price': '৳59,998',
       'rating': 5,
-      'image': 'assets/images/monitor5.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'HP 24" LED Monitor',
       'price': '৳12,998',
       'rating': 3,
-      'image': 'assets/images/monitor6.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'ASUS VP28UQG 4K',
       'price': '৳39,998',
       'rating': 4,
-      'image': 'assets/images/monitor7.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Viewsonic 22" Monitor',
       'price': '৳15,998',
       'rating': 4,
-      'image': 'assets/images/monitor8.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'MSI Optix MAG274R',
       'price': '৳34,998',
       'rating': 5,
-      'image': 'assets/images/monitor9.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'AOC G2590FX 25"',
       'price': '৳17,998',
       'rating': 4,
-      'image': 'assets/images/monitor10.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Corsair Curved Gaming',
       'price': '৳44,998',
       'rating': 5,
-      'image': 'assets/images/monitor11.png',
+      'image': 'assets/Products/1.png',
     },
     {
       'name': 'Alienware AW3420DW',
       'price': '৳79,998',
       'rating': 5,
-      'image': 'assets/images/monitor12.png',
+      'image': 'assets/Products/1.png',
     },
     // Add more products up to 36 total...
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    for (var i = 0; i < products.length; i++) {
+      products[i]['image'] = _techImages[i % _techImages.length];
+    }
+  }
 
   void _loadMore() {
     final total = _sortedProducts().length;
@@ -237,14 +256,15 @@ class _TechpartState extends State<Techpart> {
     }
     return sorted;
   }
-//path name 
+
+  //path name
   ProductData _buildProductData(Map<String, dynamic> product, int index) {
     return ProductData(
       id: 'tech_$index',
       name: product['name'] as String,
       category: 'All Products',
       priceBDT: _parsePrice(product['price'] as String),
-      images: [product['image'] as String],
+      images: [_techImages[index % _techImages.length]],
       description: 'Tech part from our latest collection.',
       additionalInfo: {'Rating': '${product['rating']}'},
     );
@@ -363,6 +383,7 @@ class _TechpartState extends State<Techpart> {
     List<Map<String, dynamic>> sortedProducts,
   ) {
     final product = sortedProducts[index % sortedProducts.length];
+    final imagePath = _techImages[index % _techImages.length];
     return InkWell(
       onTap: () => _openDetails(context, product, index),
       child: Container(
@@ -380,7 +401,7 @@ class _TechpartState extends State<Techpart> {
             Expanded(
               child: Center(
                 child: Image.asset(
-                  product['image'],
+                  imagePath,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       Icon(Icons.monitor, size: 100, color: Colors.grey[300]),

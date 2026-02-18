@@ -46,50 +46,48 @@ class TrendingItems extends StatelessWidget {
       ),
     );
   }
-
-  static const List<TrendingItem> _sampleProducts = [
+static const List<TrendingItem> _sampleProducts = [
     TrendingItem(
       image: 'assets/Products/7.png',
       title: 'Blender Machine',
-      originalPrice: 1500,
-      discountedPrice: 999,
+      originalPrice: 4500,
+      discountedPrice: 3850,
     ),
     TrendingItem(
       image: 'assets/Products/2.jpg',
-      title: 'Water Heater',
-      originalPrice: 2000,
-      discountedPrice: 1299,
+      title: 'Water Heater', // Geyser (15-30L) or Instant
+      originalPrice: 8500,
+      discountedPrice: 6990,
     ),
     TrendingItem(
       image: 'assets/Products/3.jpg',
       title: 'Blender Machine Complete Set',
-      originalPrice: 1200,
-      discountedPrice: 799,
+      originalPrice: 6500,
+      discountedPrice: 5200,
     ),
     TrendingItem(
       image: 'assets/Products/4.jpg',
       title: 'Iron Machine',
-      originalPrice: 800,
-      discountedPrice: 499,
+      originalPrice: 2200,
+      discountedPrice: 1650,
     ),
     TrendingItem(
       image: 'assets/Products/5.jpg',
-      title: 'Electric Oven',
-      originalPrice: 1200,
-      discountedPrice: 749,
+      title: 'Electric Oven (20L)',
+      originalPrice: 9500,
+      discountedPrice: 7800,
     ),
     TrendingItem(
       image: 'assets/Products/6.jpg',
-      title: 'Washing Machine',
-      originalPrice: 3500,
-      discountedPrice: 2499,
+      title: 'Washing Machine (Semi-Auto)',
+      originalPrice: 18500,
+      discountedPrice: 15900,
     ),
-
     TrendingItem(
       image: 'assets/Products/3.jpg',
-      title: 'Blender Machine Complete Set',
-      originalPrice: 1200,
-      discountedPrice: 799,
+      title: 'Juice Extractor Premium',
+      originalPrice: 5500,
+      discountedPrice: 4350,
     ),
   ];
 

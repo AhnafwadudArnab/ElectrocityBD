@@ -281,19 +281,61 @@ class _ContactSection extends StatelessWidget {
           ],
         ),
         SizedBox(height: AppDimensions.padding(context) * 1.2),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            spacing: AppDimensions.padding(context) * 0.23,
-            runSpacing: AppDimensions.padding(context) * 0.3,
-            children: [
-              _paymentLogo(context, 'assets/payments/amex.png'),
-              _paymentLogo(context, 'assets/payments/master.png'),
-              _paymentLogo(context, 'assets/payments/paypal.jpg'),
-              _paymentLogo(context, 'assets/payments/visa.png'),
-            ],
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final r = AppResponsive.of(context);
+            final spacing = AppDimensions.padding(context) * 0.2;
+            final maxWidth = constraints.maxWidth;
+            final logoWidth = (maxWidth - (spacing * 3)) / 4;
+            final clampedWidth = logoWidth.clamp(32.0, 64.0);
+            final logoHeight = r.value(
+              smallMobile: 26.0,
+              mobile: 28.0,
+              tablet: 30.0,
+              smallDesktop: 32.0,
+              desktop: 34.0,
+            );
+
+            return Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _paymentLogo(
+                      context,
+                      'assets/payments/amex.png',
+                      width: clampedWidth,
+                      height: logoHeight,
+                      rightPadding: spacing,
+                    ),
+                    _paymentLogo(
+                      context,
+                      'assets/payments/master.png',
+                      width: clampedWidth,
+                      height: logoHeight,
+                      rightPadding: spacing,
+                    ),
+                    _paymentLogo(
+                      context,
+                      'assets/payments/paypal.jpg',
+                      width: clampedWidth,
+                      height: logoHeight,
+                      rightPadding: spacing,
+                    ),
+                    _paymentLogo(
+                      context,
+                      'assets/payments/visa.png',
+                      width: clampedWidth,
+                      height: logoHeight,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -377,40 +419,53 @@ Widget _social(BuildContext context, IconData icon) {
   );
 }
 
-Widget _paymentLogo(BuildContext context, String assetPath) {
+Widget _paymentLogo(
+  BuildContext context,
+  String assetPath, {
+  double? width,
+  double? height,
+  double rightPadding = 0,
+}) {
   final r = AppResponsive.of(context);
-  final logoWidth = r.value(
-    smallMobile: 48.0,
-    mobile: 52.0,
-    tablet: 56.0,
-    smallDesktop: 60.0,
-    desktop: 64.0,
-  );
-  final logoHeight = r.value(
-    smallMobile: 28.0,
-    mobile: 30.0,
-    tablet: 32.0,
-    smallDesktop: 34.0,
-    desktop: 36.0,
-  );
+  final logoWidth =
+      width ??
+      r.value(
+        smallMobile: 48.0,
+        mobile: 52.0,
+        tablet: 56.0,
+        smallDesktop: 54.0,
+        desktop: 56.0,
+      );
+  final logoHeight =
+      height ??
+      r.value(
+        smallMobile: 28.0,
+        mobile: 30.0,
+        tablet: 32.0,
+        smallDesktop: 34.0,
+        desktop: 36.0,
+      );
 
-  return Container(
-    width: logoWidth,
-    height: logoHeight,
-    padding: const EdgeInsets.all(4),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(
-        AppDimensions.borderRadius(context) * 0.4,
+  return Padding(
+    padding: EdgeInsets.only(right: rightPadding),
+    child: Container(
+      width: logoWidth,
+      height: logoHeight,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(
+          AppDimensions.borderRadius(context) * 0.3,
+        ),
       ),
-    ),
-    child: Image.asset(
-      assetPath,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.image_not_supported_outlined,
-        color: const Color(0xFF2E3192),
-        size: logoHeight * 0.5,
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.image_not_supported_outlined,
+          color: const Color(0xFF2E3192),
+          size: logoHeight! * 0.5,
+        ),
       ),
     ),
   );

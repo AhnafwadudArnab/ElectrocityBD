@@ -35,34 +35,27 @@ class _SignupState extends State<Signup> {
     super.dispose();
   }
 
-  // --- FIXED: Added Navigation inside the Logic Function ---
   Future<void> _onSignup() async {
-    // 1. Validate Form
     if (!_formKey.currentState!.validate()) return;
 
-    // 2. Start Loading
     setState(() => _isLoading = true);
-
-    // 3. Simulate Network Delay
     await Future.delayed(const Duration(milliseconds: 1500));
 
-    // 4. Stop Loading
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // 5. Show Success Feedback
-    Get.snackbar(
-      'Sign Up',
-      'Account created successfully!',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.white,
-      colorText: Colors.black,
-      margin: const EdgeInsets.all(15),
-      duration: const Duration(seconds: 2),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Account created successfully!'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.white,
+      ),
     );
 
-    // 6. Navigate to Login Page
-    // Using Get.off to prevent user from going back to Signup form
-    Get.off(() => const LogIn());
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LogIn()),
+    );
   }
 
   @override
@@ -91,39 +84,30 @@ class _SignupState extends State<Signup> {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: isCompact
-                          ? MediaQuery.of(context).viewInsets.bottom
-                          : 0,
-                    ),
-                    child: Center(
-                      child: Container(
-                        margin: EdgeInsets.all(AppDimensions.padding(context)),
-                        constraints: BoxConstraints(
-                          maxWidth: r.value(
-                            smallMobile: 360,
-                            mobile: 430,
-                            tablet: 760,
-                            smallDesktop: 1040,
-                            desktop: 1220,
-                          ),
-                          maxHeight: isStackedLayout
-                              ? double.infinity
-                              : r.hp(78),
+                  child: Center(
+                    child: Container(
+                      margin: EdgeInsets.all(AppDimensions.padding(context)),
+                      constraints: BoxConstraints(
+                        maxWidth: r.value(
+                          smallMobile: 360,
+                          mobile: 430,
+                          tablet: 550,
+                          smallDesktop: 1040,
+                          desktop: 1220,
                         ),
-                        child: Card(
-                          elevation: 10,
-                          clipBehavior: Clip.antiAlias,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.borderRadius(context) + 6,
-                            ),
+                        maxHeight: isStackedLayout ? double.infinity : r.hp(85),
+                      ),
+                      child: Card(
+                        elevation: 10,
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.borderRadius(context) + 6,
                           ),
-                          child: isStackedLayout
-                              ? _buildStackedLayout(r)
-                              : _buildDesktopLayout(),
                         ),
+                        child: isStackedLayout
+                            ? _buildStackedLayout(r)
+                            : _buildDesktopLayout(),
                       ),
                     ),
                   ),
@@ -139,7 +123,7 @@ class _SignupState extends State<Signup> {
   Widget _buildDesktopLayout() {
     return Row(
       children: [
-        Expanded(flex: 2, child: _buildLeftPanel()),
+        Expanded(flex: 2, child: _buildLeftPanel(showText: true)),
         Expanded(flex: 3, child: _buildRightPanel()),
       ],
     );
@@ -147,24 +131,22 @@ class _SignupState extends State<Signup> {
 
   Widget _buildStackedLayout(AppResponsive r) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: r.value(
-            smallMobile: 170,
-            mobile: 205,
-            tablet: 230,
-            smallDesktop: 260,
-            desktop: 280,
-          ),
+          // For Mobile & Tablet: Only showing icon, so keep the height short
+          height: 150,
           width: double.infinity,
-          child: _buildLeftPanel(),
+          child: _buildLeftPanel(
+            showText: false,
+          ), // Hide text for Tablet/Mobile
         ),
-        _buildRightPanel(isStacked: true),
+        _buildRightPanel(),
       ],
     );
   }
 
-  Widget _buildLeftPanel() {
+  Widget _buildLeftPanel({required bool showText}) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -176,180 +158,146 @@ class _SignupState extends State<Signup> {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(AppDimensions.padding(context) * 1.6),
+        padding: EdgeInsets.all(AppDimensions.padding(context)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: showText
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
             Image.asset(
               _logoPath,
-              height: AppDimensions.imageSize(context) * 0.85,
+              height: showText ? 80 : 75,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) =>
                   const Icon(Icons.bolt, color: Colors.white, size: 50),
             ),
-            SizedBox(height: AppDimensions.padding(context) * 0.6),
-            Text(
-              'Get all your buying\nproblems solved today',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: AppDimensions.titleFont(context),
-                fontWeight: FontWeight.bold,
+            if (showText) ...[
+              const SizedBox(height: 20),
+              Text(
+                'Get all your buying\nproblems solved today',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: AppDimensions.titleFont(context) * 0.9,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: AppDimensions.padding(context) * 0.6),
-            Text(
-              'Join Electrocity-BD and connect\nwith suppliers across Bangladesh',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: AppDimensions.bodyFont(context),
+              const SizedBox(height: 10),
+              Text(
+                'Join Electrocity-BD and connect\nwith suppliers across Bangladesh',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: AppDimensions.bodyFont(context),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRightPanel({bool isStacked = false}) {
-    final r = AppResponsive.of(context);
-
+  Widget _buildRightPanel() {
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.symmetric(
-        horizontal: r.value(
-          smallMobile: 14,
-          mobile: 16,
-          tablet: 24,
-          smallDesktop: AppDimensions.padding(context) * 1.4,
-          desktop: AppDimensions.padding(context) * 1.5,
-        ),
-        vertical: r.value(
-          smallMobile: 12,
-          mobile: 14,
-          tablet: 18,
-          smallDesktop: AppDimensions.padding(context) * 1.1,
-          desktop: AppDimensions.padding(context) * 0.8,
-        ),
-      ),
+      padding: EdgeInsets.all(AppDimensions.padding(context)),
       child: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          physics: isStacked ? const NeverScrollableScrollPhysics() : null,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  'Register Your Account',
-                  style: TextStyle(
-                    fontSize: AppDimensions.titleFont(context),
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF4A3AFF),
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Text(
+                'Register Your Account',
+                style: TextStyle(
+                  fontSize: AppDimensions.titleFont(context) * 0.85,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF4A3AFF),
                 ),
               ),
-              SizedBox(height: AppDimensions.padding(context) * 0.9),
-              _buildInputField(
-                'Name',
-                controller: _nameController,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Name is required';
-                  return null;
-                },
+            ),
+            SizedBox(height: AppDimensions.padding(context)),
+            _buildInputField(
+              'Name',
+              controller: _nameController,
+              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+            ),
+            _buildInputField(
+              'Email Address',
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) =>
+                  !GetUtils.isEmail(v ?? '') ? 'Invalid Email' : null,
+            ),
+            _buildInputField(
+              'Password',
+              controller: _passwordController,
+              isPassword: true,
+              obscureText: _obscurePassword,
+              onTogglePassword: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
+              validator: (v) =>
+                  (v != null && v.length < 6) ? 'Min 6 chars' : null,
+            ),
+            _buildInputField(
+              'Confirm Password',
+              controller: _confirmPasswordController,
+              isPassword: true,
+              obscureText: _obscureConfirmPassword,
+              onTogglePassword: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
               ),
-              _buildInputField(
-                'Email Address',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Email is required';
-                  if (!GetUtils.isEmail(v.trim())) return 'Enter a valid email';
-                  return null;
-                },
-              ),
-              _buildInputField(
-                'Password',
-                controller: _passwordController,
-                isPassword: true,
-                obscureText: _obscurePassword,
-                onTogglePassword: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Password is required';
-                  if (v.length < 6) return 'Minimum 6 characters';
-                  return null;
-                },
-              ),
-              _buildInputField(
-                'Confirm Password',
-                controller: _confirmPasswordController,
-                isPassword: true,
-                obscureText: _obscureConfirmPassword,
-                onTogglePassword: () {
-                  setState(
-                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                  );
-                },
-                validator: (v) {
-                  if (v != _passwordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: AppDimensions.buttonHeight(context),
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _onSignup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFA6E4FF),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.borderRadius(context),
-                      ),
-                    ),
-                    elevation: 0,
+              validator: (v) =>
+                  v != _passwordController.text ? 'Mismatch' : null,
+            ),
+            const SizedBox(height: 15),
+            SizedBox(
+              width: double.infinity,
+              height: AppDimensions.buttonHeight(context),
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _onSignup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFA6E4FF),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'SIGN UP',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
-                ),
+                      )
+                    : const Text(
+                        'SIGN UP',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
               ),
-              Center(
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    const Text(
-                      'Already registered? ',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // Regular navigation back to login
-                        Get.off(() => const LogIn());
-                      },
-                      child: const Text('Login'),
-                    ),
-                  ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Already registered? ',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              ),
-            ],
-          ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LogIn()),
+                    );
+                  },
+                  child: const Text('Login'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -365,53 +313,26 @@ class _SignupState extends State<Signup> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: AppDimensions.smallFont(context),
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: controller,
-            obscureText: isPassword ? obscureText : false,
-            keyboardType: keyboardType,
-            validator: validator,
-            decoration: InputDecoration(
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  AppDimensions.borderRadius(context),
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  AppDimensions.borderRadius(context),
-                ),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 14,
-              ),
-              suffixIcon: isPassword
-                  ? IconButton(
-                      onPressed: onTogglePassword,
-                      icon: Icon(
-                        obscureText ? Icons.visibility_off : Icons.visibility,
-                        size: 20,
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword ? obscureText : false,
+        keyboardType: keyboardType,
+        validator: validator,
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          suffixIcon: isPassword
+              ? IconButton(
+                  onPressed: onTogglePassword,
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
+                  ),
+                )
+              : null,
+        ),
       ),
     );
   }

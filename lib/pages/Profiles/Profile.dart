@@ -1,3 +1,4 @@
+import 'package:electrocitybd1/All%20Pages/Registrations/signup.dart';
 import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
@@ -1348,14 +1349,6 @@ class _ProfilePageState extends State<ProfilePage> {
             Icon(Icons.logout, size: 80, color: Colors.grey.shade400),
             SizedBox(height: padding),
             Text(
-              "Logout",
-              style: TextStyle(
-                fontSize: AppDimensions.titleFont(context),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: padding),
-            Text(
               "Are you sure you want to logout?",
               style: TextStyle(
                 color: Colors.grey,
@@ -1389,7 +1382,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 SizedBox(width: padding),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const Signup()),
+                      (route) => false,
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     padding: EdgeInsets.symmetric(

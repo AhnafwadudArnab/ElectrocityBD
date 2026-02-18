@@ -1,8 +1,14 @@
-import 'package:electrocitybd1/All%20Pages/Registrations/signup.dart';
+import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
-
 import '../Dimensions/responsive_dimensions.dart';
+
+class AuthService {
+  // Replace this with your actual auth check (e.g., FirebaseAuth.instance.currentUser != null)
+  static bool get isLoggedIn {
+    return false;
+  }
+}
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({super.key});
@@ -62,7 +68,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               },
               child: Row(
                 children: [
-                  /// LOGO
                   ClipOval(
                     child: Image.asset(
                       'assets/logo_ecity.png',
@@ -73,8 +78,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                           const Icon(Icons.electric_bolt, color: Colors.white),
                     ),
                   ),
-
-                  /// LOGO TEXT (Hide on 375)
                   if (!isVerySmall)
                     Padding(
                       padding: EdgeInsets.symmetric(
@@ -116,14 +119,14 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
 
-            /// SEARCH ICON (instead of full search bar on small screens)
+            /// SEARCH ICON (Small Screens)
             if (isSmall)
               IconButton(
                 onPressed: () {},
                 icon: const Icon(Icons.search, color: Colors.white),
               ),
 
-            /// FULL SEARCH BAR (only tablet & desktop)
+            /// FULL SEARCH BAR (Tablet & Desktop)
             if (!isSmall)
               Expanded(
                 child: Container(
@@ -134,7 +137,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                     smallDesktop: 38,
                     desktop: 50,
                   ),
-                  //outside header Padding
                   margin: EdgeInsets.symmetric(
                     horizontal: r.value(
                       smallMobile: 6,
@@ -144,7 +146,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                       desktop: 120,
                     ),
                   ),
-                  //inside header padding
                   padding: EdgeInsets.symmetric(
                     horizontal: r.value(
                       smallMobile: 8,
@@ -171,77 +172,27 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                           desktop: 20,
                         ),
                       ),
-                      SizedBox(
-                        width: r.value(
-                          smallMobile: 4,
-                          mobile: 4,
-                          tablet: 6,
-                          smallDesktop: 7,
-                          desktop: 8,
-                        ),
-                      ),
-                      Expanded(
+                      const SizedBox(width: 8),
+                      const Expanded(
                         child: TextField(
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Search here...',
-                            hintStyle: TextStyle(
-                              fontSize: r.value(
-                                smallMobile: 11,
-                                mobile: 11,
-                                tablet: 12,
-                                smallDesktop: 13,
-                                desktop: 14,
-                              ),
-                            ),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
                       ),
-                      Icon(
-                        Icons.tune,
-                        color: Colors.black54,
-                        size: r.value(
-                          smallMobile: 16,
-                          mobile: 16,
-                          tablet: 18,
-                          smallDesktop: 19,
-                          desktop: 20,
-                        ),
-                      ),
+                      const Icon(Icons.tune, color: Colors.black54),
                     ],
                   ),
                 ),
               ),
 
-            /// SPACER
-            if (!isSmall)
-              SizedBox(
-                width: r.value(
-                  smallMobile: 4,
-                  mobile: 4,
-                  tablet: 6,
-                  smallDesktop: 8,
-                  desktop: 10,
-                ),
-              ),
-
-            /// FAVORITE (hide on small)
             if (!isSmall)
               IconButton(
                 onPressed: () {},
                 icon: const Icon(Icons.favorite_border, color: Colors.white),
               ),
-
-            SizedBox(
-              width: r.value(
-                smallMobile: 4,
-                mobile: 4,
-                tablet: 6,
-                smallDesktop: 8,
-                desktop: 10,
-              ),
-            ),
 
             /// CART
             Stack(
@@ -271,27 +222,26 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
 
-            SizedBox(
-              width: r.value(
-                smallMobile: 4,
-                mobile: 4,
-                tablet: 6,
-                smallDesktop: 8,
-                desktop: 20,
-              ),
-            ),
-
-            /// PROFILE
+            // PROFILE BUTTON WITH LOGIC
             if (!isVerySmall)
               IconButton(
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const Signup(),
-                    ),
-                    (route) => false,
-                  );
+                  // Check if user is logged in using AuthService
+                  if (AuthService.isLoggedIn) {
+                    // CONDITION 1: User logged in → Profile Page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfilePage(),
+                      ),
+                    );
+                  } else {
+                    // CONDITION 2: User not logged in → Signup Page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfilePage()),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.person_rounded, color: Colors.white),
               ),
@@ -301,8 +251,8 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 smallMobile: 4,
                 mobile: 4,
                 tablet: 6,
-                smallDesktop: 100,
-                desktop: 200,
+                smallDesktop: 20,
+                desktop: 40,
               ),
             ),
           ],
