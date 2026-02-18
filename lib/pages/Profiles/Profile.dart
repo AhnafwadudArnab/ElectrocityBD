@@ -79,6 +79,35 @@ class _ProfilePageState extends State<ProfilePage> {
     {"type": "Google Pay", "status": "Link Account"},
   ];
 
+  // Responsive helpers
+  double _radius(BuildContext context, {double factor = 1}) =>
+      AppDimensions.borderRadius(context) * factor;
+
+  double _icon(BuildContext context, {double factor = 1}) =>
+      AppDimensions.iconSize(context) * factor;
+
+  double _drawerAvatarRadius(BuildContext context) {
+    final r = AppResponsive.of(context);
+    return r.value(
+      smallMobile: 28,
+      mobile: 32,
+      tablet: 36,
+      smallDesktop: 40,
+      desktop: 42,
+    );
+  }
+
+  double _logoutIconSize(BuildContext context) {
+    final r = AppResponsive.of(context);
+    return r.value(
+      smallMobile: 52,
+      mobile: 60,
+      tablet: 68,
+      smallDesktop: 76,
+      desktop: 84,
+    );
+  }
+
   @override
   void dispose() {
     firstNameController.dispose();
@@ -193,7 +222,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   children: [
                     CircleAvatar(
-                      radius: 40,
+                      radius: _drawerAvatarRadius(context),
                       backgroundColor: Colors.white,
                       backgroundImage: const NetworkImage(
                         'https://via.placeholder.com/150',
@@ -260,13 +289,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         color: isSelected
                             ? Colors.white
                             : Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(_radius(context)),
                       ),
                       child: ListTile(
                         leading: Icon(
                           icon,
                           color: isSelected ? Colors.orange : Colors.white,
-                          size: 24,
+                          size: _icon(context),
                         ),
                         title: Text(
                           item,
@@ -281,15 +310,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         trailing: Icon(
                           Icons.chevron_right,
                           color: isSelected ? Colors.orange : Colors.white,
-                          size: 20,
+                          size: _icon(context, factor: 0.9),
                         ),
                         onTap: () {
                           setState(() {
                             selectedMenu = item;
                           });
-                          Navigator.pop(
-                            context,
-                          ); // Close drawer after selection
+                          Navigator.pop(context);
                         },
                       ),
                     );
@@ -346,7 +373,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
-              trailing: const Icon(Icons.chevron_right, size: 18),
+              trailing: Icon(
+                Icons.chevron_right,
+                size: _icon(context, factor: 0.85),
+              ),
             ),
           ),
         );
@@ -1334,77 +1364,158 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLogout() {
     final padding = AppDimensions.padding(context);
+    final r = AppResponsive.of(context);
+    final isMobile = r.isSmallMobile || r.isMobile;
 
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(_radius(context)),
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: Padding(
-        padding: EdgeInsets.all(padding * 2),
+        padding: EdgeInsets.all(padding * (isMobile ? 1.25 : 2)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.logout, size: 80, color: Colors.grey.shade400),
+            Icon(
+              Icons.logout,
+              size: _logoutIconSize(context),
+              color: Colors.grey.shade400,
+            ),
             SizedBox(height: padding),
             Text(
               "Are you sure you want to logout?",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: AppDimensions.bodyFont(context),
               ),
             ),
             SizedBox(height: padding * 1.5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedMenu = "Personal Information";
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade300,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: padding * 1.5,
-                      vertical: padding * 0.75,
-                    ),
+            isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedMenu = "Personal Information";
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey.shade300,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: padding * 1.25,
+                            vertical: padding * 0.75,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              _radius(context),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: AppDimensions.bodyFont(context),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: padding),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const Signup(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: padding * 1.25,
+                            vertical: padding * 0.75,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              _radius(context),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "Logout",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: AppDimensions.bodyFont(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedMenu = "Personal Information";
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey.shade300,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: padding * 1.5,
+                            vertical: padding * 0.75,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              _radius(context),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: AppDimensions.bodyFont(context),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: padding),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const Signup(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: padding * 1.5,
+                            vertical: padding * 0.75,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              _radius(context),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "Logout",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: AppDimensions.bodyFont(context),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    "Cancel",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: AppDimensions.bodyFont(context),
-                    ),
-                  ),
-                ),
-                SizedBox(width: padding),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const Signup()),
-                      (route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: padding * 1.5,
-                      vertical: padding * 0.75,
-                    ),
-                  ),
-                  child: Text(
-                    "Logout",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: AppDimensions.bodyFont(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -1437,22 +1548,28 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: InputDecoration(
               hintText: hint,
               suffixIcon: isDropdown
-                  ? const Icon(Icons.keyboard_arrow_down)
+                  ? Icon(Icons.keyboard_arrow_down, size: _icon(context))
                   : null,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: padding,
                 vertical: padding * 0.75,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(
+                  _radius(context, factor: 0.8),
+                ),
                 borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(
+                  _radius(context, factor: 0.8),
+                ),
                 borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(
+                  _radius(context, factor: 0.8),
+                ),
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
               ),
             ),
