@@ -10,7 +10,6 @@ class AppColors {
   static const Color p2 = Color(0xFFfbd000);
   static const Color blond = Color(0xFFf5e886);
 
-
   // 🌈 Backgrounds
   static const Color background = Color(0xFFF5F6FA);
   static const Color cardBackground = Colors.white;
@@ -35,4 +34,8 @@ class AppColors {
   static const Color warning = Color(0xFFFACC15);
   static const Color error = Color(0xFFDC2626);
   static const Color info = Color(0xFF0284C7);
+
+  // 🟢 Additional Colors
+  static const Color green = Color(0xFF1E3922);
+  static const Color yellowGold = Color(0xFFFBB03B);
 }

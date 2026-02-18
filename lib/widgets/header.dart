@@ -157,9 +157,9 @@ class _HeaderState extends State<Header> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
-                            children: const [
-                              Icon(Icons.search, color: Colors.black54),
-                              SizedBox(width: 8),
+                            children: [
+                              const Icon(Icons.search, color: Colors.black54),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: TextField(
                                   decoration: InputDecoration(
@@ -234,9 +234,10 @@ class _HeaderState extends State<Header> {
                       ),
                     ],
                   ),
+                  //profile button
                   IconButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
+                      Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const ProfilePage(),
                         ),
