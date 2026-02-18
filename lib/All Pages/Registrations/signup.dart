@@ -45,7 +45,7 @@ class _SignupState extends State<Signup> {
 
     Get.snackbar(
       'Sign Up',
-      'Account created successfully (demo)',
+      'Account created successfully!',
       snackPosition: SnackPosition.BOTTOM,
     );
   }
@@ -140,8 +140,10 @@ class _SignupState extends State<Signup> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFFFBBF24)],
-          begin: Alignment.topLeft,
+          colors: [
+            Color.fromARGB(255, 231, 160, 79),
+            Color.fromARGB(230, 149, 180, 219),
+          ],
           end: Alignment.bottomRight,
         ),
       ),
@@ -217,7 +219,7 @@ class _SignupState extends State<Signup> {
                   ),
                 ),
               ),
-              SizedBox(height: AppDimensions.padding(context) * 1.2),
+              SizedBox(height: AppDimensions.padding(context) * 0.9),
               _buildInputField(
                 'Name',
                 controller: _nameController,
@@ -303,7 +305,7 @@ class _SignupState extends State<Signup> {
                         ),
                 ),
               ),
-              SizedBox(height: AppDimensions.padding(context) * 1.1),
+              SizedBox(height: AppDimensions.padding(context) * 0.25),
               Center(
                 child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -341,7 +343,7 @@ class _SignupState extends State<Signup> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppDimensions.padding(context) * 0.9),
+      padding: EdgeInsets.only(bottom: AppDimensions.padding(context) * 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
