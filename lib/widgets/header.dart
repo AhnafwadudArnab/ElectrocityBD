@@ -1,5 +1,4 @@
 import 'package:electrocitybd1/All%20Pages/Registrations/signup.dart';
-import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
