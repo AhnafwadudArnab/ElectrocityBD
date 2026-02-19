@@ -34,7 +34,7 @@ class _SidebarState extends State<Sidebar> {
       'page': KitchenHomeAppliancesPage(),
     },
     {
-      'icon': Icons.iron, // আইকন পরিবর্তন করা হয়েছে
+      'icon': Icons.iron, // আইকন পরিবর্তন করা হয়েছে
       'text': 'Home & Personal Care',
       // Charger fan, Trimmer, Iron, Hair dryer, Massage gun এখানে থাকবে
       'page': KitchenHomeAppliancesPage(),
@@ -192,11 +192,9 @@ class _SidebarState extends State<Sidebar> {
         gradient: LinearGradient(colors: [accent, Colors.red.shade900]),
         borderRadius: BorderRadius.circular(12),
         image: DecorationImage(
-          image: const NetworkImage(
-            'https://www.transparenttextures.com/patterns/carbon-fibre.png',
-          ),
-          opacity: 0.1,
+          image: const AssetImage('assets/images/carbon-fibre.png'),
           fit: BoxFit.cover,
+          repeat: ImageRepeat.repeat,
         ),
       ),
       child: Column(
