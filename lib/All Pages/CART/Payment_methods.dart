@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bkash/flutter_bkash.dart';
 
 import '../../widgets/header.dart';
 import 'Complete_orders.dart';
@@ -19,6 +20,25 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   bool _isProcessing = false;
   final TextEditingController _phoneController = TextEditingController();
 
+  // Initialize bKash with credentials
+  late final FlutterBkash flutterBkash;
+
+  @override
+  void initState() {
+    super.initState();
+    flutterBkash = FlutterBkash(
+      bkashCredentials: const BkashCredentials(
+        username: "sandboxTokenizedUser02", // Replace with your username
+        password: "sandboxTokenizedUser02@12345", // Replace with your password
+        appKey: "4f6o0cjiki2rfm34kfdadl1eqq", // Replace with your app key
+        appSecret:
+            "2is7hdktrekvrbljjh44ll3d9l1dtjo4pasmjvs5vl5qr3fug4b", // Replace with your app secret
+        isSandbox: true, // Set to false for production
+      ),
+      logResponse: true, // Set to false in production
+    );
+  }
+
   @override
   void dispose() {
     _phoneController.dispose();
@@ -27,32 +47,30 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
 
   // bKash Payment Processing
   Future<void> _processBKashPayment() async {
-    if (_phoneController.text.isEmpty) {
-      _showError('Please enter your bKash phone number');
-      return;
-    }
-
     setState(() => _isProcessing = true);
 
     try {
-      // Simulate payment processing delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // In production, integrate actual bKash API
-      // Example (when API is available):
-      // final result = await BKashPayment.initiatePayment(
-      //   amount: widget.totalAmount,
-      //   phoneNumber: _phoneController.text,
-      //   merchantId: 'YOUR_MERCHANT_ID',
-      // );
+      // Call bKash payment
+      final response = await flutterBkash.pay(
+        context: context,
+        amount: widget.totalAmount,
+        merchantInvoiceNumber: 'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+        payerReference: _phoneController.text.isEmpty
+            ? ' '
+            : _phoneController.text,
+      );
 
       if (mounted) {
-        final transactionId = 'BKASH-${DateTime.now().millisecondsSinceEpoch}';
-        _completePayment(PaymentMethod.bkash, transactionId);
+        // Payment successful
+        _completePayment(PaymentMethod.bkash, response.trxId);
+      }
+    } on BkashFailure catch (e) {
+      if (mounted) {
+        _showError(e.message);
       }
     } catch (e) {
       if (mounted) {
-        _showError('Payment processing failed: $e');
+        _showError('Payment processing error: $e');
       }
     } finally {
       if (mounted) {
@@ -378,7 +396,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                     enabled: !_isProcessing,
                     onTap: () {
                       setState(() => _selectedMethod = PaymentMethod.bkash);
-                      _showPaymentSheet(PaymentMethod.bkash);
+                      // Directly initiate bKash payment
+                      _processBKashPayment();
                     },
                   ),
                   const SizedBox(height: 16),

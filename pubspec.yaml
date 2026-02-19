@@ -57,6 +57,7 @@ dependencies:
   flutter_native_splash: ^2.4.0
   awesome_dialog: ^3.1.0
   file_picker: ^6.1.1
+  flutter_bkash: ^0.3.1
   flutter_web_plugins:
     sdk: flutter
 

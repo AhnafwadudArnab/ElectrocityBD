@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
@@ -407,18 +406,25 @@ class _WishlistPageState extends State<WishlistPage> {
                                     )
                                     .toList();
 
+                                final count = selectedItemsList.length;
+
                                 for (var item in selectedItemsList) {
-                                  _addItemToCart(
+                                  context.read<CartProvider>().addToCart(
+                                    productId: item.productId,
+                                    name: item.name,
+                                    price: item.price,
+                                    imageUrl: item.imageUrl,
+                                    category: item.category,
+                                  );
+                                  wishlistProvider.removeFromWishlist(
                                     item.productId,
-                                    item.name,
-                                    item.price,
-                                    item.imageUrl,
-                                    item.category,
-                                    wishlistProvider,
                                   );
                                 }
 
                                 setState(() => _selectedItems.clear());
+                                _showMessage(
+                                  '$count item${count > 1 ? 's' : ''} added to cart and removed from wishlist',
+                                );
                               },
                               icon: const Icon(Icons.shopping_cart),
                               label: Text(
@@ -426,28 +432,34 @@ class _WishlistPageState extends State<WishlistPage> {
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
                               ),
                             ),
                         ],
                       ),
                       ElevatedButton.icon(
                         onPressed: () {
+                          final count = items.length;
                           for (var item in items) {
-                            _addItemToCart(
-                              item.productId,
-                              item.name,
-                              item.price,
-                              item.imageUrl,
-                              item.category,
-                              wishlistProvider,
+                            context.read<CartProvider>().addToCart(
+                              productId: item.productId,
+                              name: item.name,
+                              price: item.price,
+                              imageUrl: item.imageUrl,
+                              category: item.category,
                             );
+                            wishlistProvider.removeFromWishlist(item.productId);
                           }
                           setState(() => _selectedItems.clear());
+                          _showMessage(
+                            '$count item${count > 1 ? 's' : ''} added to cart and removed from wishlist',
+                          );
                         },
                         icon: const Icon(Icons.shopping_cart),
                         label: const Text('Add All To Cart'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
                         ),
                       ),
                     ],

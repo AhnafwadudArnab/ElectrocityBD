@@ -18,6 +18,7 @@ analyzer:
     unnecessary_to_list_in_spreads: ignore
     prefer_typing_uninitialized_variables: ignore
     unused_field: ignore
+    dead_null_aware_expression: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
