@@ -1,7 +1,6 @@
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'All Pages/CART/Cart_provider.dart';
 import 'pages/Profiles/Wishlist_provider.dart';
 
@@ -34,15 +33,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      // initialRoute: '/',
-      // routes: {
-      //   '/': (_) => const HomePage(), // keep your current home widget
-      //   '/cart': (_) => const CartScreen(),
-      //   '/wishlist': (_) => const WishlistScreen(),
-      // },
       home: HomePage(),
-      // home: FlashSaleAll(),
-      //home: Signup(),
+      //home: AdminDashboardPage(),
     );
   }
 }
