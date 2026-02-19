@@ -248,112 +248,36 @@ class OrderCompletedPage extends StatelessWidget {
                 vertical: 32,
                 horizontal: AppDimensions.padding(context),
               ),
-              child: Wrap(
-                alignment: WrapAlignment.spaceEvenly,
-                spacing: 20,
-                runSpacing: 16,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildFeatureItem(
-                    icon: Icons.local_shipping_outlined,
-                    color: const Color(0xFF1B4D3E),
-                    title: 'Free Shipping',
-                    subtitle: 'Free shipping for order above ৳50',
-                  ),
-                  _buildFeatureItem(
-                    icon: Icons.payment_outlined,
-                    color: const Color(0xFFB8860B),
-                    title: 'Flexible Payment',
-                    subtitle: 'Multiple secure payment options',
-                  ),
-                  _buildFeatureItem(
-                    icon: Icons.headset_mic_outlined,
-                    color: const Color(0xFF1B4D3E),
-                    title: '24×7 Support',
-                    subtitle: 'We support online all days.',
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 20,
+                    runSpacing: 16,
+                    children: [
+                      _buildFeatureItem(
+                        icon: Icons.local_shipping_outlined,
+                        color: const Color(0xFF1B4D3E),
+                        title: 'Free Shipping',
+                        subtitle: 'Free shipping for order above ৳50',
+                      ),
+                      _buildFeatureItem(
+                        icon: Icons.payment_outlined,
+                        color: const Color(0xFFB8860B),
+                        title: 'Flexible Payment',
+                        subtitle: 'Multiple secure payment options',
+                      ),
+                      _buildFeatureItem(
+                        icon: Icons.headset_mic_outlined,
+                        color: const Color(0xFF1B4D3E),
+                        title: '24×7 Support',
+                        subtitle: 'We support online all days.',
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
-
-            // Newsletter Section
-            Container(
-              padding: EdgeInsets.symmetric(
-                vertical: 32,
-                horizontal: AppDimensions.padding(context),
-              ),
-              child: isCompact
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Subscribe to our newsletter',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: AppDimensions.bodyFont(context),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            hintText: 'Enter your email',
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFB8860B),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text('Subscribe'),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Text(
-                          'Subscribe to our newsletter',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              hintText: 'Enter your email',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFB8860B),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text('Subscribe'),
-                        ),
-                      ],
-                    ),
             ),
 
             const FooterSection(),

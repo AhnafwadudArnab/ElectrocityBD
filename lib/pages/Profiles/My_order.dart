@@ -23,9 +23,19 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     orders = List.from(widget.orders);
   }
 
+  bool _isCompleted(OrderModel order) {
+    final s = order.status.toLowerCase();
+    return order.isDelivered ||
+        s == 'completed' ||
+        s == 'complete' ||
+        s == 'delivered';
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (orders.isEmpty) {
+    final visibleOrders = _getSortedOrders();
+
+    if (visibleOrders.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -34,16 +44,16 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(orders.length),
+          _buildHeader(visibleOrders.length),
           const SizedBox(height: 20),
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _getSortedOrders().length,
+            itemCount: visibleOrders.length,
             itemBuilder: (context, orderIndex) {
               return _buildOrderCard(
                 context,
-                _getSortedOrders()[orderIndex],
+                visibleOrders[orderIndex],
                 orderIndex,
               );
             },
@@ -58,7 +68,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Orders ($count)',
+          'Completed Orders ($count)',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         PopupMenuButton<String>(
@@ -67,12 +77,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               selectedSort = value;
             });
           },
-          itemBuilder: (BuildContext context) => [
-            const PopupMenuItem(value: 'All', child: Text('All')),
-            const PopupMenuItem(value: 'Pending', child: Text('Pending')),
-            const PopupMenuItem(value: 'Processing', child: Text('Processing')),
-            const PopupMenuItem(value: 'Delivered', child: Text('Delivered')),
-            const PopupMenuItem(value: 'Cancelled', child: Text('Cancelled')),
+          itemBuilder: (BuildContext context) => const [
+            PopupMenuItem(value: 'All', child: Text('All')),
+            PopupMenuItem(value: 'Completed', child: Text('Completed')),
           ],
           child: Text(
             'Sort by: $selectedSort ⌄',
@@ -84,19 +91,16 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   }
 
   List<OrderModel> _getSortedOrders() {
-    if (selectedSort == 'All') {
-      return orders;
-    } else if (selectedSort == 'Delivered') {
-      return orders.where((order) => order.isDelivered).toList();
-    } else if (selectedSort == 'Pending') {
-      return orders.where((order) => order.status == 'Pending').toList();
-    } else if (selectedSort == 'Processing') {
-      return orders.where((order) => order.status == 'Processing').toList();
-    } else if (selectedSort == 'Cancelled') {
-      return orders.where((order) => order.status == 'Cancelled').toList();
-    }
-    return orders;
+    // শুধু completed order
+    return orders.where(_isCompleted).toList();
   }
+
+  Widget _buildEmptyState() => const Center(
+    child: Text(
+      'Completed order nai',
+      style: TextStyle(fontSize: 16, color: Colors.grey),
+    ),
+  );
 
   Widget _buildOrderCard(
     BuildContext context,
@@ -284,7 +288,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const TrackOrderFormPage()),
+                MaterialPageRoute(
+                  builder: (context) => const TrackOrderFormPage(),
+                ),
               );
             },
           ),
@@ -436,8 +442,6 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       ),
     );
   }
-
-  Widget _buildEmptyState() => const Center(child: Text('No orders found'));
 }
 
 // Ensure these models exist in your Orders.dart file
@@ -475,4 +479,10 @@ class OrderItem {
     required this.price,
     this.imagePath,
   });
+}
+
+Future<void> startPayment(/* args */) async {
+  // TEMP OFF: payment gateway disabled for now
+  return;
+  // old gateway code নিচে comment রাখা যাবে
 }

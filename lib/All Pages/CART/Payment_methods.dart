@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bkash/flutter_bkash.dart';
 
 import '../../widgets/header.dart';
 import 'Complete_orders.dart';
@@ -20,66 +19,33 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   bool _isProcessing = false;
   final TextEditingController _phoneController = TextEditingController();
 
-  // Initialize bKash with credentials
-  late final FlutterBkash flutterBkash;
-
-  @override
-  void initState() {
-    super.initState();
-    flutterBkash = FlutterBkash(
-      bkashCredentials: const BkashCredentials(
-        username: "sandboxTokenizedUser02", // Replace with your username
-        password: "sandboxTokenizedUser02@12345", // Replace with your password
-        appKey: "4f6o0cjiki2rfm34kfdadl1eqq", // Replace with your app key
-        appSecret:
-            "2is7hdktrekvrbljjh44ll3d9l1dtjo4pasmjvs5vl5qr3fug4b", // Replace with your app secret
-        isSandbox: true, // Set to false for production
-      ),
-      logResponse: true, // Set to false in production
-    );
-  }
-
   @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
   }
 
-  // bKash Payment Processing
+  // TEMP OFF: bKash gateway disabled (simulated success)
   Future<void> _processBKashPayment() async {
+    if (_phoneController.text.isEmpty) {
+      _showError('Please enter your bKash phone number');
+      return;
+    }
+
     setState(() => _isProcessing = true);
-
     try {
-      // Call bKash payment
-      final response = await flutterBkash.pay(
-        context: context,
-        amount: widget.totalAmount,
-        merchantInvoiceNumber: 'ORDER-${DateTime.now().millisecondsSinceEpoch}',
-        payerReference: _phoneController.text.isEmpty
-            ? ' '
-            : _phoneController.text,
-      );
-
-      if (mounted) {
-        // Payment successful
-        _completePayment(PaymentMethod.bkash, response.trxId);
-      }
-    } on BkashFailure catch (e) {
-      if (mounted) {
-        _showError(e.message);
-      }
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      final tx = 'BKASH-${DateTime.now().millisecondsSinceEpoch}';
+      _completePayment(PaymentMethod.bkash, tx);
     } catch (e) {
-      if (mounted) {
-        _showError('Payment processing error: $e');
-      }
+      if (mounted) _showError('Payment processing error: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
-  // Nagad Payment Processing
+  // TEMP OFF: Nagad gateway disabled (simulated success)
   Future<void> _processNagadPayment() async {
     if (_phoneController.text.isEmpty) {
       _showError('Please enter your Nagad phone number');
@@ -87,32 +53,15 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     }
 
     setState(() => _isProcessing = true);
-
     try {
-      // Simulate payment processing delay
       await Future.delayed(const Duration(seconds: 2));
-
-      // In production, integrate actual Nagad API
-      // Example (when API is available):
-      // final result = await NagadPaymentGateway.initiatePayment(
-      //   merchantId: 'YOUR_MERCHANT_ID',
-      //   orderId: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
-      //   amount: widget.totalAmount.toInt(),
-      //   clientId: 'YOUR_CLIENT_ID',
-      // );
-
-      if (mounted) {
-        final transactionId = 'NAGAD-${DateTime.now().millisecondsSinceEpoch}';
-        _completePayment(PaymentMethod.nagad, transactionId);
-      }
+      if (!mounted) return;
+      final tx = 'NAGAD-${DateTime.now().millisecondsSinceEpoch}';
+      _completePayment(PaymentMethod.nagad, tx);
     } catch (e) {
-      if (mounted) {
-        _showError('Error processing Nagad payment: $e');
-      }
+      if (mounted) _showError('Error processing Nagad payment: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -218,7 +167,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: methodColor.withOpacity(0.1),
+              color: methodColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -237,7 +186,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
           const SizedBox(height: 8),
           Text(
             'Amount: ৳${widget.totalAmount.toStringAsFixed(2)}',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.orange,
@@ -258,28 +207,6 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info, color: Colors.blue[700], size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'We will redirect you to $methodName gateway for secure payment.',
-                    style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -298,22 +225,13 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: _isProcessing
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text('Processing...'),
-                      ],
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
                     )
                   : const Text(
                       'Proceed to Payment',
@@ -330,6 +248,50 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     );
   }
 
+  Widget _buildPaymentMethodCard({
+    required PaymentMethod method,
+    required String title,
+    required String assetLogo,
+    required Color accentColor,
+  }) {
+    final isSelected = _selectedMethod == method;
+
+    return InkWell(
+      onTap: () => setState(() => _selectedMethod = method),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? accentColor : Colors.grey.shade300,
+            width: isSelected ? 1.6 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Image.asset(assetLogo, height: 28, width: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? accentColor : Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -338,7 +300,6 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 40),
@@ -381,147 +342,35 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                 ],
               ),
             ),
-
-            // Payment Methods
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // bKash
-                  _PaymentOption(
-                    icon: Icons.mobile_screen_share,
-                    title: 'bKash',
-                    description: 'Send money via bKash app',
-                    color: const Color(0xFFE2136E),
-                    enabled: !_isProcessing,
-                    onTap: () {
-                      setState(() => _selectedMethod = PaymentMethod.bkash);
-                      // Directly initiate bKash payment
-                      _processBKashPayment();
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Nagad
-                  _PaymentOption(
-                    icon: Icons.payment,
+                  _buildPaymentMethodCard(
+                    method: PaymentMethod.nagad,
                     title: 'Nagad',
-                    description: 'Pay securely with Nagad',
-                    color: const Color(0xFFFF6300),
-                    enabled: !_isProcessing,
-                    onTap: () {
-                      setState(() => _selectedMethod = PaymentMethod.nagad);
-                      _showPaymentSheet(PaymentMethod.nagad);
-                    },
+                    assetLogo: 'assets/payments/nagad.png',
+                    accentColor: const Color(0xFFFF7A00),
                   ),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green[200]!),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.lock, color: Colors.green[700], size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'All payments are encrypted and secured',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 10),
+                  _buildPaymentMethodCard(
+                    method: PaymentMethod.bkash,
+                    title: 'bKash',
+                    assetLogo: 'assets/payments/baksh.png',
+                    accentColor: const Color(0xFFE2136E),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _selectedMethod == null || _isProcessing
+                          ? null
+                          : () => _showPaymentSheet(_selectedMethod!),
+                      child: const Text('Continue'),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PaymentOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String description;
-  final Color color;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  const _PaymentOption({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.color,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.arrow_forward, color: color, size: 18),
             ),
           ],
         ),
