@@ -1,5 +1,6 @@
 import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/Profiles/WishLists.dart';
+import 'package:electrocitybd1/pages/Profiles/Wishlist_provider.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -191,22 +192,57 @@ class _HeaderState extends State<Header> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  IconButton(
-                    //favorite button
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const WishlistPage(),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        //favorite button
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const WishlistPage(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.favorite_border,
+                          color: Colors.white,
                         ),
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.favorite_border,
-                      color: Colors.white,
-                    ),
-                    iconSize: iconSize,
-                    constraints: btnConstraints,
-                    padding: EdgeInsets.zero,
+                        iconSize: iconSize,
+                        constraints: btnConstraints,
+                        padding: EdgeInsets.zero,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Consumer<WishlistProvider>(
+                          builder: (context, wishlistProvider, _) {
+                            final count = wishlistProvider.itemCount;
+                            if (count == 0) return const SizedBox.shrink();
+                            return Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.orange,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 20,
+                                minHeight: 20,
+                              ),
+                              child: Text(
+                                '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   Stack(
                     clipBehavior: Clip.none,
@@ -242,7 +278,7 @@ class _HeaderState extends State<Header> {
                             minHeight: 20,
                           ),
                           child: Text(
-                            '${context.watch<CartProvider>().getItemCount()}',
+                            '${context.watch<CartProvider?>()?.getItemCount() ?? 0}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,

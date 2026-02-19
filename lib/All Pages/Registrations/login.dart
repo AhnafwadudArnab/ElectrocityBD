@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../pages/home_page.dart';
+import '../../utils/auth_session.dart';
 import 'signup.dart';
 
 class LogIn extends StatefulWidget {
@@ -37,6 +39,8 @@ class _LogInState extends State<LogIn> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
+    await AuthSession.setLoggedIn(true);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Login successful!'),
@@ -45,7 +49,10 @@ class _LogInState extends State<LogIn> {
       ),
     );
 
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomePage()),
+      (route) => false,
+    );
   }
 
   @override

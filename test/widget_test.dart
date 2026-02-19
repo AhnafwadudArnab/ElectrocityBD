@@ -1,29 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:electrocitybd1/main.dart';
-import 'package:flutter/material.dart';
+import 'package:electrocitybd1/All%20Pages/CART/Cart_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('CartProvider add/update/remove flow works', () async {
+    SharedPreferences.setMockInitialValues({});
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    final cart = CartProvider();
+    await cart.init();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await cart.addToCart(
+      productId: 'p-1',
+      name: 'Phone',
+      price: 1000,
+      imageUrl: 'assets/Products/1.png',
+      category: 'Electronics',
+      quantity: 2,
+    );
+
+    expect(cart.getItemCount(), 2);
+    expect(cart.getCartTotal(), 2000);
+
+    await cart.incrementQuantity('p-1');
+    expect(cart.getItemCount(), 3);
+
+    await cart.decrementQuantity('p-1');
+    expect(cart.getItemCount(), 2);
+
+    await cart.removeFromCart('p-1');
+    expect(cart.getItemCount(), 0);
+    expect(cart.getCartTotal(), 0);
   });
 }

@@ -7,6 +7,7 @@ import '../../widgets/Sections/BestSellings/ProductData.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
+import '../Profiles/Wishlist_provider.dart';
 import 'all_products_template.dart';
 
 class UniversalProductDetails extends StatefulWidget {
@@ -605,8 +606,37 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.favorite_border),
+            onPressed: () {
+              context.read<WishlistProvider>().toggleWishlist(
+                productId: widget.product.id,
+                name: widget.product.name,
+                price: widget.product.priceBDT,
+                imageUrl: widget.product.images.first,
+                category: widget.product.category,
+              );
+              final isAdded = context.read<WishlistProvider>().isInWishlist(
+                widget.product.id,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isAdded ? '✓ Wishlist updated' : '✓ Removed from wishlist',
+                  ),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: Consumer<WishlistProvider>(
+              builder: (context, wishlistProvider, _) {
+                final isInWishlist = wishlistProvider.isInWishlist(
+                  widget.product.id,
+                );
+                return Icon(
+                  isInWishlist ? Icons.favorite : Icons.favorite_border,
+                  color: isInWishlist ? Colors.red : Colors.black,
+                );
+              },
+            ),
             label: const Text("Add to Wishlist"),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.black,
@@ -1019,28 +1049,61 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
+                    child: GestureDetector(
+                      onTap: () {
+                        context.read<WishlistProvider>().toggleWishlist(
+                          productId: product.id,
+                          name: product.name,
+                          price: product.priceBDT,
+                          imageUrl: product.images.first,
+                          category: product.category,
+                        );
+                        final isAdded = context
+                            .read<WishlistProvider>()
+                            .isInWishlist(product.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isAdded
+                                  ? '✓ Wishlist updated'
+                                  : '✓ Removed from wishlist',
+                            ),
+                            duration: const Duration(seconds: 2),
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.favorite_border,
-                        size: r.value(
-                          smallMobile: 16.0,
-                          mobile: 16.0,
-                          tablet: 17.0,
-                          smallDesktop: 17.5,
-                          desktop: 18.0,
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
-                        color: Colors.grey,
+                        child: Consumer<WishlistProvider>(
+                          builder: (context, wishlistProvider, _) {
+                            final isInWishlist = wishlistProvider.isInWishlist(
+                              product.id,
+                            );
+                            return Icon(
+                              isInWishlist
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              size: r.value(
+                                smallMobile: 16.0,
+                                mobile: 16.0,
+                                tablet: 17.0,
+                                smallDesktop: 17.5,
+                                desktop: 18.0,
+                              ),
+                              color: isInWishlist ? Colors.red : Colors.grey,
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),

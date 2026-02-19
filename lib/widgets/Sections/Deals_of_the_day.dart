@@ -455,21 +455,29 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(
-                        price,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF123456),
+                      Expanded(
+                        child: Text(
+                          price,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF123456),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        oldPrice,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
-                          decoration: TextDecoration.lineThrough,
+                      Flexible(
+                        child: Text(
+                          oldPrice,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
                         ),
                       ),
                     ],

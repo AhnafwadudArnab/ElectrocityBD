@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../All Pages/CART/Cart_provider.dart';
 import '../Dimensions/responsive_dimensions.dart';
+import '../pages/Profiles/Wishlist_provider.dart';
 
 class ProductCard extends StatelessWidget {
   final String? productId;
@@ -90,15 +91,52 @@ class ProductCard extends StatelessWidget {
               Positioned(
                 right: 8,
                 top: 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    padding: const EdgeInsets.all(6),
-                    icon: const Icon(Icons.favorite_border, size: 18),
-                    onPressed: () {},
+                child: GestureDetector(
+                  onTap: () {
+                    context.read<WishlistProvider>().toggleWishlist(
+                      productId: _safeProductId(),
+                      name: title,
+                      price: price,
+                      imageUrl: imageUrl,
+                      category: category ?? 'General',
+                    );
+                    final isAdded = context
+                        .read<WishlistProvider>()
+                        .isInWishlist(_safeProductId());
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isAdded
+                              ? '✓ Wishlist updated'
+                              : '✓ Removed from wishlist',
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Consumer<WishlistProvider>(
+                      builder: (context, wishlistProvider, _) {
+                        final isInWishlist = wishlistProvider.isInWishlist(
+                          _safeProductId(),
+                        );
+                        return IconButton(
+                          padding: const EdgeInsets.all(6),
+                          icon: Icon(
+                            isInWishlist
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 18,
+                            color: isInWishlist ? Colors.red : Colors.grey,
+                          ),
+                          onPressed: null,
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../All Pages/Registrations/login.dart';
+import '../../All Pages/Registrations/signup.dart';
 import '../../Dimensions/responsive_dimensions.dart'; // added
 import '../../pages/home_page.dart';
+import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import 'Cart_provider.dart';
@@ -118,6 +121,56 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
       _couponMessage = null;
       _couponController.clear();
     });
+  }
+
+  Future<void> _handleCheckout(BuildContext context) async {
+    final isLoggedIn = await AuthSession.isLoggedIn();
+
+    if (isLoggedIn) {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => OrderCompletedPage()));
+      return;
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please login or signup to place order.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Login Required'),
+          content: const Text('You need to login first to place your order.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const LogIn()));
+              },
+              child: const Text('Login'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const Signup()));
+              },
+              child: const Text('Sign Up'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String _formatBdt(num amount) {
@@ -437,11 +490,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
       discount: discount,
       total: total,
       fullWidth: isCompact,
-      onCheckout: () {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => OrderCompletedPage()));
-      },
+      onCheckout: () => _handleCheckout(context),
       onApplyCoupon: () => _applyCoupon(subTotal),
     );
 
@@ -465,7 +514,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     required double shipping,
     required double discount,
     required double total,
-    required VoidCallback onCheckout,
+    required Future<void> Function() onCheckout,
     required VoidCallback onApplyCoupon,
     bool fullWidth = false,
   }) {
@@ -551,7 +600,9 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: onCheckout,
+              onPressed: () {
+                onCheckout();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFB8860B),
                 foregroundColor: Colors.white,

@@ -1,6 +1,8 @@
+import 'package:electrocitybd1/pages/Profiles/Wishlist_provider.dart';
 import 'package:electrocitybd1/pages/Templates/Dyna_products.dart';
 import 'package:electrocitybd1/pages/Templates/all_products_template.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
 
@@ -70,22 +72,56 @@ class CommonProductCard extends StatelessWidget {
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
+                      child: GestureDetector(
+                        onTap: () {
+                          context.read<WishlistProvider>().toggleWishlist(
+                            productId: product.id,
+                            name: product.name,
+                            price: product.priceBDT,
+                            imageUrl: product.images.first,
+                            category: product.category,
+                          );
+                          final isAdded = context
+                              .read<WishlistProvider>()
+                              .isInWishlist(product.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                isAdded
+                                    ? '✓ Wishlist updated'
+                                    : '✓ Removed from wishlist',
+                              ),
+                              duration: const Duration(seconds: 2),
                             ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.favorite_border,
-                          size: AppDimensions.iconSize(context) * 0.7,
-                          color: Colors.grey[600],
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Consumer<WishlistProvider>(
+                            builder: (context, wishlistProvider, _) {
+                              final isInWishlist = wishlistProvider
+                                  .isInWishlist(product.id);
+                              return Icon(
+                                isInWishlist
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                size: AppDimensions.iconSize(context) * 0.7,
+                                color: isInWishlist
+                                    ? Colors.red
+                                    : Colors.grey[600],
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),

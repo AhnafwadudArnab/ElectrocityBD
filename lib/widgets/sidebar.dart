@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../Dimensions/responsive_dimensions.dart';
+
 import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart';
 import '../All Pages/Categories All/category_page.dart';
+import '../Dimensions/responsive_dimensions.dart';
 
 class Sidebar extends StatefulWidget {
   final double? width;
@@ -23,17 +24,25 @@ class _SidebarState extends State<Sidebar> {
     {
       'icon': Icons.smartphone,
       'text': 'Smartphones & Tablets',
-      'page': ElectronicsGadgetsPage(),
-    },
-    {
-      'icon': Icons.tv,
-      'text': 'TV & Home Entertainment',
+      // Telephone এবং Sim supported telephone এখানে থাকবে
       'page': ElectronicsGadgetsPage(),
     },
     {
       'icon': Icons.kitchen,
       'text': 'Kitchen Appliances',
+      // Rice cooker, Oven, Blender, Kettle, Airfryer ইত্যাদি এখানে থাকবে
       'page': KitchenHomeAppliancesPage(),
+    },
+    {
+      'icon': Icons.iron, // আইকন পরিবর্তন করা হয়েছে
+      'text': 'Home & Personal Care',
+      // Charger fan, Trimmer, Iron, Hair dryer, Massage gun এখানে থাকবে
+      'page': KitchenHomeAppliancesPage(),
+    },
+    {
+      'icon': Icons.tv,
+      'text': 'TV & Home Entertainment',
+      'page': ElectronicsGadgetsPage(),
     },
     {
       'icon': Icons.wash,

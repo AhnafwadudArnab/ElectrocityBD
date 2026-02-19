@@ -2,6 +2,7 @@ import 'package:electrocitybd1/All%20Pages/Registrations/signup.dart';
 import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import 'My_order.dart';
@@ -1476,7 +1477,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       SizedBox(height: padding),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          await AuthSession.clear();
+                          if (!mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (context) => const Signup(),
@@ -1537,7 +1540,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       SizedBox(width: padding),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          await AuthSession.clear();
+                          if (!mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (context) => const Signup(),

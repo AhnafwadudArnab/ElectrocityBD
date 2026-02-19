@@ -280,68 +280,88 @@ class FlashSaleCarousel extends StatelessWidget {
                                           // Time Remaining
                                           Row(
                                             children: [
-                                              const Icon(
-                                                Icons.timer,
-                                                size: 14,
-                                                color: Colors.orange,
+                                              Expanded(
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.timer,
+                                                      size: 14,
+                                                      color: Colors.orange,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Flexible(
+                                                      child: Text(
+                                                        product.timeRemaining,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: const TextStyle(
+                                                          color: Colors.orange,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                               const SizedBox(width: 6),
-                                              Text(
-                                                product.timeRemaining,
-                                                style: const TextStyle(
-                                                  color: Colors.orange,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const Spacer(),
-                                              ElevatedButton(
-                                                onPressed: () async {
-                                                  final data =
-                                                      _buildProductData(
-                                                        product,
-                                                        index,
-                                                      );
-                                                  await context
-                                                      .read<CartProvider>()
-                                                      .addToCart(
-                                                        productId: data.id,
-                                                        name: data.name,
-                                                        price: data.priceBDT,
-                                                        imageUrl:
-                                                            data.images.first,
-                                                        category: data.category,
-                                                      );
+                                              SizedBox(
+                                                height: 28,
+                                                child: ElevatedButton(
+                                                  onPressed: () async {
+                                                    final data =
+                                                        _buildProductData(
+                                                          product,
+                                                          index,
+                                                        );
+                                                    await context
+                                                        .read<CartProvider>()
+                                                        .addToCart(
+                                                          productId: data.id,
+                                                          name: data.name,
+                                                          price: data.priceBDT,
+                                                          imageUrl:
+                                                              data.images.first,
+                                                          category:
+                                                              data.category,
+                                                        );
 
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          '${data.name} added to cart',
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            '${data.name} added to cart',
+                                                          ),
+                                                          duration:
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    900,
+                                                              ),
                                                         ),
-                                                        duration:
-                                                            const Duration(
-                                                              milliseconds: 900,
-                                                            ),
-                                                      ),
-                                                    );
-                                                  }
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.orange,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 6,
-                                                      ),
-                                                ),
-                                                child: const Text(
-                                                  'Add',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
+                                                      );
+                                                    }
+                                                  },
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.orange,
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 4,
+                                                        ),
+                                                    minimumSize: const Size(
+                                                      0,
+                                                      28,
+                                                    ),
+                                                  ),
+                                                  child: const Text(
+                                                    'Add',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 11,
+                                                    ),
                                                   ),
                                                 ),
                                               ),

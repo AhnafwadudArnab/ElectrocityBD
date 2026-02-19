@@ -134,6 +134,14 @@ class _MainContentState extends State<_MainContent> {
     );
     final showButton = !r.isSmallMobile;
 
+    ImageProvider _heroImage(String path) {
+      final lower = path.toLowerCase();
+      if (lower.startsWith('http://') || lower.startsWith('https://')) {
+        return NetworkImage(path);
+      }
+      return AssetImage(path);
+    }
+
     return SizedBox(
       height: height,
       width: double.infinity,
@@ -142,7 +150,15 @@ class _MainContentState extends State<_MainContent> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Image.network(slide['image']!, fit: BoxFit.fill),
+              child: Image(
+                image: _heroImage(slide['image']!),
+                fit: BoxFit.fill,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey.shade200,
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.broken_image_outlined),
+                ),
+              ),
             ),
 
             /// CONTENT

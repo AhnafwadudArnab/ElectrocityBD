@@ -1,27 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
-import '../../widgets/footer.dart'; // added
+import '../../All Pages/CART/Cart_provider.dart';
+import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
-import '../home_page.dart'; // added
-
-class WishlistItem {
-  final String name;
-  final String weight;
-  final double price;
-  final String dateAdded;
-  final String stockStatus;
-  final String imageUrl;
-
-  WishlistItem({
-    required this.name,
-    required this.weight,
-    required this.price,
-    required this.dateAdded,
-    required this.stockStatus,
-    required this.imageUrl,
-  });
-}
+import '../home_page.dart';
+import 'Wishlist_provider.dart';
 
 class WishlistPage extends StatefulWidget {
   const WishlistPage({super.key});
@@ -31,61 +16,11 @@ class WishlistPage extends StatefulWidget {
 }
 
 class _WishlistPageState extends State<WishlistPage> {
-  final List<WishlistItem> items = [
-    WishlistItem(
-      name: 'Fresh Green Apple',
-      weight: '500 g',
-      price: 12.00,
-      dateAdded: '15 July 2024',
-      stockStatus: 'Instock',
-      imageUrl:
-          'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=150',
-    ),
-    WishlistItem(
-      name: 'Fresh Tomato',
-      weight: '500 g',
-      price: 7.50,
-      dateAdded: '12 July 2024',
-      stockStatus: 'Instock',
-      imageUrl:
-          'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=150',
-    ),
-    WishlistItem(
-      name: 'Green Bell Peppers',
-      weight: '250 g',
-      price: 8.00,
-      dateAdded: '12 July 2024',
-      stockStatus: 'Instock',
-      imageUrl:
-          'https://images.unsplash.com/photo-1563565375-f3fdf5d66970?w=150',
-    ),
-    WishlistItem(
-      name: 'Pineapple',
-      weight: '750 g',
-      price: 15.00,
-      dateAdded: '11 July 2024',
-      stockStatus: 'Instock',
-      imageUrl:
-          'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=150',
-    ),
-    WishlistItem(
-      name: 'Gold Bangles',
-      weight: '500 g',
-      price: 12.00,
-      dateAdded: '11 July 2024',
-      stockStatus: 'Instock',
-      imageUrl:
-          'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=150',
-    ),
-  ];
-
   final TextEditingController _linkController = TextEditingController(
     text: 'https://www.example.com',
   );
-  final TextEditingController _emailController =
-      TextEditingController(); // added
-
-  final Set<String> _cartItemNames = <String>{}; // added
+  final TextEditingController _emailController = TextEditingController();
+  final Set<String> _cartItemNames = <String>{};
 
   String _formatPriceBdt(double amount) => '৳${amount.toStringAsFixed(2)}';
 
@@ -99,73 +34,63 @@ class _WishlistPageState extends State<WishlistPage> {
   Future<void> _copyWishlistLink() async {
     final link = _linkController.text.trim();
     if (link.isEmpty) {
-      _showMessage('Wishlist link is empty.');
+      _showMessage('No link to copy');
       return;
     }
     await Clipboard.setData(ClipboardData(text: link));
-    _showMessage('Wishlist link copied.');
+    _showMessage('Link copied to clipboard');
   }
 
-  void _removeItem(WishlistItem item) {
-    setState(() {
-      items.remove(item);
-      _cartItemNames.remove(item.name);
-    });
-    _showMessage('${item.name} removed from wishlist.');
+  Future<void> _shareWishlist() async {
+    _showMessage('Share functionality would be implemented here');
   }
 
-  void _clearWishlist() {
-    if (items.isEmpty) {
-      _showMessage('Wishlist is already empty.');
-      return;
-    }
-    setState(() {
-      items.clear();
-      _cartItemNames.clear();
-    });
-    _showMessage('Wishlist cleared.');
+  void _removeItem(String productId, WishlistProvider wishlistProvider) {
+    wishlistProvider.removeFromWishlist(productId);
+    _showMessage('Item removed from wishlist');
   }
 
-  void _addItemToCart(WishlistItem item) {
-    if (item.stockStatus.toLowerCase() != 'instock') {
-      _showMessage('${item.name} is out of stock.');
-      return;
-    }
-
-    if (_cartItemNames.contains(item.name)) {
-      _showMessage('${item.name} is already in cart.');
-      return;
-    }
-
-    setState(() {
-      _cartItemNames.add(item.name);
-    });
-    _showMessage('${item.name} added to cart.');
+  void _clearWishlist(WishlistProvider wishlistProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Clear Wishlist'),
+          content: const Text('Are you sure you want to clear all items?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                wishlistProvider.clearWishlist();
+                Navigator.pop(context);
+                _showMessage('Wishlist cleared');
+              },
+              child: const Text('Clear', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _addAllToCart() {
-    if (items.isEmpty) {
-      _showMessage('Wishlist is empty.');
-      return;
-    }
-
-    final inStockItems = items
-        .where((e) => e.stockStatus.toLowerCase() == 'instock')
-        .toList();
-    final newItems = inStockItems
-        .where((e) => !_cartItemNames.contains(e.name))
-        .toList();
-
-    if (newItems.isEmpty) {
-      _showMessage('All in-stock wishlist items are already in cart.');
-      return;
-    }
-
-    setState(() {
-      _cartItemNames.addAll(newItems.map((e) => e.name));
-    });
-
-    _showMessage('${newItems.length} item(s) added to cart.');
+  void _addItemToCart(
+    String productId,
+    String productName,
+    double price,
+    String imageUrl,
+    String category,
+  ) {
+    context.read<CartProvider>().addToCart(
+      productId: productId,
+      name: productName,
+      price: price,
+      imageUrl: imageUrl,
+      category: category,
+    );
+    _showMessage('Added to cart');
   }
 
   void _subscribeNewsletter() {
@@ -189,9 +114,8 @@ class _WishlistPageState extends State<WishlistPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const Header(), // added
+      appBar: const Header(),
       drawer: Drawer(
-        // added (prevents Header hamburger crash on small screens)
         child: ListView(
           padding: EdgeInsets.zero,
           children: const [
@@ -247,18 +171,11 @@ class _WishlistPageState extends State<WishlistPage> {
                         style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
                       TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const WishlistPage(),
-                            ),
-                          );
-                        },
+                        onPressed: () {},
                         child: Text(
                           'Wishlist',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.grey[400],
                             fontSize: 14,
                           ),
                         ),
@@ -270,8 +187,204 @@ class _WishlistPageState extends State<WishlistPage> {
             ),
 
             // Wishlist Table
+            Consumer<WishlistProvider>(
+              builder: (context, wishlistProvider, _) {
+                final items = wishlistProvider.items;
+
+                if (items.isEmpty) {
+                  return Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.favorite_border,
+                          size: 64,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Your wishlist is empty',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Add items to get started',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HomePage(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.shopping_bag),
+                          label: const Text('Continue Shopping'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return Container(
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Table Header
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFC107),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Product',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                'Price',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                'Date Added',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                'Actions',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 50),
+                          ],
+                        ),
+                      ),
+
+                      // Table Rows with live provider data
+                      ...items.map((item) {
+                        return _buildWishlistRow(
+                          context,
+                          item,
+                          wishlistProvider,
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                );
+              },
+            ),
+
+            // Cart Button & Clear
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Consumer<WishlistProvider>(
+                builder: (context, wishlistProvider, _) {
+                  final items = wishlistProvider.items;
+                  if (items.isEmpty) return const SizedBox.shrink();
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => _clearWishlist(wishlistProvider),
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Clear Wishlist'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[400],
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          for (var item in items) {
+                            _addItemToCart(
+                              item.productId,
+                              item.name,
+                              item.price,
+                              item.imageUrl,
+                              item.category,
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.shopping_cart),
+                        label: const Text('Add All To Cart'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+
+            // Share & Newsletter Section
             Container(
               margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -285,284 +398,232 @@ class _WishlistPageState extends State<WishlistPage> {
               ),
               child: Column(
                 children: [
-                  // Table Header
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
+                  // Share Section
+                  Text(
+                    'Share Your Wishlist',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
                     ),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFC107),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _linkController,
+                          decoration: InputDecoration(
+                            hintText: 'Wishlist link',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            'Product',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                          ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        onPressed: _copyWishlistLink,
+                        icon: const Icon(Icons.content_copy),
+                        label: const Text('Copy'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _shareWishlist,
+                        icon: const Icon(Icons.share),
+                        label: const Text('Share via Social'),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.blue[700],
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Price',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Date Added',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Stock Status',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 100),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  // Newsletter Section
+                  Text(
+                    'Get notified when prices drop',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
                     ),
                   ),
-
-                  // Table Rows
-                  ...items.map((item) => _buildWishlistRow(item)),
-
-                  // Bottom Actions
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const Spacer(),
-                        TextButton(
-                          onPressed: _clearWishlist,
-                          child: Text(
-                            'Clear Wishlist',
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              decoration: TextDecoration.underline,
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your email',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          onPressed: _addAllToCart,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2E7D32),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text('Add All to Cart'),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        onPressed: _subscribeNewsletter,
+                        icon: const Icon(Icons.mail_outline),
+                        label: const Text('Subscribe'),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
 
-            // Features Section
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildFeatureItem(
-                    icon: Icons.local_shipping_outlined,
-                    color: const Color(0xFF2E7D32),
-                    title: 'Free Shipping',
-                    subtitle: 'Free shipping for order above \$50',
-                  ),
-                  _buildFeatureItem(
-                    icon: Icons.payment_outlined,
-                    color: const Color(0xFFFFC107),
-                    title: 'Flexible Payment',
-                    subtitle: 'Multiple secure payment options',
-                  ),
-                  _buildFeatureItem(
-                    icon: Icons.headset_mic_outlined,
-                    color: const Color(0xFF2E7D32),
-                    title: '24×7 Support',
-                    subtitle: 'We support online all days.',
-                  ),
-                ],
-              ),
-            ),
-            const FooterSection(), // added
+            const SizedBox(height: 20),
+            const FooterSection(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildWishlistRow(WishlistItem item) {
-    final bool isInCart = _cartItemNames.contains(item.name); // added
-
+  Widget _buildWishlistRow(
+    BuildContext context,
+    WishlistItem item,
+    WishlistProvider wishlistProvider,
+  ) {
+    final isInCart = _cartItemNames.contains(item.name);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
       ),
       child: Row(
         children: [
+          // Product Info
           Expanded(
             flex: 3,
             child: Row(
               children: [
-                IconButton(
-                  onPressed: () => _removeItem(item),
-                  icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    item.imageUrl,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image, color: Colors.grey),
-                      );
-                    },
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: _resolveImageProvider(item.imageUrl),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Text(
-                      item.weight,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        item.category,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
+          // Price
           Expanded(
             flex: 2,
             child: Text(
               _formatPriceBdt(item.price),
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Colors.orange,
+              ),
             ),
           ),
+          // Date Added
           Expanded(
             flex: 2,
             child: Text(
               item.dateAdded,
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ),
+          // Actions
           Expanded(
             flex: 2,
-            child: Text(
-              item.stockStatus,
-              style: const TextStyle(
-                color: Color(0xFF2E7D32),
-                fontWeight: FontWeight.w500,
-              ),
+            child: Row(
+              children: [
+                ElevatedButton(
+                  onPressed: isInCart
+                      ? null
+                      : () {
+                          _addItemToCart(
+                            item.productId,
+                            item.name,
+                            item.price,
+                            item.imageUrl,
+                            item.category,
+                          );
+                          setState(() {
+                            _cartItemNames.add(item.name);
+                          });
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isInCart
+                        ? Colors.grey[300]
+                        : Colors.orange,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(
+                    isInCart ? 'In Cart' : 'Add',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isInCart ? Colors.grey[600] : Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: Colors.red,
+                  ),
+                  onPressed: () =>
+                      _removeItem(item.productId, wishlistProvider),
+                  padding: const EdgeInsets.all(4),
+                ),
+              ],
             ),
           ),
-          SizedBox(
-            width: 100,
-            child: ElevatedButton(
-              onPressed: isInCart ? null : () => _addItemToCart(item),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isInCart
-                    ? Colors.grey
-                    : const Color(0xFF2E7D32),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: Text(
-                isInCart ? 'Added' : 'Add to Cart',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
-          ),
+          const SizedBox(width: 8),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 28),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-          ],
-        ),
-      ],
-    );
+  ImageProvider _resolveImageProvider(String path) {
+    final lower = path.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
   }
 }
