@@ -2,7 +2,9 @@ import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/Profiles/WishLists.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../All Pages/CART/Cart_provider.dart';
 import '../All Pages/CART/Main_carting.dart';
 import '../Dimensions/responsive_dimensions.dart';
 
@@ -17,8 +19,6 @@ class Header extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HeaderState extends State<Header> {
-  List<dynamic> cartItems = [];
-
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
@@ -242,7 +242,7 @@ class _HeaderState extends State<Header> {
                             minHeight: 20,
                           ),
                           child: Text(
-                            cartItems.isEmpty ? '0' : '${cartItems.length}',
+                            '${context.watch<CartProvider>().getItemCount()}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
@@ -564,6 +566,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                 itemBuilder: (context, index) => _productCard(
                   title: pageItems[index]['title'] as String,
                   price: pageItems[index]['price'] as double,
+                  category: pageItems[index]['category'] as String,
                   image: pageItems[index]['image'] as String,
                   onTap: () => _openDetails(pageItems[index], index),
                 ),
@@ -577,6 +580,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   Widget _productCard({
     required String title,
     required double price,
+    required String category,
     required String image,
     required VoidCallback onTap,
   }) {
@@ -627,6 +631,40 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                       color: Colors.amber[900],
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final id = title
+                            .toLowerCase()
+                            .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                            .replaceAll(RegExp(r'^-|-$'), '');
+
+                        await context.read<CartProvider>().addToCart(
+                          productId: 'trend-$id',
+                          name: title,
+                          price: price,
+                          imageUrl: image,
+                          category: category,
+                        );
+
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$title added to cart'),
+                            duration: const Duration(milliseconds: 900),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(32),
+                      ),
+                      child: const Text('Add to Cart'),
                     ),
                   ),
                 ],

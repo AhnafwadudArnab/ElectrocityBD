@@ -1,7 +1,11 @@
 import 'dart:ui';
+
 import 'package:electrocitybd1/pages/Templates/all_products_template.dart';
 import 'package:electrocitybd1/widgets/Sections/Flash%20Sale/Flash_sale_all.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 
@@ -121,9 +125,8 @@ class FlashSaleCarousel extends StatelessWidget {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const FlashSaleAll(
-                      breadcrumbLabel: 'Flash Sale',
-                    ),
+                    builder: (context) =>
+                        const FlashSaleAll(breadcrumbLabel: 'Flash Sale'),
                   ),
                   (route) => false,
                 );
@@ -292,7 +295,39 @@ class FlashSaleCarousel extends StatelessWidget {
                                               ),
                                               const Spacer(),
                                               ElevatedButton(
-                                                onPressed: () {},
+                                                onPressed: () async {
+                                                  final data =
+                                                      _buildProductData(
+                                                        product,
+                                                        index,
+                                                      );
+                                                  await context
+                                                      .read<CartProvider>()
+                                                      .addToCart(
+                                                        productId: data.id,
+                                                        name: data.name,
+                                                        price: data.priceBDT,
+                                                        imageUrl:
+                                                            data.images.first,
+                                                        category: data.category,
+                                                      );
+
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          '${data.name} added to cart',
+                                                        ),
+                                                        duration:
+                                                            const Duration(
+                                                              milliseconds: 900,
+                                                            ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor:
                                                       Colors.orange,

@@ -1,6 +1,8 @@
 import 'package:electrocitybd1/pages/Templates/Dyna_products.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/Templates/all_products_template.dart';
 
@@ -384,6 +386,7 @@ class _TechpartState extends State<Techpart> {
   ) {
     final product = sortedProducts[index % sortedProducts.length];
     final imagePath = _techImages[index % _techImages.length];
+    final productData = _buildProductData(product, index);
     return InkWell(
       onTap: () => _openDetails(context, product, index),
       child: Container(
@@ -440,6 +443,34 @@ class _TechpartState extends State<Techpart> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: AppDimensions.bodyFont(context),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () async {
+                        await context.read<CartProvider>().addToCart(
+                          productId: productData.id,
+                          name: productData.name,
+                          price: productData.priceBDT,
+                          imageUrl: productData.images.first,
+                          category: productData.category,
+                        );
+
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${productData.name} added to cart'),
+                            duration: const Duration(milliseconds: 900),
+                          ),
+                        );
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.add_shopping_cart, size: 18),
+                      ),
                     ),
                   ),
                 ],

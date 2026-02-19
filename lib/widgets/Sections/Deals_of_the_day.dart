@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:electrocitybd1/pages/Templates/Dyna_products.dart';
 import 'package:electrocitybd1/pages/Templates/all_products_template.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 
 class DealsOfTheDay extends StatefulWidget {
@@ -474,6 +476,33 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                   ),
                 ],
               ),
+            ),
+            IconButton(
+              onPressed: () async {
+                final productId = title
+                    .toLowerCase()
+                    .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                    .replaceAll(RegExp(r'^-|-$'), '');
+
+                await context.read<CartProvider>().addToCart(
+                  productId: 'deal-$productId',
+                  name: title,
+                  price: _parsePrice(price),
+                  imageUrl: imagePath,
+                  category: 'Deals of the Day',
+                );
+
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$title added to cart'),
+                    duration: const Duration(milliseconds: 900),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add_shopping_cart, size: 20),
+              color: const Color(0xFF123456),
+              tooltip: 'Add to cart',
             ),
           ],
         ),

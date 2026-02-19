@@ -1,12 +1,13 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import 'trending_all_products.dart';
-
 
 class TrendingItem {
   final String image;
@@ -46,7 +47,8 @@ class TrendingItems extends StatelessWidget {
       ),
     );
   }
-static const List<TrendingItem> _sampleProducts = [
+
+  static const List<TrendingItem> _sampleProducts = [
     TrendingItem(
       image: 'assets/Products/7.png',
       title: 'Blender Machine',
@@ -106,14 +108,17 @@ static const List<TrendingItem> _sampleProducts = [
                 fontWeight: FontWeight.bold,
               ),
             ),
-            TextButton(onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const TrendingAllProducts(),
-                ),
-              );
-            }, child: const Text('See All')),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TrendingAllProducts(),
+                  ),
+                );
+              },
+              child: const Text('See All'),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -256,7 +261,39 @@ static const List<TrendingItem> _sampleProducts = [
                                                 ],
                                               ),
                                               ElevatedButton(
-                                                onPressed: () {},
+                                                onPressed: () async {
+                                                  final data =
+                                                      _buildProductData(
+                                                        product,
+                                                        index,
+                                                      );
+                                                  await context
+                                                      .read<CartProvider>()
+                                                      .addToCart(
+                                                        productId: data.id,
+                                                        name: data.name,
+                                                        price: data.priceBDT,
+                                                        imageUrl:
+                                                            data.images.first,
+                                                        category: data.category,
+                                                      );
+
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          '${data.name} added to cart',
+                                                        ),
+                                                        duration:
+                                                            const Duration(
+                                                              milliseconds: 900,
+                                                            ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor:
                                                       Colors.orange,

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../All Pages/CART/Cart_provider.dart';
 import '../Dimensions/responsive_dimensions.dart';
 
 class ProductCard extends StatelessWidget {
+  final String? productId;
+  final String? category;
   final String title;
   final double price;
   final double? originalPrice;
@@ -13,6 +17,8 @@ class ProductCard extends StatelessWidget {
 
   const ProductCard({
     super.key,
+    this.productId,
+    this.category,
     required this.title,
     required this.price,
     this.originalPrice,
@@ -22,6 +28,16 @@ class ProductCard extends StatelessWidget {
     this.buttonText = 'Add To Cart',
     String? badgeTopLeft,
   });
+
+  String _safeProductId() {
+    if (productId != null && productId!.trim().isNotEmpty) {
+      return productId!;
+    }
+    return title
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +167,21 @@ class ProductCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await context.read<CartProvider>().addToCart(
+                        productId: _safeProductId(),
+                        name: title,
+                        price: price,
+                        imageUrl: imageUrl,
+                        category: category ?? 'General',
+                      );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Added to cart')),
+                        );
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       shape: RoundedRectangleBorder(

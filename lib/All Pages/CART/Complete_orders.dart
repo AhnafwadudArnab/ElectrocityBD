@@ -5,53 +5,8 @@ import '../../Dimensions/responsive_dimensions.dart'; // added
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 
-class OrderItem {
-  final String name;
-  final String category;
-  final double subtotal;
-  final String imageUrl;
-
-  OrderItem({
-    required this.name,
-    required this.category,
-    required this.subtotal,
-    required this.imageUrl,
-  });
-}
-
 class OrderCompletedPage extends StatelessWidget {
   OrderCompletedPage({super.key});
-
-  final List<OrderItem> items = [
-    OrderItem(
-      name: 'SilkSculpt Serum',
-      category: 'Skin Care',
-      subtotal: 140.00,
-      imageUrl:
-          'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=150',
-    ),
-    OrderItem(
-      name: 'Argan Glow',
-      category: 'Hair Care',
-      subtotal: 126.00,
-      imageUrl:
-          'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=150',
-    ),
-    OrderItem(
-      name: 'OceanMist Moisturizer',
-      category: 'Skin Care',
-      subtotal: 20.00,
-      imageUrl:
-          'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=150',
-    ),
-    OrderItem(
-      name: 'Herbal Haven',
-      category: 'Body Care',
-      subtotal: 20.00,
-      imageUrl:
-          'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=150',
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -275,71 +230,6 @@ class OrderCompletedPage extends StatelessWidget {
                     ),
             ),
 
-            // Order Details
-            Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context),
-              ),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Order Details',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 24),
-                  // Table Header
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          'Products',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'Sub Total',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 24),
-                  // Products
-                  ...items.map((item) => _buildOrderItem(item)),
-                  const Divider(height: 24),
-                  // Summary
-                  _buildSummaryRow('Shipping', '\$0.00'),
-                  const SizedBox(height: 12),
-                  _buildSummaryRow('Taxes', '\$0.00'),
-                  const SizedBox(height: 12),
-                  _buildSummaryRow('Coupon Discount', '-\$36.00'),
-                  const Divider(height: 24),
-                  _buildSummaryRow('Total', '\$270.00', isBold: true),
-                ],
-              ),
-            ),
-
             // Features Section
             Container(
               padding: EdgeInsets.symmetric(
@@ -472,91 +362,6 @@ class OrderCompletedPage extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOrderItem(OrderItem item) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    item.imageUrl,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image, color: Colors.grey),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        item.category,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              '৳${item.subtotal.toStringAsFixed(2)}',
-              textAlign: TextAlign.end,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryRow(String label, String value, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isBold ? Colors.black87 : Colors.grey[600],
-            fontSize: 14,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: isBold ? Colors.black87 : Colors.grey[800],
-            fontSize: 14,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ],

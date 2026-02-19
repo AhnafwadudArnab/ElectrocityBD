@@ -1,27 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../Dimensions/responsive_dimensions.dart'; // added
 import '../../pages/home_page.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
+import 'Cart_provider.dart';
 import 'Complete_orders.dart';
 
 class CartItem {
+  final String productId;
   final String name;
-  final String category;
   final double price;
-  int quantity;
   final String imageUrl;
+  final int quantity;
+  final String category;
 
-  CartItem({
+  const CartItem({
+    required this.productId,
     required this.name,
-    required this.category,
     required this.price,
-    required this.quantity,
     required this.imageUrl,
+    required this.quantity,
+    required this.category,
   });
 
-  double get subtotal => price * quantity;
+  double get itemTotal => price * quantity;
+
+  CartItem copyWith({
+    String? productId,
+    String? name,
+    double? price,
+    String? imageUrl,
+    int? quantity,
+    String? category,
+  }) {
+    return CartItem(
+      productId: productId ?? this.productId,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
+      quantity: quantity ?? this.quantity,
+      category: category ?? this.category,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'productId': productId,
+    'name': name,
+    'price': price,
+    'imageUrl': imageUrl,
+    'quantity': quantity,
+    'category': category,
+  };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
+    productId: json['productId'] as String,
+    name: json['name'] as String,
+    price: (json['price'] as num).toDouble(),
+    imageUrl: json['imageUrl'] as String,
+    quantity: (json['quantity'] as num).toInt(),
+    category: json['category'] as String,
+  );
 }
 
 class ShoppingCartPage extends StatefulWidget {
@@ -32,74 +72,97 @@ class ShoppingCartPage extends StatefulWidget {
 }
 
 class _ShoppingCartPageState extends State<ShoppingCartPage> {
-  List<CartItem> items = [
-    CartItem(
-      name: 'SilkSculpt Serum',
-      category: 'Skin Care',
-      price: 1500.00,
-      quantity: 1,
-      imageUrl:
-          'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=150',
-    ),
-    CartItem(
-      name: 'Argan Glow',
-      category: 'Hair Care',
-      price: 2200.00,
-      quantity: 1,
-      imageUrl:
-          'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=150',
-    ),
-    CartItem(
-      name: 'OceanMist Moisturizer',
-      category: 'Skin Care',
-      price: 850.00,
-      quantity: 1,
-      imageUrl:
-          'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=150',
-    ),
-    CartItem(
-      name: 'Herbal Haven',
-      category: 'Body Care',
-      price: 450.00,
-      quantity: 1,
-      imageUrl:
-          'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=150',
-    ),
-  ];
-
   final TextEditingController _couponController = TextEditingController();
+  bool _isCouponApplied = false;
+  double _couponRate = 0;
+  String? _couponMessage;
 
-  void _updateQuantity(int index, int delta) {
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
+
+  void _applyCoupon(double subtotal) {
+    final code = _couponController.text.trim().toUpperCase();
+
     setState(() {
-      items[index].quantity += delta;
-      if (items[index].quantity < 1) items[index].quantity = 1;
+      if (code == 'SAVE10') {
+        _isCouponApplied = true;
+        _couponRate = 0.10;
+        _couponMessage = 'Coupon applied: 10% OFF';
+      } else if (code == 'SAVE5') {
+        _isCouponApplied = true;
+        _couponRate = 0.05;
+        _couponMessage = 'Coupon applied: 5% OFF';
+      } else {
+        _isCouponApplied = false;
+        _couponRate = 0;
+        _couponMessage = code.isEmpty
+            ? 'Please enter a coupon code'
+            : 'Invalid coupon code';
+      }
+
+      if (subtotal <= 0) {
+        _isCouponApplied = false;
+        _couponRate = 0;
+        _couponMessage = 'Add products to apply coupon';
+      }
     });
   }
 
-  void _removeItem(int index) {
+  void _resetCoupon() {
     setState(() {
-      items.removeAt(index);
+      _isCouponApplied = false;
+      _couponRate = 0;
+      _couponMessage = null;
+      _couponController.clear();
     });
   }
-
-  double get subTotal => items.fold(0, (sum, item) => sum + item.subtotal);
-  double get shipping => 0.00;
-  double get taxes => 0.00;
-  double get couponDiscount => -36.00;
-  double get total => subTotal + shipping + taxes + couponDiscount;
 
   String _formatBdt(num amount) {
     final absValue = amount.abs().toStringAsFixed(2);
     return '${amount < 0 ? '-' : ''}৳$absValue';
   }
 
+  double _shippingFee(double subtotal) {
+    if (subtotal <= 0) return 0;
+    return subtotal >= 5000 ? 0 : 120;
+  }
+
+  double _couponDiscount(double subtotal) {
+    if (!_isCouponApplied || _couponRate <= 0) return 0;
+    return subtotal * _couponRate;
+  }
+
+  Widget _buildCartImage(String path) {
+    final lower = path.toLowerCase();
+    final isNetwork =
+        lower.startsWith('http://') || lower.startsWith('https://');
+
+    if (isNetwork) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        loadingBuilder: (_, child, progress) => progress == null
+            ? child
+            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+      );
+    }
+
+    return Image.asset(
+      path,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final r = AppResponsive.of(context); // added
-    final isCompact = r.isSmallMobile || r.isMobile || r.isTablet; // added
-    final pagePadding = AppDimensions.padding(context); // added
+    final r = AppResponsive.of(context);
+    final pagePadding = AppDimensions.padding(context);
     final sectionPaddingY = r.value(
-      // added
       smallMobile: 20.0,
       mobile: 24.0,
       tablet: 30.0,
@@ -183,8 +246,14 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
 
             // Cart Content
             Padding(
-              padding: EdgeInsets.all(pagePadding), // changed
-              child: _buildCartContent(context),
+              padding: EdgeInsets.all(pagePadding),
+              child: Consumer<CartProvider>(
+                builder: (context, cart, _) => _buildCartContent(
+                  context,
+                  cart,
+                  isCompact: r.isSmallMobile || r.isMobile || r.isTablet,
+                ),
+              ),
             ),
 
             // Features Section
@@ -228,161 +297,178 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     );
   }
 
-  Widget _buildCartContent(BuildContext context) {
-    final r = AppResponsive.of(context);
-    final isCompact = r.isSmallMobile || r.isMobile || r.isTablet;
-
-    final table = Column(
-      children: [
-        // Table Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: const BoxDecoration(
-            color: Color(0xFF1B4D3E),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(8),
-              topRight: Radius.circular(8),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  'Product',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[200],
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Price',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[200],
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Quantity',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[200],
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Subtotal',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[200],
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Widget _buildCartContent(
+    BuildContext context,
+    CartProvider cart, {
+    required bool isCompact,
+  }) {
+    if (cart.items.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(8),
-              bottomRight: Radius.circular(8),
-            ),
-            boxShadow: [
-              BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10),
-            ],
-          ),
-          child: Column(
-            children: items
-                .asMap()
-                .entries
-                .map((entry) => _buildCartRow(entry.key, entry.value))
-                .toList(),
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Coupon and Clear Row
-        Row(
+        child: Column(
           children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: TextField(
-                  controller: _couponController,
-                  decoration: InputDecoration(
-                    hintText: 'Coupon Code',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-              ),
+            const Icon(
+              Icons.shopping_cart_outlined,
+              size: 56,
+              color: Colors.grey,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(height: 12),
+            const Text(
+              'Your cart is empty',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start adding products to place your order.',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B4D3E),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text('Apply Coupon'),
-            ),
-            const Spacer(),
-            TextButton(
               onPressed: () {
-                setState(() {
-                  items.clear();
-                });
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const HomePage()));
               },
-              child: Text(
-                'Clear Shopping Cart',
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  decoration: TextDecoration.underline,
-                ),
-              ),
+              child: const Text('Continue Shopping'),
             ),
           ],
         ),
-      ],
+      );
+    }
+
+    final subTotal = cart.getCartTotal();
+    final shipping = _shippingFee(subTotal);
+    final discount = _couponDiscount(subTotal);
+    final total = subTotal + shipping - discount;
+
+    final cartList = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: ListView.separated(
+        itemCount: cart.items.length,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        separatorBuilder: (_, __) => Divider(color: Colors.grey.shade200),
+        itemBuilder: (_, index) {
+          final item = cart.items[index];
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 70,
+                  height: 70,
+                  child: _buildCartImage(item.imageUrl),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.category,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _formatBdt(item.price),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => cart.decrementQuantity(item.productId),
+                    icon: const Icon(Icons.remove_circle_outline),
+                  ),
+                  Text(
+                    '${item.quantity}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  IconButton(
+                    onPressed: () => cart.incrementQuantity(item.productId),
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                  IconButton(
+                    onPressed: () => cart.removeFromCart(item.productId),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
 
-    if (!isCompact) return table;
+    final summary = _buildOrderSummary(
+      context,
+      subTotal: subTotal,
+      shipping: shipping,
+      discount: discount,
+      total: total,
+      fullWidth: isCompact,
+      onCheckout: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => OrderCompletedPage()));
+      },
+      onApplyCoupon: () => _applyCoupon(subTotal),
+    );
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minWidth: 860,
-        ), // prevents squeeze overflow
-        child: SizedBox(width: 860, child: table),
-      ),
+    if (isCompact) {
+      return Column(children: [cartList, const SizedBox(height: 16), summary]);
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: 3, child: cartList),
+        const SizedBox(width: 20),
+        Expanded(flex: 2, child: summary),
+      ],
     );
   }
 
-  Widget _buildOrderSummary(BuildContext context, {bool fullWidth = false}) {
+  Widget _buildOrderSummary(
+    BuildContext context, {
+    required double subTotal,
+    required double shipping,
+    required double discount,
+    required double total,
+    required VoidCallback onCheckout,
+    required VoidCallback onApplyCoupon,
+    bool fullWidth = false,
+  }) {
     final r = AppResponsive.of(context);
     final width = fullWidth
         ? double.infinity
@@ -414,25 +500,58 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           const SizedBox(height: 20),
           _buildSummaryRow('Sub Total', _formatBdt(subTotal)),
           const SizedBox(height: 12),
-          _buildSummaryRow('Shipping', _formatBdt(shipping)),
+          _buildSummaryRow(
+            'Shipping',
+            shipping == 0 ? 'Free' : _formatBdt(shipping),
+          ),
           const SizedBox(height: 12),
-          _buildSummaryRow('Taxes', _formatBdt(taxes)),
-          const SizedBox(height: 12),
-          _buildSummaryRow('Coupon Discount', _formatBdt(couponDiscount)),
+          _buildSummaryRow('Coupon Discount', _formatBdt(-discount)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _couponController,
+                  decoration: InputDecoration(
+                    hintText: 'Coupon (SAVE10 / SAVE5)',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: onApplyCoupon,
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+          if (_couponMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _couponMessage!,
+              style: TextStyle(
+                color: _isCouponApplied
+                    ? Colors.green.shade700
+                    : Colors.red.shade600,
+                fontSize: 12,
+              ),
+            ),
+          ],
           const Divider(height: 32),
           _buildSummaryRow('Total', _formatBdt(total), isBold: true),
 
-          const SizedBox(height: 20), // added
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: items.isEmpty
-                  ? null
-                  : () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => OrderCompletedPage()),
-                      );
-                    },
+              onPressed: onCheckout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFB8860B),
                 foregroundColor: Colors.white,
@@ -441,127 +560,21 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
-              child: Text(items.isEmpty ? 'Cart is Empty' : 'Proceed to Pay'),
+              child: const Text('Proceed to Pay'),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCartRow(int index, CartItem item) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => _removeItem(index),
-                  icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    item.imageUrl,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image, color: Colors.grey),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      item.category,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          const SizedBox(height: 10),
+          TextButton(
+            onPressed: _resetCoupon,
+            child: const Text('Clear Coupon'),
           ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              _formatBdt(item.price),
-              style: const TextStyle(fontWeight: FontWeight.w500),
+          if (shipping == 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              'You got free shipping on this order.',
+              style: TextStyle(color: Colors.green.shade700, fontSize: 12),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: () => _updateQuantity(index, -1),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      child: const Icon(
-                        Icons.remove,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      '${item.quantity}',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => _updateQuantity(index, 1),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      child: const Icon(
-                        Icons.add,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              _formatBdt(item.subtotal),
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -623,27 +636,6 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildSocialIcon(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B4D3E),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Icon(icon, color: Colors.white, size: 14),
-    );
-  }
-
-  Widget _buildFooterLink(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: TextStyle(color: Colors.grey[600], fontSize: 13),
-      ),
     );
   }
 }

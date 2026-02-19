@@ -151,8 +151,8 @@ class _SignupState extends State<Signup> {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color.fromARGB(255, 231, 160, 79),
-            Color.fromARGB(230, 149, 180, 219),
+            Color(0xFF1E40AF),
+            Color(0xFFFBBF24),
           ],
           end: Alignment.bottomRight,
         ),
@@ -182,14 +182,7 @@ class _SignupState extends State<Signup> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Join Electrocity-BD and connect\nwith suppliers across Bangladesh',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: AppDimensions.bodyFont(context),
-                ),
-              ),
+             
             ],
           ],
         ),

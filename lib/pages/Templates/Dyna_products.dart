@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/Sections/BestSellings/ProductData.dart';
 import '../../widgets/app_drawer.dart';
@@ -537,7 +539,26 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await context.read<CartProvider>().addToCart(
+                    productId: widget.product.id,
+                    name: widget.product.name,
+                    price: widget.product.priceBDT,
+                    imageUrl: widget.product.images.first,
+                    category: widget.product.category,
+                    quantity: _quantity,
+                  );
+
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${widget.product.name} added to cart (x$_quantity)',
+                      ),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   padding: EdgeInsets.symmetric(
