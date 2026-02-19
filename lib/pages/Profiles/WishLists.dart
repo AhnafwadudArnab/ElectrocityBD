@@ -21,6 +21,7 @@ class _WishlistPageState extends State<WishlistPage> {
   );
   final TextEditingController _emailController = TextEditingController();
   final Set<String> _cartItemNames = <String>{};
+  final Set<String> _selectedItems = <String>{};
 
   String _formatPriceBdt(double amount) => '৳${amount.toStringAsFixed(2)}';
 
@@ -82,6 +83,7 @@ class _WishlistPageState extends State<WishlistPage> {
     double price,
     String imageUrl,
     String category,
+    WishlistProvider wishlistProvider,
   ) {
     context.read<CartProvider>().addToCart(
       productId: productId,
@@ -90,7 +92,11 @@ class _WishlistPageState extends State<WishlistPage> {
       imageUrl: imageUrl,
       category: category,
     );
-    _showMessage('Added to cart');
+
+    // Remove from wishlist after adding to cart
+    wishlistProvider.removeFromWishlist(productId);
+
+    _showMessage('Added to cart and removed from wishlist');
   }
 
   void _subscribeNewsletter() {
@@ -278,6 +284,36 @@ class _WishlistPageState extends State<WishlistPage> {
                         ),
                         child: Row(
                           children: [
+                            // Select Checkbox Header
+                            Consumer<WishlistProvider>(
+                              builder: (context, wishlistProvider, _) {
+                                final items = wishlistProvider.items;
+                                final allSelected =
+                                    items.isNotEmpty &&
+                                    items.every(
+                                      (item) => _selectedItems.contains(
+                                        item.productId,
+                                      ),
+                                    );
+
+                                return Checkbox(
+                                  value: allSelected,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        _selectedItems.addAll(
+                                          items.map((item) => item.productId),
+                                        );
+                                      } else {
+                                        _selectedItems.clear();
+                                      }
+                                    });
+                                  },
+                                  activeColor: Colors.orange,
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 8),
                             Expanded(
                               flex: 3,
                               child: Text(
@@ -348,14 +384,51 @@ class _WishlistPageState extends State<WishlistPage> {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ElevatedButton.icon(
-                        onPressed: () => _clearWishlist(wishlistProvider),
-                        icon: const Icon(Icons.delete_outline),
-                        label: const Text('Clear Wishlist'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[400],
-                          foregroundColor: Colors.white,
-                        ),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () => _clearWishlist(wishlistProvider),
+                            icon: const Icon(Icons.delete_outline),
+                            label: const Text('Clear Wishlist'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[400],
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          if (_selectedItems.isNotEmpty)
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                final selectedItemsList = items
+                                    .where(
+                                      (item) => _selectedItems.contains(
+                                        item.productId,
+                                      ),
+                                    )
+                                    .toList();
+
+                                for (var item in selectedItemsList) {
+                                  _addItemToCart(
+                                    item.productId,
+                                    item.name,
+                                    item.price,
+                                    item.imageUrl,
+                                    item.category,
+                                    wishlistProvider,
+                                  );
+                                }
+
+                                setState(() => _selectedItems.clear());
+                              },
+                              icon: const Icon(Icons.shopping_cart),
+                              label: Text(
+                                'Add Selected (${_selectedItems.length})',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                              ),
+                            ),
+                        ],
                       ),
                       ElevatedButton.icon(
                         onPressed: () {
@@ -366,8 +439,10 @@ class _WishlistPageState extends State<WishlistPage> {
                               item.price,
                               item.imageUrl,
                               item.category,
+                              wishlistProvider,
                             );
                           }
+                          setState(() => _selectedItems.clear());
                         },
                         icon: const Icon(Icons.shopping_cart),
                         label: const Text('Add All To Cart'),
@@ -380,106 +455,6 @@ class _WishlistPageState extends State<WishlistPage> {
                 },
               ),
             ),
-
-            // Share & Newsletter Section
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Share Section
-                  Text(
-                    'Share Your Wishlist',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _linkController,
-                          decoration: InputDecoration(
-                            hintText: 'Wishlist link',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: _copyWishlistLink,
-                        icon: const Icon(Icons.content_copy),
-                        label: const Text('Copy'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _shareWishlist,
-                        icon: const Icon(Icons.share),
-                        label: const Text('Share via Social'),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.blue[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  // Newsletter Section
-                  Text(
-                    'Get notified when prices drop',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter your email',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: _subscribeNewsletter,
-                        icon: const Icon(Icons.mail_outline),
-                        label: const Text('Subscribe'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 20),
             const FooterSection(),
           ],
@@ -494,13 +469,31 @@ class _WishlistPageState extends State<WishlistPage> {
     WishlistProvider wishlistProvider,
   ) {
     final isInCart = _cartItemNames.contains(item.name);
+    final isSelected = _selectedItems.contains(item.productId);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+        color: isSelected ? Colors.orange.withOpacity(0.05) : null,
       ),
       child: Row(
         children: [
+          // Checkbox
+          Checkbox(
+            value: isSelected,
+            onChanged: (value) {
+              setState(() {
+                if (value == true) {
+                  _selectedItems.add(item.productId);
+                } else {
+                  _selectedItems.remove(item.productId);
+                }
+              });
+            },
+            activeColor: Colors.orange,
+          ),
+          const SizedBox(width: 8),
           // Product Info
           Expanded(
             flex: 3,
@@ -577,9 +570,11 @@ class _WishlistPageState extends State<WishlistPage> {
                             item.price,
                             item.imageUrl,
                             item.category,
+                            wishlistProvider,
                           );
                           setState(() {
                             _cartItemNames.add(item.name);
+                            _selectedItems.remove(item.productId);
                           });
                         },
                   style: ElevatedButton.styleFrom(
@@ -606,8 +601,10 @@ class _WishlistPageState extends State<WishlistPage> {
                     size: 18,
                     color: Colors.red,
                   ),
-                  onPressed: () =>
-                      _removeItem(item.productId, wishlistProvider),
+                  onPressed: () {
+                    _removeItem(item.productId, wishlistProvider);
+                    setState(() => _selectedItems.remove(item.productId));
+                  },
                   padding: const EdgeInsets.all(4),
                 ),
               ],
