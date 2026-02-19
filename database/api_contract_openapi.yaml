@@ -1,0 +1,776 @@
+# openapi: 3.0.3
+# info:
+#   title: ElectrocityBD API Contract
+#   version: 1.0.0
+#   description: >-
+#     Backend implementation এর আগে contract-first design হিসাবে তৈরি করা API spec.
+#     MySQL schema (01_schema.sql) অনুযায়ী resources define করা হয়েছে।
+# servers:
+#   - url: http://localhost:8080/api/v1
+#     description: Local backend
+
+# tags:
+#   - name: Auth
+#   - name: Users
+#   - name: Catalog
+#   - name: Cart
+#   - name: Wishlist
+#   - name: Orders
+#   - name: Payments
+#   - name: Promotions
+
+# paths:
+#   /auth/register:
+#     post:
+#       tags: [Auth]
+#       summary: Register a new user
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/RegisterRequest'
+#       responses:
+#         '201':
+#           description: User created
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/AuthResponse'
+#         '409':
+#           description: Email already exists
+
+#   /auth/login:
+#     post:
+#       tags: [Auth]
+#       summary: Login with email/password
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/LoginRequest'
+#       responses:
+#         '200':
+#           description: Login success
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/AuthResponse'
+#         '401':
+#           description: Invalid credentials
+
+#   /users/me:
+#     get:
+#       tags: [Users]
+#       summary: Get current user profile
+#       security: [{ bearerAuth: [] }]
+#       responses:
+#         '200':
+#           description: Current user
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/User'
+#     patch:
+#       tags: [Users]
+#       summary: Update current user profile
+#       security: [{ bearerAuth: [] }]
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/UserUpdateRequest'
+#       responses:
+#         '200':
+#           description: Updated profile
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/User'
+
+#   /categories:
+#     get:
+#       tags: [Catalog]
+#       summary: List active categories
+#       responses:
+#         '200':
+#           description: Category list
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   items:
+#                     type: array
+#                     items:
+#                       $ref: '#/components/schemas/Category'
+
+#   /products:
+#     get:
+#       tags: [Catalog]
+#       summary: List/search/filter products
+#       parameters:
+#         - in: query
+#           name: q
+#           schema: { type: string }
+#         - in: query
+#           name: categorySlug
+#           schema: { type: string }
+#         - in: query
+#           name: brandSlug
+#           schema: { type: string }
+#         - in: query
+#           name: minPrice
+#           schema: { type: number, format: double }
+#         - in: query
+#           name: maxPrice
+#           schema: { type: number, format: double }
+#         - in: query
+#           name: sort
+#           schema:
+#             type: string
+#             enum: [newest, price_asc, price_desc, popularity]
+#         - in: query
+#           name: page
+#           schema: { type: integer, minimum: 1, default: 1 }
+#         - in: query
+#           name: pageSize
+#           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+#       responses:
+#         '200':
+#           description: Product page
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/ProductPageResponse'
+
+#   /products/{productId}:
+#     get:
+#       tags: [Catalog]
+#       summary: Get product details
+#       parameters:
+#         - in: path
+#           name: productId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '200':
+#           description: Product detail
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/ProductDetail'
+#         '404':
+#           description: Product not found
+
+#   /products/{productId}/related:
+#     get:
+#       tags: [Catalog]
+#       summary: Get related products by category
+#       parameters:
+#         - in: path
+#           name: productId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '200':
+#           description: Related products
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   items:
+#                     type: array
+#                     items:
+#                       $ref: '#/components/schemas/ProductSummary'
+
+#   /cart:
+#     get:
+#       tags: [Cart]
+#       summary: Get cart (session/user)
+#       security: [{ bearerAuth: [] }]
+#       responses:
+#         '200':
+#           description: Cart snapshot
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/Cart'
+
+#   /cart/items:
+#     post:
+#       tags: [Cart]
+#       summary: Add item to cart
+#       security: [{ bearerAuth: [] }]
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/CartItemUpsertRequest'
+#       responses:
+#         '200':
+#           description: Cart updated
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/Cart'
+
+#   /cart/items/{productId}:
+#     patch:
+#       tags: [Cart]
+#       summary: Update cart item quantity
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: productId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               type: object
+#               required: [quantity]
+#               properties:
+#                 quantity:
+#                   type: integer
+#                   minimum: 1
+#       responses:
+#         '200':
+#           description: Cart updated
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/Cart'
+#     delete:
+#       tags: [Cart]
+#       summary: Remove item from cart
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: productId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '204':
+#           description: Removed
+
+#   /wishlist:
+#     get:
+#       tags: [Wishlist]
+#       summary: Get wishlist
+#       security: [{ bearerAuth: [] }]
+#       responses:
+#         '200':
+#           description: Wishlist items
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   items:
+#                     type: array
+#                     items:
+#                       $ref: '#/components/schemas/WishlistItem'
+
+#   /wishlist/items/{productId}:
+#     put:
+#       tags: [Wishlist]
+#       summary: Add item to wishlist
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: productId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '204':
+#           description: Added
+#     delete:
+#       tags: [Wishlist]
+#       summary: Remove item from wishlist
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: productId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '204':
+#           description: Removed
+
+#   /coupons/validate:
+#     post:
+#       tags: [Orders]
+#       summary: Validate coupon before checkout
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               type: object
+#               required: [code, subtotal]
+#               properties:
+#                 code:
+#                   type: string
+#                 subtotal:
+#                   type: number
+#                   format: double
+#       responses:
+#         '200':
+#           description: Coupon validation result
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   valid: { type: boolean }
+#                   discountAmount: { type: number, format: double }
+#                   message: { type: string }
+
+#   /orders:
+#     post:
+#       tags: [Orders]
+#       summary: Create order from cart
+#       security: [{ bearerAuth: [] }]
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/CreateOrderRequest'
+#       responses:
+#         '201':
+#           description: Order created
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/OrderDetail'
+#     get:
+#       tags: [Orders]
+#       summary: List orders for current user
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: query
+#           name: status
+#           schema:
+#             $ref: '#/components/schemas/OrderStatus'
+#         - in: query
+#           name: page
+#           schema: { type: integer, minimum: 1, default: 1 }
+#         - in: query
+#           name: pageSize
+#           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+#       responses:
+#         '200':
+#           description: Order page
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   items:
+#                     type: array
+#                     items:
+#                       $ref: '#/components/schemas/OrderSummary'
+#                   page:
+#                     type: integer
+#                   pageSize:
+#                     type: integer
+#                   total:
+#                     type: integer
+
+#   /orders/{orderId}:
+#     get:
+#       tags: [Orders]
+#       summary: Get order details
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: orderId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '200':
+#           description: Order details
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/OrderDetail'
+#         '404':
+#           description: Not found
+
+#   /orders/{orderId}/cancel:
+#     post:
+#       tags: [Orders]
+#       summary: Cancel order
+#       security: [{ bearerAuth: [] }]
+#       parameters:
+#         - in: path
+#           name: orderId
+#           required: true
+#           schema: { type: integer, format: int64 }
+#       responses:
+#         '200':
+#           description: Cancelled
+
+#   /payments/initiate:
+#     post:
+#       tags: [Payments]
+#       summary: Initiate payment for order
+#       security: [{ bearerAuth: [] }]
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/PaymentInitiateRequest'
+#       responses:
+#         '200':
+#           description: Payment initiated
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/PaymentInitiateResponse'
+
+#   /payments/verify:
+#     post:
+#       tags: [Payments]
+#       summary: Verify payment result from provider
+#       security: [{ bearerAuth: [] }]
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               $ref: '#/components/schemas/PaymentVerifyRequest'
+#       responses:
+#         '200':
+#           description: Verification result
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/Payment'
+
+#   /banners:
+#     get:
+#       tags: [Promotions]
+#       summary: List active banners by section
+#       parameters:
+#         - in: query
+#           name: sectionKey
+#           schema: { type: string }
+#       responses:
+#         '200':
+#           description: Banner list
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   items:
+#                     type: array
+#                     items:
+#                       $ref: '#/components/schemas/Banner'
+
+#   /promotions/active:
+#     get:
+#       tags: [Promotions]
+#       summary: List active promotions with products
+#       responses:
+#         '200':
+#           description: Promotion list
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   items:
+#                     type: array
+#                     items:
+#                       $ref: '#/components/schemas/Promotion'
+
+# components:
+#   securitySchemes:
+#     bearerAuth:
+#       type: http
+#       scheme: bearer
+#       bearerFormat: JWT
+
+#   schemas:
+#     RegisterRequest:
+#       type: object
+#       required: [firstName, lastName, email, password]
+#       properties:
+#         firstName: { type: string, maxLength: 80 }
+#         lastName: { type: string, maxLength: 80 }
+#         email: { type: string, format: email, maxLength: 190 }
+#         phone: { type: string, maxLength: 30 }
+#         gender:
+#           type: string
+#           enum: [Male, Female, Other]
+#         password:
+#           type: string
+#           minLength: 6
+#           maxLength: 100
+
+#     LoginRequest:
+#       type: object
+#       required: [email, password]
+#       properties:
+#         email: { type: string, format: email }
+#         password: { type: string }
+
+#     AuthResponse:
+#       type: object
+#       properties:
+#         accessToken: { type: string }
+#         refreshToken: { type: string }
+#         user:
+#           $ref: '#/components/schemas/User'
+
+#     User:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         uuid: { type: string }
+#         firstName: { type: string }
+#         lastName: { type: string }
+#         email: { type: string }
+#         phone: { type: string, nullable: true }
+#         gender:
+#           type: string
+#           enum: [Male, Female, Other]
+#         isActive: { type: boolean }
+#         isEmailVerified: { type: boolean }
+#         createdAt: { type: string, format: date-time }
+
+#     UserUpdateRequest:
+#       type: object
+#       properties:
+#         firstName: { type: string }
+#         lastName: { type: string }
+#         phone: { type: string }
+#         gender:
+#           type: string
+#           enum: [Male, Female, Other]
+
+#     Category:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         slug: { type: string }
+#         name: { type: string }
+#         parentId: { type: integer, format: int64, nullable: true }
+
+#     ProductSummary:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         sku: { type: string }
+#         slug: { type: string }
+#         name: { type: string }
+#         categoryName: { type: string }
+#         brandName: { type: string, nullable: true }
+#         regularPrice: { type: number, format: double }
+#         salePrice: { type: number, format: double, nullable: true }
+#         stockQty: { type: integer }
+#         primaryImageUrl: { type: string, nullable: true }
+#         isFeatured: { type: boolean }
+#         isTrending: { type: boolean }
+#         isFlashSale: { type: boolean }
+
+#     ProductDetail:
+#       allOf:
+#         - $ref: '#/components/schemas/ProductSummary'
+#         - type: object
+#           properties:
+#             description: { type: string, nullable: true }
+#             images:
+#               type: array
+#               items:
+#                 type: string
+#             specs:
+#               type: array
+#               items:
+#                 type: object
+#                 properties:
+#                   key: { type: string }
+#                   value: { type: string }
+
+#     ProductPageResponse:
+#       type: object
+#       properties:
+#         items:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/ProductSummary'
+#         page: { type: integer }
+#         pageSize: { type: integer }
+#         total: { type: integer }
+
+#     CartItemUpsertRequest:
+#       type: object
+#       required: [productId, quantity]
+#       properties:
+#         productId: { type: integer, format: int64 }
+#         quantity: { type: integer, minimum: 1 }
+
+#     Cart:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         status:
+#           type: string
+#           enum: [active, converted, abandoned]
+#         items:
+#           type: array
+#           items:
+#             type: object
+#             properties:
+#               productId: { type: integer, format: int64 }
+#               name: { type: string }
+#               quantity: { type: integer }
+#               unitPrice: { type: number, format: double }
+#               lineTotal: { type: number, format: double }
+#               imageUrl: { type: string, nullable: true }
+#         subtotal: { type: number, format: double }
+
+#     WishlistItem:
+#       type: object
+#       properties:
+#         productId: { type: integer, format: int64 }
+#         name: { type: string }
+#         price: { type: number, format: double }
+#         imageUrl: { type: string, nullable: true }
+#         category: { type: string }
+#         dateAdded: { type: string, format: date-time }
+
+#     CreateOrderRequest:
+#       type: object
+#       required: [addressId, paymentMethod]
+#       properties:
+#         addressId: { type: integer, format: int64 }
+#         couponCode: { type: string, nullable: true }
+#         paymentMethod:
+#           type: string
+#           enum: [bkash, nagad, cod, card]
+#         notes: { type: string, nullable: true }
+
+#     OrderStatus:
+#       type: string
+#       enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+
+#     OrderSummary:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         orderNo: { type: string }
+#         totalAmount: { type: number, format: double }
+#         paymentStatus:
+#           type: string
+#           enum: [pending, paid, failed, refunded]
+#         orderStatus:
+#           $ref: '#/components/schemas/OrderStatus'
+#         placedAt: { type: string, format: date-time }
+
+#     OrderDetail:
+#       allOf:
+#         - $ref: '#/components/schemas/OrderSummary'
+#         - type: object
+#           properties:
+#             subtotal: { type: number, format: double }
+#             discountAmount: { type: number, format: double }
+#             shippingAmount: { type: number, format: double }
+#             currency: { type: string }
+#             items:
+#               type: array
+#               items:
+#                 type: object
+#                 properties:
+#                   productId: { type: integer, format: int64 }
+#                   productName: { type: string }
+#                   productSku: { type: string }
+#                   quantity: { type: integer }
+#                   unitPrice: { type: number, format: double }
+#                   lineTotal: { type: number, format: double }
+
+#     PaymentInitiateRequest:
+#       type: object
+#       required: [orderId, method]
+#       properties:
+#         orderId: { type: integer, format: int64 }
+#         method:
+#           type: string
+#           enum: [bkash, nagad, cod, card]
+#         payerPhone: { type: string, nullable: true }
+
+#     PaymentInitiateResponse:
+#       type: object
+#       properties:
+#         paymentId: { type: integer, format: int64 }
+#         transactionId: { type: string }
+#         status:
+#           type: string
+#           enum: [initiated, success, failed, cancelled]
+#         redirectUrl: { type: string, nullable: true }
+
+#     PaymentVerifyRequest:
+#       type: object
+#       required: [transactionId]
+#       properties:
+#         transactionId: { type: string }
+#         gatewayPayload:
+#           type: object
+#           additionalProperties: true
+
+#     Payment:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         orderId: { type: integer, format: int64 }
+#         method:
+#           type: string
+#           enum: [bkash, nagad, cod, card]
+#         transactionId: { type: string, nullable: true }
+#         amount: { type: number, format: double }
+#         status:
+#           type: string
+#           enum: [initiated, success, failed, cancelled]
+#         paidAt: { type: string, format: date-time, nullable: true }
+
+#     Banner:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         sectionKey: { type: string }
+#         title: { type: string, nullable: true }
+#         subtitle: { type: string, nullable: true }
+#         imageUrl: { type: string }
+#         ctaText: { type: string, nullable: true }
+#         ctaLink: { type: string, nullable: true }
+
+#     Promotion:
+#       type: object
+#       properties:
+#         id: { type: integer, format: int64 }
+#         promoType:
+#           type: string
+#           enum: [flash_sale, deal_of_day, featured, campaign]
+#         title: { type: string }
+#         description: { type: string, nullable: true }
+#         discountType:
+#           type: string
+#           enum: [percent, fixed]
+#         discountValue: { type: number, format: double }
+#         startsAt: { type: string, format: date-time }
+#         endsAt: { type: string, format: date-time }
+#         products:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/ProductSummary'
