@@ -2,11 +2,13 @@ import 'package:electrocitybd1/pages/Profiles/Profile.dart';
 import 'package:electrocitybd1/pages/Profiles/WishLists.dart';
 import 'package:electrocitybd1/pages/Profiles/Wishlist_provider.dart';
 import 'package:electrocitybd1/pages/home_page.dart';
+import 'package:electrocitybd1/utils/auth_session.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../All Pages/CART/Cart_provider.dart';
 import '../All Pages/CART/Main_carting.dart';
+import '../All Pages/Registrations/signup.dart';
 import '../Dimensions/responsive_dimensions.dart';
 
 class Header extends StatefulWidget implements PreferredSizeWidget {
@@ -290,19 +292,71 @@ class _HeaderState extends State<Header> {
                       ),
                     ],
                   ),
-                  //profile button
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const ProfilePage(),
+                  //profile button - only show if logged in
+                  FutureBuilder<bool>(
+                    future: AuthSession.isLoggedIn(),
+                    builder: (context, snapshot) {
+                      final isLoggedIn = snapshot.data ?? false;
+
+                      if (!isLoggedIn) {
+                        return IconButton(
+                          onPressed: () {
+                            // Show login dialog
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Login Required'),
+                                content: const Text(
+                                  'Please login to access your profile.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const Signup(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('Login'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.person_outline,
+                            color: Colors.white,
+                          ),
+                          iconSize: iconSize,
+                          constraints: btnConstraints,
+                          padding: EdgeInsets.zero,
+                        );
+                      }
+
+                      return IconButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ProfilePage(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
                         ),
+                        iconSize: iconSize,
+                        constraints: btnConstraints,
+                        padding: EdgeInsets.zero,
                       );
                     },
-                    icon: const Icon(Icons.person_rounded, color: Colors.white),
-                    iconSize: iconSize,
-                    constraints: btnConstraints,
-                    padding: EdgeInsets.zero,
                   ),
                 ],
               ),

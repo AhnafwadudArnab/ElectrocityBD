@@ -1,6 +1,7 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
     "chat.tools.terminal.autoApprove": {
-        "flutter": true
+        "flutter": true,
+        "Move-Item": true
     }
 }

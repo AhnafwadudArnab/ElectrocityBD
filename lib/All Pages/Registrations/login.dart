@@ -39,7 +39,28 @@ class _LogInState extends State<LogIn> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    await AuthSession.setLoggedIn(true);
+    // Extract name from email (before @)
+    final email = _emailController.text;
+    final nameParts = email.split('@')[0].split('.');
+    final firstName = nameParts.isNotEmpty ? nameParts[0] : 'User';
+    final lastName = nameParts.length > 1 ? nameParts[1] : '';
+
+    // Save user data
+    final userData = UserData(
+      firstName: firstName.replaceFirst(
+        firstName[0],
+        firstName[0].toUpperCase(),
+      ),
+      lastName: lastName.replaceFirst(
+        lastName.isNotEmpty ? lastName[0] : '',
+        lastName.isNotEmpty ? lastName[0].toUpperCase() : '',
+      ),
+      email: email,
+      phone: '+880 1700-000000', // Default phone
+      gender: 'Male', // Default gender
+    );
+
+    await AuthSession.saveUserData(userData);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

@@ -26,19 +26,11 @@ class _ProfilePageState extends State<ProfilePage> {
   bool showConfirmPassword = false;
 
   // Personal Info Controllers
-  final TextEditingController firstNameController = TextEditingController(
-    text: "Leslie",
-  );
-  final TextEditingController lastNameController = TextEditingController(
-    text: "Cooper",
-  );
-  final TextEditingController emailController = TextEditingController(
-    text: "example@gmail.com",
-  );
-  final TextEditingController phoneController = TextEditingController(
-    text: "+0123-456-789",
-  );
-  String selectedGender = "Female";
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  String selectedGender = "Male";
 
   // Password Controllers
   final TextEditingController currentPasswordController =
@@ -138,6 +130,25 @@ class _ProfilePageState extends State<ProfilePage> {
       smallDesktop: 76,
       desktop: 84,
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userData = await AuthSession.getUserData();
+    if (userData != null) {
+      setState(() {
+        firstNameController.text = userData.firstName;
+        lastNameController.text = userData.lastName;
+        emailController.text = userData.email;
+        phoneController.text = userData.phone;
+        selectedGender = userData.gender;
+      });
+    }
   }
 
   @override

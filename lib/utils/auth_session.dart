@@ -1,7 +1,47 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
+class UserData {
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String phone;
+  final String gender;
+
+  UserData({
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.phone,
+    required this.gender,
+  });
+
+  // Convert to JSON for storage
+  Map<String, dynamic> toJson() => {
+    'firstName': firstName,
+    'lastName': lastName,
+    'email': email,
+    'phone': phone,
+    'gender': gender,
+  };
+
+  // Create from JSON
+  factory UserData.fromJson(Map<String, dynamic> json) => UserData(
+    firstName: json['firstName'] ?? '',
+    lastName: json['lastName'] ?? '',
+    email: json['email'] ?? '',
+    phone: json['phone'] ?? '',
+    gender: json['gender'] ?? 'Male',
+  );
+
+  // Get full name
+  String get fullName => '$firstName $lastName';
+}
 
 class AuthSession {
   static const String _loggedInKey = 'electrocity_is_logged_in';
+  static const String _userDataKey = 'electrocity_user_data';
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
@@ -13,7 +53,40 @@ class AuthSession {
     await prefs.setBool(_loggedInKey, value);
   }
 
+  // Save user data
+  static Future<void> saveUserData(UserData userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = jsonEncode(userData.toJson());
+    await prefs.setString(_userDataKey, userJson);
+    await setLoggedIn(true);
+  }
+
+  // Get user data
+  static Future<UserData?> getUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString(_userDataKey);
+
+    if (userJson == null) return null;
+
+    try {
+      final jsonData = jsonDecode(userJson);
+      return UserData.fromJson(jsonData);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Update user data
+  static Future<void> updateUserData(UserData userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = jsonEncode(userData.toJson());
+    await prefs.setString(_userDataKey, userJson);
+  }
+
+  // Clear all data on logout
   static Future<void> clear() async {
-    await setLoggedIn(false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_loggedInKey);
+    await prefs.remove(_userDataKey);
   }
 }
