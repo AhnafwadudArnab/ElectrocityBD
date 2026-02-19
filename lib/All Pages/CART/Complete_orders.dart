@@ -6,7 +6,10 @@ import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 
 class OrderCompletedPage extends StatelessWidget {
-  OrderCompletedPage({super.key});
+  final String? paymentMethod;
+  final String? transactionId;
+
+  OrderCompletedPage({super.key, this.paymentMethod, this.transactionId});
 
   @override
   Widget build(BuildContext context) {
@@ -148,13 +151,16 @@ class OrderCompletedPage extends StatelessWidget {
                               ),
                               SizedBox(
                                 width: double.infinity,
-                                child: _infoBlock('Payment Method', 'Paypal'),
+                                child: _infoBlock(
+                                  'Payment Method',
+                                  paymentMethod ?? 'Not specified',
+                                ),
                               ),
                               SizedBox(
                                 width: double.infinity,
                                 child: _infoBlock(
                                   'Transaction ID',
-                                  'TR542SSFE',
+                                  transactionId ?? 'TR542SSFE',
                                 ),
                               ),
                               SizedBox(
@@ -195,11 +201,17 @@ class OrderCompletedPage extends StatelessWidget {
                         ),
                         SizedBox(
                           width: double.infinity,
-                          child: _infoBlock('Payment Method', 'Paypal'),
+                          child: _infoBlock(
+                            'Payment Method',
+                            paymentMethod ?? 'Not specified',
+                          ),
                         ),
                         SizedBox(
                           width: double.infinity,
-                          child: _infoBlock('Transaction ID', 'TR542SSFE'),
+                          child: _infoBlock(
+                            'Transaction ID',
+                            transactionId ?? 'TR542SSFE',
+                          ),
                         ),
                         SizedBox(
                           width: double.infinity,

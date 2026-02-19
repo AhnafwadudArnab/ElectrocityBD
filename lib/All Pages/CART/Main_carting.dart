@@ -9,7 +9,7 @@ import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import 'Cart_provider.dart';
-import 'Complete_orders.dart';
+import 'Payment_methods.dart';
 
 class CartItem {
   final String productId;
@@ -125,12 +125,21 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
 
   Future<void> _handleCheckout(BuildContext context) async {
     final isLoggedIn = await AuthSession.isLoggedIn();
+    final cartProvider = context.read<CartProvider>();
+
+    // Calculate total
+    final subtotal = cartProvider.getCartTotal();
+    final couponDiscount = subtotal * _couponRate;
+    final shippingCost = subtotal >= 5000 ? 0 : 120;
+    final total = subtotal - couponDiscount + shippingCost;
 
     if (isLoggedIn) {
       if (!mounted) return;
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => OrderCompletedPage()));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PaymentMethodsPage(totalAmount: total),
+        ),
+      );
       return;
     }
 
