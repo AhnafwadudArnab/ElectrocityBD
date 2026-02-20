@@ -10,45 +10,37 @@ class CollectionsPage extends StatefulWidget {
 class _CollectionsPageState extends State<CollectionsPage> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, dynamic>> _categories = [
-    {
-      'title': 'Smartphone',
-      'count': 12,
-      'icon': Icons.smartphone,
-      'page': 'smartphone',
-    },
-    {'title': 'Laptop', 'count': 8, 'icon': Icons.laptop, 'page': 'laptop'},
-    {'title': 'Tablet', 'count': 6, 'icon': Icons.tablet_mac, 'page': 'tablet'},
-    {'title': 'Smart TV', 'count': 4, 'icon': Icons.tv, 'page': 'smarttv'},
-    {'title': 'Camera', 'count': 7, 'icon': Icons.camera_alt, 'page': 'camera'},
-    {
-      'title': 'Headphones',
-      'count': 10,
-      'icon': Icons.headset,
-      'page': 'headphones',
-    },
-    {'title': 'Speaker', 'count': 9, 'icon': Icons.speaker, 'page': 'speaker'},
-    {
-      'title': 'Smart Watch',
-      'count': 5,
-      'icon': Icons.watch,
-      'page': 'smartwatch',
-    },
-    {'title': 'Printer', 'count': 3, 'icon': Icons.print, 'page': 'printer'},
-    {'title': 'Router', 'count': 4, 'icon': Icons.router, 'page': 'router'},
-    {
-      'title': 'Monitor',
-      'count': 6,
-      'icon': Icons.desktop_windows,
-      'page': 'monitor',
-    },
-    {
-      'title': 'Game Console',
-      'count': 2,
-      'icon': Icons.videogame_asset,
-      'page': 'gameconsole',
-    },
-  ];
+  final List<Map<String, dynamic>> _gadgetCollections = [
+  // Kitchen Essentials
+  {
+    'title': 'Kitchen Appliances',
+    'count': 7,
+    'icon': Icons.kitchen,
+    'page': 'kitchen_appliances',
+  },
+  // Food Prep & Processing
+  {
+    'title': 'Food Processing',
+    'count': 4,
+    'icon': Icons.blender,
+    'page': 'food_processing',
+  },
+  // Personal Care & Wellness
+  {
+    'title': 'Personal Care',
+    'count': 4,
+    'icon': Icons.self_improvement,
+    'page': 'personal_care',
+  },
+  // Home Utilities
+  {
+    'title': 'Home Utilities',
+    'count': 5,
+    'icon': Icons.home_repair_service,
+    'page': 'home_utilities',
+  },
+];
+
 
   static const double _tileWidth = 180;
 
@@ -145,7 +137,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-              child: Row(children: _categories.map(_categoryTile).toList()),
+              child: Row(children: _gadgetCollections.map(_categoryTile).toList()),
             ),
           ),
         ],

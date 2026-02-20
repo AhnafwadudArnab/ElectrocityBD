@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart';
-import '../All Pages/Categories All/category_page.dart';
+import  '../All Pages/Categories All/category_page.dart';
 import '../Dimensions/responsive_dimensions.dart';
 
 class Sidebar extends StatefulWidget {
@@ -16,25 +16,23 @@ class _SidebarState extends State<Sidebar> {
   bool _expanded = true; // Default to expanded for desktop feel
 
   final List<Map<String, dynamic>> _categories = [
-    
     {
       'icon': Icons.kitchen,
       'text': 'Kitchen Appliances',
       // Rice cooker, Oven, Blender, Kettle, Airfryer ইত্যাদি এখানে থাকবে
-      'page': KitchenHomeAppliancesPage(),
+      'page': KitchenAppliancesPage(),
     },
     {
       'icon': Icons.iron, // আইকন পরিবর্তন করা হয়েছে
       'text': 'Personal Care & Lifestyle',
       // Trimmer, Iron, Hair dryer, Massage gun এখানে থাকবে
-      'page': KitchenHomeAppliancesPage(),
+      'page': PersonalCareLifestylePage(),
     },
     {
       'icon': Icons.wash,
       'text': 'Home Comfort & Utility',
-      'page': KitchenHomeAppliancesPage(),
+      'page': HomeComfortUtilityPage(),
     },
-    
   ];
 
   void _openCategory(BuildContext context, String title) {
