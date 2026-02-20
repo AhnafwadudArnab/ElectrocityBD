@@ -16,17 +16,7 @@ class _SidebarState extends State<Sidebar> {
   bool _expanded = true; // Default to expanded for desktop feel
 
   final List<Map<String, dynamic>> _categories = [
-    {
-      'icon': Icons.laptop_mac,
-      'text': 'Laptops & Computers',
-      'page': ElectronicsGadgetsPage(),
-    },
-    {
-      'icon': Icons.smartphone,
-      'text': 'Smartphones & Tablets',
-      // Telephone এবং Sim supported telephone এখানে থাকবে
-      'page': ElectronicsGadgetsPage(),
-    },
+    
     {
       'icon': Icons.kitchen,
       'text': 'Kitchen Appliances',
@@ -35,30 +25,16 @@ class _SidebarState extends State<Sidebar> {
     },
     {
       'icon': Icons.iron, // আইকন পরিবর্তন করা হয়েছে
-      'text': 'Home & Personal Care',
-      // Charger fan, Trimmer, Iron, Hair dryer, Massage gun এখানে থাকবে
+      'text': 'Personal Care & Lifestyle',
+      // Trimmer, Iron, Hair dryer, Massage gun এখানে থাকবে
       'page': KitchenHomeAppliancesPage(),
-    },
-    {
-      'icon': Icons.tv,
-      'text': 'TV & Home Entertainment',
-      'page': ElectronicsGadgetsPage(),
     },
     {
       'icon': Icons.wash,
-      'text': 'Washing Machines',
+      'text': 'Home Comfort & Utility',
       'page': KitchenHomeAppliancesPage(),
     },
-    {
-      'icon': Icons.memory,
-      'text': 'Components & Gaming',
-      'page': IndustrialToolsPage(),
-    },
-    {
-      'icon': Icons.camera_alt,
-      'text': 'Cameras & Accessories',
-      'page': ElectronicsGadgetsPage(),
-    },
+    
   ];
 
   void _openCategory(BuildContext context, String title) {
