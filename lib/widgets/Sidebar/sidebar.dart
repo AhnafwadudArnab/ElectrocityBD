@@ -1,8 +1,8 @@
+import 'package:electrocitybd1/All%20Pages/Categories%20All/category_page.dart';
 import 'package:flutter/material.dart';
 
-import '../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart';
-import  '../All Pages/Categories All/category_page.dart';
-import '../Dimensions/responsive_dimensions.dart';
+import '../../All Pages/Categories All/Category Model Pages/Pages/Side_Categories_files.dart';
+import '../../Dimensions/responsive_dimensions.dart';
 
 class Sidebar extends StatefulWidget {
   final double? width;

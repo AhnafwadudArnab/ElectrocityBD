@@ -1,7 +1,7 @@
 import 'package:electrocitybd1/widgets/Sections/TechPart.dart';
 import 'package:electrocitybd1/widgets/Sections/Trendings/TrendingItems.dart';
 import 'package:electrocitybd1/widgets/footer.dart';
-import 'package:electrocitybd1/widgets/sidebar.dart';
+import 'package:electrocitybd1/widgets/Sidebar/sidebar.dart';
 import 'package:flutter/material.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
