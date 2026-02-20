@@ -207,7 +207,7 @@ class _LogInState extends State<LogIn> {
             if (showText) ...[
               const SizedBox(height: 20),
               Text(
-                'Welcome back to\n      Electrocity-BD',
+                'Welcome back to\n Electrocity-BD',
                 textAlign: TextAlign.start,
                 style: TextStyle(
                   color: Colors.white,
