@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'Admin_sidebar.dart';
+import 'admin_dashboard_page.dart';
+
 class AdminOrdersPage extends StatelessWidget {
-  const AdminOrdersPage({Key? key}) : super(key: key);
+  const AdminOrdersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +12,18 @@ class AdminOrdersPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F8FD),
       body: Row(
         children: [
-          _buildSidebar(),
+          AdminSidebar(
+            selected: AdminSidebarItem.orders,
+            onItemSelected: (item) {
+              if (item == AdminSidebarItem.dashboard) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+                );
+              }
+              // Add navigation for other items as needed
+            },
+          ),
           Expanded(
             child: Column(
               children: [
@@ -37,99 +51,6 @@ class AdminOrdersPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSidebar() {
-    return Container(
-      width: 220,
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.pink[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.rocket_launch,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  "4takeaway",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          _sidebarItem(Icons.dashboard, "Dashboard", false),
-          _sidebarItem(Icons.shopping_bag, "Order", true),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Text(
-              "Users",
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ),
-          _sidebarItem(Icons.people, "Employees", false),
-          _sidebarItem(Icons.person, "End user", false),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Text(
-              "Admin",
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ),
-          _sidebarItem(Icons.restaurant, "Restaurants", false),
-          _sidebarItem(Icons.rate_review, "Reviews", false),
-          _sidebarItem(Icons.location_city, "Cities", false),
-          _sidebarItem(Icons.pages, "Pages", false),
-          _sidebarItem(Icons.price_change, "Pricing plans", false),
-          _sidebarItem(Icons.account_balance_wallet, "Finance", false),
-          _sidebarItem(Icons.subscriptions, "Subscribers", false),
-          _sidebarItem(Icons.translate, "Translation", false),
-          _sidebarItem(Icons.notifications, "Push Notification", false),
-          _sidebarItem(Icons.settings, "System Settings", false),
-        ],
-      ),
-    );
-  }
-
-  Widget _sidebarItem(IconData icon, String label, bool selected) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: selected ? Colors.pink[50] : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: selected ? Colors.pink : Colors.grey[700],
-          size: 20,
-        ),
-        title: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.pink : Colors.grey[900],
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 14,
-          ),
-        ),
-        dense: true,
       ),
     );
   }
@@ -243,9 +164,11 @@ class AdminOrdersPage extends StatelessWidget {
               child: Row(
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Implement download/export logic
+                    },
                     icon: const Icon(Icons.download, size: 18),
-                    label: const Text(""),
+                    label: const Text("Export"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey[100],
                       foregroundColor: Colors.grey[700],
@@ -257,7 +180,9 @@ class AdminOrdersPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Implement filter logic
+                    },
                     icon: const Icon(Icons.filter_list, size: 18),
                     label: const Text("Filter"),
                     style: ElevatedButton.styleFrom(
@@ -271,7 +196,9 @@ class AdminOrdersPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Implement calendar logic
+                    },
                     icon: const Icon(Icons.calendar_today, size: 18),
                     label: const Text("Weekly"),
                     style: ElevatedButton.styleFrom(
@@ -286,7 +213,9 @@ class AdminOrdersPage extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.more_vert, color: Colors.grey),
-                    onPressed: () {},
+                    onPressed: () {
+                      // Implement more actions
+                    },
                   ),
                 ],
               ),

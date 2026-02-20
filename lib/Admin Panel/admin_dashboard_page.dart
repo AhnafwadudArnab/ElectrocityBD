@@ -1,6 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../All Pages/Registrations/signup.dart';
+import 'A_orders.dart';
+import 'Admin_sidebar.dart';
+
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -18,8 +22,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       backgroundColor: Colors.grey[50],
       body: Row(
         children: [
-          // Sidebar
-          _buildSidebar(),
+          AdminSidebar(
+            selected: AdminSidebarItem.dashboard,
+            onItemSelected: (item) {
+              if (item == AdminSidebarItem.orders) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
+                );
+              }
+              // Add navigation for other items as needed
+            },
+          ),
           // Main Content
           Expanded(
             child: Column(
@@ -75,97 +89,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildSidebar() {
-    return Container(
-      width: 240,
-      color: Colors.white,
-      child: Column(
-        children: [
-          // Logo
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.shopping_bag, color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'EzMart',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          // Menu Items
-          _buildMenuItem(Icons.dashboard, 'Dashboard', true),
-          _buildMenuItem(Icons.shopping_cart, 'Orders', false),
-          _buildMenuItem(Icons.inventory, 'Products', false),
-          _buildMenuItem(Icons.people, 'Customers', false),
-          _buildMenuItem(Icons.assessment, 'Reports', false),
-          _buildMenuItem(Icons.local_offer, 'Discounts', false),
-          const SizedBox(height: 24),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Divider(),
-          ),
-          _buildMenuItem(Icons.extension, 'Integrations', false),
-          _buildMenuItem(Icons.help_outline, 'Help', false),
-          _buildMenuItem(Icons.settings, 'Settings', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(IconData icon, String title, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      height: 50,
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.orange.withOpacity(0.1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () {
-            setState(() {
-              selectedMenu = title;
-            });
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected ? Colors.orange : Colors.grey[600],
-                  size: 20,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: isSelected ? Colors.orange : Colors.grey[800],
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildTopBar() {
     return Container(
       height: 70,
@@ -178,35 +101,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
       child: Row(
         children: [
-          const Text(
-            'Dashboard',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const Spacer(),
-          Container(
-            width: 300,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search stock, order, etc',
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
+          Expanded(
+            child: Center(
+              child: Text(
+                'Admin Dashboard',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.message_outlined),
-            onPressed: () {},
-          ),
+
           Stack(
             children: [
               IconButton(
@@ -227,27 +130,89 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ],
           ),
-          const SizedBox(width: 16),
-          CircleAvatar(
-            backgroundColor: Colors.orange,
-            child: const Text('MG', style: TextStyle(color: Colors.white)),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Marcus George',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          const SizedBox(width: 40),
+          // Admin profile dropdown
+          PopupMenuButton<int>(
+            offset: const Offset(0, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            tooltip: 'Admin Profile',
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 1,
+                child: ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('Profile'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to profile page or show profile dialog
+                  },
+                ),
               ),
-              Text(
-                'Admin',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              PopupMenuItem(
+                value: 2,
+                child: ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text('Settings'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to settings page
+                  },
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 3,
+                child: ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // Close the popup menu
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Signup()),
+                    );
+                  },
+                ),
               ),
             ],
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.orange,
+                  child: const Text(
+                    'MG',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 100,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Marcus George',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        'Admin',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          const Icon(Icons.keyboard_arrow_down),
         ],
       ),
     );
@@ -259,7 +224,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         Expanded(
           child: _buildStatCard(
             'Total Sales',
-            '\$983,410',
+            '৳983,410',
             '+3.46%',
             'vs last week',
             Colors.orange,
@@ -533,7 +498,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Our achievement increased by \$300,000; let\'s reach 100% next month.',
+                  'Our achievement increased by ৳300,000; let\'s reach 100% next month.',
                   style: TextStyle(color: Colors.grey[700], fontSize: 12),
                 ),
               ],
@@ -552,7 +517,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    '\$600,000',
+                    '৳600,000',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -566,7 +531,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    '\$510,000',
+                    '৳510,000',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -643,7 +608,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       style: TextStyle(color: Colors.grey[600], fontSize: 10),
                     ),
                     const Text(
-                      '\$3,400,000',
+                      '৳3,400,000',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -655,20 +620,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
           ),
           const SizedBox(height: 20),
-          _buildCategoryItem('Electronics', '\$1,200,000', Colors.orange),
+          _buildCategoryItem('Electronics', '৳1,200,000', Colors.orange),
           _buildCategoryItem(
             'Fashion',
-            '\$950,000',
+            '৳950,000',
             Colors.orange.withOpacity(0.7),
           ),
           _buildCategoryItem(
             'Home & Kitchen',
-            '\$750,000',
+            '৳750,000',
             Colors.orange.withOpacity(0.4),
           ),
           _buildCategoryItem(
             'Beauty & Personal Care',
-            '\$500,000',
+            '৳500,000',
             Colors.orange.withOpacity(0.2),
           ),
         ],
