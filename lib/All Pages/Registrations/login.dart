@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
+import '../../Admin Panel/admin_dashboard_page.dart'; // <-- Add this import
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
 import '../../utils/auth_session.dart';
@@ -74,6 +74,24 @@ class _LogInState extends State<LogIn> {
       MaterialPageRoute(builder: (_) => const HomePage()),
       (route) => false,
     );
+  }
+
+  Future<void> _onAdminLogin() async {
+    if (_emailController.text.trim() == 'ahnaf' &&
+        _passwordController.text == '1234@') {
+      // Admin login successful
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid admin credentials!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -226,11 +244,12 @@ class _LogInState extends State<LogIn> {
             ),
             SizedBox(height: AppDimensions.padding(context)),
             _buildInputField(
-              'Email Address',
+              'Email Address or Admin Username',
               controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) =>
-                  !GetUtils.isEmail(v ?? '') ? 'Enter a valid email' : null,
+              keyboardType: TextInputType.text,
+              validator: (v) => (v == null || v.isEmpty)
+                  ? 'Enter email or admin username'
+                  : null,
             ),
             _buildInputField(
               'Password',
@@ -240,37 +259,65 @@ class _LogInState extends State<LogIn> {
               onTogglePassword: () =>
                   setState(() => _obscurePassword = !_obscurePassword),
               validator: (v) =>
-                  (v == null || v.length < 6) ? 'Min 6 characters' : null,
+                  (v == null || v.length < 4) ? 'Min 4 characters' : null,
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              height: AppDimensions.buttonHeight(context),
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _onLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFA6E4FF),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.borderRadius(context),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: AppDimensions.buttonHeight(context),
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _onLogin,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFA6E4FF),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.borderRadius(context),
+                          ),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Login',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                     ),
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                const SizedBox(width: 10),
+                // NEW: Admin Login Button
+                Expanded(
+                  child: SizedBox(
+                    height: AppDimensions.buttonHeight(context),
+                    child: ElevatedButton(
+                      onPressed: _onAdminLogin,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.borderRadius(context),
+                          ),
                         ),
-                      )
-                    : const Text(
-                        'Login',
+                      ),
+                      child: const Text(
+                        'Admin Login',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-              ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Center(
               child: Wrap(
