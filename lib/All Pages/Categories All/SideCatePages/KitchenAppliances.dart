@@ -56,7 +56,7 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
       'subCat': 'Preparation',
       'brand': 'Brand C',
       'specs': 'Corded',
-      'image': 'assets/prod/hand_blander.jpg',
+      'image': 'assets/prod/hand_blender.jpg',
     },
     {
       'title': 'Chopper',
@@ -80,7 +80,7 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
       'subCat': 'Preparation',
       'brand': 'Brand C',
       'specs': 'Corded',
-      'image': 'assets/prod/blander.jpg',
+      'image': 'assets/prod/blender.jpg',
     },
     {
       'title': 'Kettle',

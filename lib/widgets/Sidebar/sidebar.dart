@@ -4,6 +4,7 @@ import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import '../../Dimensions/responsive_dimensions.dart';
+import '../Sections/Flash Sale/Flash_sale_all.dart';
 
 class Sidebar extends StatefulWidget {
   final double? width;
@@ -187,7 +188,12 @@ class _SidebarState extends State<Sidebar> {
           ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              MaterialPageRoute route = MaterialPageRoute(
+                builder: (context) => FlashSaleAll(), // এখানে আপনার প্রোমো পেজের উইজেট দিন
+              );
+              Navigator.push(context, route);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.red,

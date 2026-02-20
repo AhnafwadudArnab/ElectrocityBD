@@ -19,6 +19,7 @@ analyzer:
     prefer_typing_uninitialized_variables: ignore
     unused_field: ignore
     dead_null_aware_expression: ignore
+    prefer_final_fields: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

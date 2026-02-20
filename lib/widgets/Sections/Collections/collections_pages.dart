@@ -1,4 +1,8 @@
+import 'package:electrocitybd1/All%20Pages/Categories%20All/SideCatePages/HomeComfortUtils.dart';
+import 'package:electrocitybd1/All%20Pages/Categories%20All/SideCatePages/KitchenAppliances.dart';
 import 'package:flutter/material.dart';
+
+import '../../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 
 class CollectionsPage extends StatefulWidget {
   const CollectionsPage({super.key});
@@ -11,36 +15,35 @@ class _CollectionsPageState extends State<CollectionsPage> {
   final ScrollController _scrollController = ScrollController();
 
   final List<Map<String, dynamic>> _gadgetCollections = [
-  // Kitchen Essentials
-  {
-    'title': 'Kitchen Appliances',
-    'count': 7,
-    'icon': Icons.kitchen,
-    'page': 'kitchen_appliances',
-  },
-  // Food Prep & Processing
-  {
-    'title': 'Food Processing',
-    'count': 4,
-    'icon': Icons.blender,
-    'page': 'food_processing',
-  },
-  // Personal Care & Wellness
-  {
-    'title': 'Personal Care',
-    'count': 4,
-    'icon': Icons.self_improvement,
-    'page': 'personal_care',
-  },
-  // Home Utilities
-  {
-    'title': 'Home Utilities',
-    'count': 5,
-    'icon': Icons.home_repair_service,
-    'page': 'home_utilities',
-  },
-];
-
+    // Kitchen Essentials
+    {
+      'title': 'Kitchen Appliances',
+      'count': 7,
+      'icon': Icons.kitchen,
+      'page': KitchenAppliancesPage(), // Replace with actual page widget
+    },
+    // Food Prep & Processing
+    {
+      'title': 'Food Processing',
+      'count': 4,
+      'icon': Icons.blender,
+      'page': KitchenAppliancesPage(), // Replace with actual page widget
+    },
+    // Personal Care & Wellness
+    {
+      'title': 'Personal Care',
+      'count': 4,
+      'icon': Icons.self_improvement,
+      'page': PersonalCareLifestylePage(), // Replace with actual page widget
+    },
+    // Home Utilities
+    {
+      'title': 'Home Utilities',
+      'count': 5,
+      'icon': Icons.home_repair_service,
+      'page': HomeComfortUtilityPage(), // Replace with actual page widget
+    },
+  ];
 
   static const double _tileWidth = 180;
 
@@ -66,26 +69,8 @@ class _CollectionsPageState extends State<CollectionsPage> {
     );
   }
 
-  void _navigateToCategory(String title, String page) {
-    Widget destinationPage;
-    switch (page) {
-      case 'monitor':
-        destinationPage = const MonitorListingPage();
-        break;
-      case 'laptop':
-        destinationPage = const LaptopListingPage();
-        break;
-      case 'smartphone':
-        destinationPage = const SmartphoneListingPage();
-        break;
-      default:
-        destinationPage = CategoryDetailsPage(categoryTitle: title);
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => destinationPage),
-    );
+  void _navigateToCategory(String title, Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   @override
@@ -137,7 +122,9 @@ class _CollectionsPageState extends State<CollectionsPage> {
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-              child: Row(children: _gadgetCollections.map(_categoryTile).toList()),
+              child: Row(
+                children: _gadgetCollections.map(_categoryTile).toList(),
+              ),
             ),
           ),
         ],
@@ -158,7 +145,12 @@ class _CollectionsPageState extends State<CollectionsPage> {
             borderRadius: BorderRadius.circular(8),
             // Set border to red
             border: Border.all(
-              color: const Color.fromARGB(255, 197, 111, 105), // Using red border color
+              color: const Color.fromARGB(
+                255,
+                197,
+                111,
+                105,
+              ), // Using red border color
               width: 1.5,
             ),
           ),
@@ -228,34 +220,4 @@ class _CollectionsPageState extends State<CollectionsPage> {
       ),
     );
   }
-}
-
-// --- Placeholder Classes remain the same ---
-class CategoryDetailsPage extends StatelessWidget {
-  final String categoryTitle;
-  const CategoryDetailsPage({super.key, required this.categoryTitle});
-  @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: AppBar(title: Text(categoryTitle)));
-}
-
-class MonitorListingPage extends StatelessWidget {
-  const MonitorListingPage({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: AppBar(title: const Text('Monitor Listing')));
-}
-
-class LaptopListingPage extends StatelessWidget {
-  const LaptopListingPage({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: AppBar(title: const Text('Laptop Listing')));
-}
-
-class SmartphoneListingPage extends StatelessWidget {
-  const SmartphoneListingPage({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: AppBar(title: const Text('Smartphone Listing')));
 }
