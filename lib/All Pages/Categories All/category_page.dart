@@ -1,6 +1,6 @@
-import 'package:electrocitybd1/All%20Pages/Categories%20All/Category%20Model%20Pages/Model_products_card.dart';
 import 'package:flutter/material.dart';
 
+import '../../widgets/product_card.dart';
 import 'productss.dart';
 
 class CategoryPage extends StatelessWidget {
@@ -38,7 +38,13 @@ class CategoryPages extends StatelessWidget {
             childAspectRatio: 0.7,
           ),
           itemBuilder: (context, index) {
-            return ProductCard(product: products[index], onPress: () {});
+            final product = products[index];
+            return ProductCard(
+              title: product.title,
+              price: product.price,
+              imageUrl: product.imageUrl,
+              onPress: () {},
+            );
           },
         ),
       ),

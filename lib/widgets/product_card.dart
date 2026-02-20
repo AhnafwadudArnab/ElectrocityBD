@@ -27,7 +27,7 @@ class ProductCard extends StatelessWidget {
     this.discountPercent,
     this.isPreOrder = false,
     this.buttonText = 'Add To Cart',
-    String? badgeTopLeft,
+    String? badgeTopLeft, required Null Function() onPress,
   });
 
   String _safeProductId() {
