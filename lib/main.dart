@@ -1,6 +1,7 @@
-import 'package:electrocitybd1/pages/home_page.dart';
+//import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'Admin Panel/admin_dashboard_page.dart';
 import 'All Pages/CART/Cart_provider.dart';
 import 'pages/Profiles/Wishlist_provider.dart';
 
@@ -33,8 +34,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: HomePage(),
-      //home: AdminDashboardPage(),
+      //home: HomePage(),
+      home: AdminDashboardPage(),
     );
   }
 }

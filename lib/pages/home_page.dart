@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
 import '../widgets/Sections/BestSellings/best_selling.dart';
-import '../widgets/Sections/Collections/collections_pages.dart'
-    hide MonitorListingPage;
+import '../widgets/Sections/Collections/collections_pages.dart';
 import '../widgets/Sections/Deals_of_the_day.dart';
 import '../widgets/Sections/FeaturedBrandsStrip.dart';
 import '../widgets/Sections/Flash Sale/flash_sale.dart';
