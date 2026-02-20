@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'A_Help.dart';
 import 'A_customers.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
@@ -49,6 +50,11 @@ class AdminReportsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
+                );
+              }else if (item == AdminSidebarItem.discounts) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
                 );
               }
             },

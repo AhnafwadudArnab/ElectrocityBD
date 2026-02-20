@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart'; // Add this package to pubspec.yaml
 import 'package:flutter/material.dart';
 
+import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_customers.dart';
 import 'A_discounts.dart';
@@ -56,6 +57,11 @@ class AdminProductUploadPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
+                );
+              }else if (item == AdminSidebarItem.discounts) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
                 );
               }
             },

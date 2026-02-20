@@ -1,3 +1,4 @@
+import 'package:electrocitybd1/Admin%20Panel/A_Help.dart';
 import 'package:flutter/material.dart';
 
 import 'A_Reports.dart';
@@ -87,6 +88,11 @@ class _AdminCustomerPageState extends State<AdminCustomerPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
+                );
+              }else if (item == AdminSidebarItem.discounts) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
                 );
               }
             },

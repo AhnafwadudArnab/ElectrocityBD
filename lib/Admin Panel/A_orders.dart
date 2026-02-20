@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_customers.dart';
 import 'A_discounts.dart';
@@ -124,6 +125,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
+                );
+              }else if (item == AdminSidebarItem.discounts) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
                 );
               }
             },

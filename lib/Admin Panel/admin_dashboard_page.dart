@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../All Pages/Registrations/signup.dart';
+import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_customers.dart';
 import 'A_discounts.dart';
@@ -57,6 +58,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
                 );
+              } else if (item == AdminSidebarItem.help) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
+                );
               }
             },
           ),
@@ -79,19 +85,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             Expanded(
                               flex: 2,
                               child: Column(
-                                children: [
-                                  _buildRevenueAnalytics(),
-                                ],
+                                children: [_buildRevenueAnalytics()],
                               ),
                             ),
                             const SizedBox(width: 24),
                             Expanded(
                               flex: 1,
-                              child: Column(
-                                children: [
-                                  _buildMonthlyTarget(),
-                                ],
-                              ),
+                              child: Column(children: [_buildMonthlyTarget()]),
                             ),
                           ],
                         ),
@@ -447,6 +447,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildMonthlyTarget() {
+    // Calculate percentage based on revenue and target
+    final double target = 5000;
+    final double revenue = 1000;
+    final double percentage = (revenue / target) * 100;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -476,7 +481,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 width: 150,
                 height: 150,
                 child: CircularProgressIndicator(
-                  value: 0.85,
+                  value: percentage / 100,
                   strokeWidth: 15,
                   backgroundColor: Colors.orange.withOpacity(0.2),
                   valueColor: const AlwaysStoppedAnimation<Color>(
@@ -486,9 +491,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
               Column(
                 children: [
-                  const Text(
-                    '32%',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  Text(
+                    '${percentage.toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -536,9 +544,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     style: TextStyle(color: Colors.grey[600], fontSize: 12),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    '৳600,000',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    target.toStringAsFixed(0),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -550,8 +558,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     style: TextStyle(color: Colors.grey[600], fontSize: 12),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    '৳510,000',
+                  Text(
+                    revenue.toStringAsFixed(0),
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -562,6 +570,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
     );
   }
+
   Widget _buildConversionRate() {
     return Container(
       padding: const EdgeInsets.all(20),
