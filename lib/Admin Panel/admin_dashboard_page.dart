@@ -81,8 +81,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               child: Column(
                                 children: [
                                   _buildRevenueAnalytics(),
-                                  const SizedBox(height: 24),
-                                  _buildActiveUserSection(),
                                 ],
                               ),
                             ),
@@ -92,10 +90,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               child: Column(
                                 children: [
                                   _buildMonthlyTarget(),
-                                  const SizedBox(height: 24),
-                                  _buildTopCategories(),
-                                  const SizedBox(height: 24),
-                                  _buildTrafficSources(),
                                 ],
                               ),
                             ),
@@ -250,7 +244,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         Expanded(
           child: _buildStatCard(
             'Total Sales',
-            '৳983,410',
+            '৳5000',
             '+3.46%',
             'vs last week',
             Colors.orange,
@@ -262,7 +256,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         Expanded(
           child: _buildStatCard(
             'Total Orders',
-            '58,375',
+            '3',
             '-2.89%',
             'vs last week',
             Colors.green,
@@ -274,7 +268,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         Expanded(
           child: _buildStatCard(
             'Total Visitors',
-            '237,782',
+            '5',
             '+8.02%',
             'vs last week',
             Colors.purple,
@@ -493,7 +487,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Column(
                 children: [
                   const Text(
-                    '85%',
+                    '32%',
                     style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
@@ -568,295 +562,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
     );
   }
-
-  Widget _buildTopCategories() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Top Categories',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              TextButton(onPressed: () {}, child: const Text('See All')),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 40,
-                    sections: [
-                      PieChartSectionData(
-                        value: 40,
-                        color: Colors.orange,
-                        radius: 20,
-                      ),
-                      PieChartSectionData(
-                        value: 30,
-                        color: Colors.orange.withOpacity(0.7),
-                        radius: 20,
-                      ),
-                      PieChartSectionData(
-                        value: 20,
-                        color: Colors.orange.withOpacity(0.4),
-                        radius: 20,
-                      ),
-                      PieChartSectionData(
-                        value: 10,
-                        color: Colors.orange.withOpacity(0.2),
-                        radius: 20,
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Total Sales',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 10),
-                    ),
-                    const Text(
-                      '৳3,400,000',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildCategoryItem('Electronics', '৳1,200,000', Colors.orange),
-          _buildCategoryItem(
-            'Fashion',
-            '৳950,000',
-            Colors.orange.withOpacity(0.7),
-          ),
-          _buildCategoryItem(
-            'Home & Kitchen',
-            '৳750,000',
-            Colors.orange.withOpacity(0.4),
-          ),
-          _buildCategoryItem(
-            'Beauty & Personal Care',
-            '৳500,000',
-            Colors.orange.withOpacity(0.2),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryItem(String name, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(name, style: const TextStyle(fontSize: 12))),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrafficSources() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Traffic Sources',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              Icon(Icons.more_horiz, color: Colors.grey[600]),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildTrafficItem('Direct Traffic', 40, Colors.orange),
-          _buildTrafficItem(
-            'Organic Search',
-            30,
-            Colors.orange.withOpacity(0.7),
-          ),
-          _buildTrafficItem('Social Media', 15, Colors.orange.withOpacity(0.5)),
-          _buildTrafficItem(
-            'Referral Traffic',
-            10,
-            Colors.orange.withOpacity(0.3),
-          ),
-          _buildTrafficItem(
-            'Email Campaigns',
-            5,
-            Colors.orange.withOpacity(0.2),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrafficItem(String name, int percentage, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(fontSize: 12)),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '$percentage%',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActiveUserSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Active User',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              Icon(Icons.more_horiz, color: Colors.grey[600]),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              const Text(
-                '2,758',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  '+8.02%',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Users from last month',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
-          const SizedBox(height: 20),
-          _buildCountryProgress('United States', 36),
-          _buildCountryProgress('United Kingdom', 24),
-          _buildCountryProgress('Indonesia', 17.5),
-          _buildCountryProgress('Russia', 15),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCountryProgress(String country, double percentage) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(country, style: const TextStyle(fontSize: 12)),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Colors.orange,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${percentage.toStringAsFixed(percentage % 1 == 0 ? 0 : 1)}%',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildConversionRate() {
     return Container(
       padding: const EdgeInsets.all(20),

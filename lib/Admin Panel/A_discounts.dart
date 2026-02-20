@@ -19,13 +19,48 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   final Color cardBg = const Color(0xFF151C2C);
   final Color brandOrange = const Color(0xFFF59E0B);
 
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _valueController = TextEditingController();
+  String _selectedCategory = 'All Products';
+
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _formKey = GlobalKey();
+
+  List<Map<String, String>> activeDiscounts = [
+    {
+      "code": "SUMMER20",
+      "type": "Percentage",
+      "value": "20%",
+      "status": "Active",
+    },
+    {
+      "code": "KITCHEN500",
+      "type": "Fixed Amount",
+      "value": "৳500",
+      "status": "Scheduled",
+    },
+    {
+      "code": "WELCOME10",
+      "type": "Percentage",
+      "value": "10%",
+      "status": "Expired",
+    },
+  ];
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    _valueController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: darkBg,
       body: Row(
         children: [
-          // Use the fixed AdminSidebar
           AdminSidebar(
             selected: AdminSidebarItem.discounts,
             onItemSelected: (item) {
@@ -66,6 +101,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                 _buildHeader(),
                 Expanded(
                   child: SingleChildScrollView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,13 +111,14 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Left: List of Active Discounts
                             Expanded(flex: 2, child: _buildDiscountList()),
                             const SizedBox(width: 24),
-                            // Right: Create New Discount Form
                             Expanded(
                               flex: 1,
-                              child: _buildCreateDiscountForm(),
+                              child: Container(
+                                key: _formKey,
+                                child: _buildCreateDiscountForm(),
+                              ),
                             ),
                           ],
                         ),
@@ -110,7 +147,13 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           ),
         ),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () {
+            Scrollable.ensureVisible(
+              _formKey.currentContext!,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+            );
+          },
           icon: const Icon(Icons.add, color: Colors.white),
           label: const Text(
             "New Campaign",
@@ -123,27 +166,6 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   }
 
   Widget _buildDiscountList() {
-    final activeDiscounts = [
-      {
-        "code": "SUMMER20",
-        "type": "Percentage",
-        "value": "20%",
-        "status": "Active",
-      },
-      {
-        "code": "KITCHEN500",
-        "type": "Fixed Amount",
-        "value": "৳500",
-        "status": "Scheduled",
-      },
-      {
-        "code": "WELCOME10",
-        "type": "Percentage",
-        "value": "10%",
-        "status": "Expired",
-      },
-    ];
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -168,24 +190,17 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               1: FlexColumnWidth(2),
               2: FlexColumnWidth(2),
               3: FlexColumnWidth(1),
+              4: FlexColumnWidth(1),
             },
             children: [
               TableRow(
-                children: ["CODE", "TYPE", "VALUE", "STATUS"]
-                    .map(
-                      (h) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          h,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
+                children: [
+                  _tableCell("CODE", isBold: true, color: Colors.grey),
+                  _tableCell("TYPE", isBold: true, color: Colors.grey),
+                  _tableCell("VALUE", isBold: true, color: Colors.grey),
+                  _tableCell("STATUS", isBold: true, color: Colors.grey),
+                  _tableCell("ACTION", isBold: true, color: Colors.grey),
+                ],
               ),
               ...activeDiscounts.map(
                 (d) => TableRow(
@@ -197,6 +212,18 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                     _tableCell(d['type']!),
                     _tableCell(d['value']!, color: brandOrange),
                     _statusBadge(d['status']!),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          activeDiscounts.remove(d);
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -227,10 +254,10 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           ),
           const SizedBox(height: 20),
           _inputLabel("Coupon Code"),
-          _darkField("e.g. SAVE100"),
+          _darkField("e.g. SAVE100", controller: _codeController),
           const SizedBox(height: 16),
           _inputLabel("Discount Value (৳ or %)"),
-          _darkField("Enter amount"),
+          _darkField("Enter amount", controller: _valueController),
           const SizedBox(height: 16),
           _inputLabel("Category Apply"),
           _darkDropdown([
@@ -241,7 +268,37 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           ]),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              if (_codeController.text.isEmpty ||
+                  _valueController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text("Please fill all fields"),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              setState(() {
+                activeDiscounts.insert(0, {
+                  "code": _codeController.text,
+                  "type": _valueController.text.contains('%')
+                      ? "Percentage"
+                      : "Fixed Amount",
+                  "value": _valueController.text,
+                  "status": "Active",
+                });
+                _codeController.clear();
+                _valueController.clear();
+                _selectedCategory = 'All Products';
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text("Coupon created!"),
+                  backgroundColor: brandOrange,
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: brandOrange.withOpacity(0.2),
               side: BorderSide(color: brandOrange),
@@ -308,19 +365,21 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     ),
   );
 
-  Widget _darkField(String hint) => TextField(
-    style: const TextStyle(color: Colors.white),
-    decoration: InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-      filled: true,
-      fillColor: darkBg,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-    ),
-  );
+  Widget _darkField(String hint, {TextEditingController? controller}) =>
+      TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+          filled: true,
+          fillColor: darkBg,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      );
 
   Widget _darkDropdown(List<String> items) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -329,7 +388,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
       borderRadius: BorderRadius.circular(8),
     ),
     child: DropdownButton<String>(
-      value: items.first,
+      value: _selectedCategory,
       isExpanded: true,
       underline: Container(),
       dropdownColor: cardBg,
@@ -344,7 +403,11 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             ),
           )
           .toList(),
-      onChanged: (v) {},
+      onChanged: (v) {
+        setState(() {
+          _selectedCategory = v!;
+        });
+      },
     ),
   );
 

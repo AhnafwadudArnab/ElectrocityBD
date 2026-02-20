@@ -7,14 +7,52 @@ import 'A_products.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
-class AdminCustomerPage extends StatelessWidget {
+class AdminCustomerPage extends StatefulWidget {
   const AdminCustomerPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const Color darkBg = Color(0xFF0B121E);
-    const Color cardBg = Color(0xFF151C2C);
+  State<AdminCustomerPage> createState() => _AdminCustomerPageState();
+}
 
+class _AdminCustomerPageState extends State<AdminCustomerPage> {
+  final Color darkBg = const Color(0xFF0B121E);
+  final Color cardBg = const Color(0xFF151C2C);
+
+  // Dynamic customer list
+  List<Map<String, String>> customers = [
+    {
+      "name": "Rahat Islam",
+      "email": "rahat@email.com",
+      "orders": "12",
+      "joined": "Jan 2026",
+    },
+    {
+      "name": "Sumaiya Akter",
+      "email": "sumaiya@email.com",
+      "orders": "5",
+      "joined": "Feb 2026",
+    },
+  ];
+
+  // Example: List of new ordered products
+  List<String> newOrderedProducts = [
+    "Electric Kettle",
+    "Smart Bulb",
+    "Rice Cooker",
+  ];
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: darkBg,
       body: Row(
@@ -72,6 +110,8 @@ class AdminCustomerPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
+                        _buildAddCustomerForm(),
+                        const SizedBox(height: 24),
                         _buildCustomerGrid(cardBg),
                       ],
                     ),
@@ -85,22 +125,76 @@ class AdminCustomerPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomerGrid(Color cardBg) {
-    final customers = [
-      {
-        "name": "Rahat Islam",
-        "email": "rahat@email.com",
-        "orders": "12",
-        "joined": "Jan 2026",
-      },
-      {
-        "name": "Sumaiya Akter",
-        "email": "sumaiya@email.com",
-        "orders": "5",
-        "joined": "Feb 2026",
-      },
-    ];
+  Widget _buildAddCustomerForm() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _nameController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: "Customer Name",
+                hintStyle: TextStyle(color: Colors.white38),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _emailController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: "Email",
+                hintStyle: TextStyle(color: Colors.white38),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton(
+            onPressed: () {
+              if (_nameController.text.isEmpty ||
+                  _emailController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Please fill both name and email."),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              setState(() {
+                customers.insert(0, {
+                  "name": _nameController.text,
+                  "email": _emailController.text,
+                  "orders": "0",
+                  "joined": "Feb 2026",
+                });
+                _nameController.clear();
+                _emailController.clear();
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Customer added!"),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: const Text("Add"),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildCustomerGrid(Color cardBg) {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -108,6 +202,7 @@ class AdminCustomerPage extends StatelessWidget {
       ),
       child: ListView.separated(
         shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: customers.length,
         separatorBuilder: (_, __) =>
             const Divider(color: Colors.white10, height: 1),
@@ -131,20 +226,39 @@ class AdminCustomerPage extends StatelessWidget {
             customers[i]['email']!,
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                "${customers[i]['orders']} Orders",
-                style: const TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "${customers[i]['orders']} Orders",
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "Joined: ${customers[i]['joined']}",
+                    style: const TextStyle(color: Colors.grey, fontSize: 11),
+                  ),
+                ],
               ),
-              Text(
-                "Joined: ${customers[i]['joined']}",
-                style: const TextStyle(color: Colors.grey, fontSize: 11),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                onPressed: () {
+                  setState(() {
+                    customers.removeAt(i);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Customer deleted!"),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -158,10 +272,55 @@ class AdminCustomerPage extends StatelessWidget {
     color: bgColor,
     padding: const EdgeInsets.symmetric(horizontal: 32),
     child: Row(
-      children: const [
-        Text("Customers", style: TextStyle(color: Colors.white, fontSize: 18)),
-        Spacer(),
-        CircleAvatar(backgroundColor: Colors.blue, radius: 16),
+      children: [
+        const Text(
+          "Customers",
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
+        const Spacer(),
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.notifications, color: Colors.white),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("New Orders"),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: newOrderedProducts
+                          .map((product) => Text(product))
+                          .toList(),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Close"),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            if (newOrderedProducts.isNotEmpty)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    newOrderedProducts.length.toString(),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     ),
   );

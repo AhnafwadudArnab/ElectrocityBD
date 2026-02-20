@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart'; // Add this package to pubspec.yaml
 import 'package:flutter/material.dart';
 
 import 'A_Reports.dart';
@@ -7,31 +8,26 @@ import 'A_orders.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
-class AdminProductUploadPage extends StatefulWidget {
+class AdminProductUploadPage extends StatelessWidget {
   const AdminProductUploadPage({super.key});
 
   @override
-  State<AdminProductUploadPage> createState() => _AdminProductUploadPageState();
-}
-
-class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
-  // Controllers for real-time data input
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _descController = TextEditingController();
-  String _selectedCategory = 'Home Utility'; // Default based on your categories
-
-  @override
   Widget build(BuildContext context) {
-    const Color darkBg = Color(0xFF0B121E); // UI match
+    const Color darkBg = Color(0xFF0B121E);
     const Color cardBg = Color(0xFF151C2C);
-    const Color brandOrange = Color(0xFFF59E0B); // UI match
+
+    final List<String> sectionTitles = [
+      "Best Sellings",
+      "Flash Sale",
+      "Trending Items",
+      "Deals of the Day",
+      "Tech Part",
+    ];
 
     return Scaffold(
       backgroundColor: darkBg,
       body: Row(
         children: [
-          // Use the fixed AdminSidebar
           AdminSidebar(
             selected: AdminSidebarItem.products,
             onItemSelected: (item) {
@@ -62,63 +58,43 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
                 );
               }
-              // Add navigation for other items as needed
             },
           ),
           Expanded(
             child: Column(
               children: [
-                _buildHeader(cardBg),
+                // Header
+                Container(
+                  height: 70,
+                  color: cardBg,
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: const Center(
+                    child: Text(
+                      "Inventory Control",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Centered Title
-                        Center(
-                          child: Column(
-                            children: const [
-                              Text(
-                                "Add New Product",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white24, width: 2),
+                      ),
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        children: sectionTitles
+                            .map(
+                              (title) => Padding(
+                                padding: const EdgeInsets.only(bottom: 32),
+                                child: _SectionUploadCard(sectionTitle: title),
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                "Fill in the details to update your real-time inventory.",
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(height: 32),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Left Column: Product Details
-                            Expanded(
-                              flex: 2,
-                              child: _buildUploadForm(cardBg, brandOrange),
-                            ),
-                            const SizedBox(width: 32),
-                            // Right Column: Media & Category
-                            Expanded(
-                              flex: 1,
-                              child: _buildMediaAndCategory(
-                                cardBg,
-                                brandOrange,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            )
+                            .toList(),
+                      ),
                     ),
                   ),
                 ),
@@ -129,138 +105,242 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
       ),
     );
   }
+}
 
-  Widget _buildUploadForm(Color cardBg, Color orange) {
+// Single section upload card (reusable)
+class _SectionUploadCard extends StatefulWidget {
+  final String sectionTitle;
+  const _SectionUploadCard({required this.sectionTitle});
+
+  @override
+  State<_SectionUploadCard> createState() => _SectionUploadCardState();
+}
+
+class _SectionUploadCardState extends State<_SectionUploadCard> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  String _selectedCategory = 'Home Utility';
+  String? _selectedFileName;
+
+  @override
+  Widget build(BuildContext context) {
+    const Color cardBg = Color(0xFF151C2C);
+    const Color fieldBg = Color(0xFF0B121E);
+    const Color brandOrange = Color(0xFFF59E0B);
+
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
       ),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _formLabel("Product Name"),
-          _customTextField(
-            _nameController,
-            "e.g., Rice cooker, Trimmer...",
-          ), // From inventory
-          const SizedBox(height: 20),
-          _formLabel("Price (BDT)"),
-          _customTextField(_priceController, "e.g., 5500", isNumber: true),
-          const SizedBox(height: 20),
-          _formLabel("Description"),
-          _customTextField(
-            _descController,
-            "Enter product specifications...",
-            maxLines: 5,
+          Text(
+            "Add New Product in ${widget.sectionTitle}",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () {
-              // Action: Trigger Real-time database update (Firebase/Supabase)
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Product Uploaded Successfully!")),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: orange,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Form fields
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _formLabel("Product Name"),
+                    _customTextField(
+                      _nameController,
+                      "e.g., Rice cooker, Trimmer...",
+                      fieldBg,
+                    ),
+                    const SizedBox(height: 16),
+                    _formLabel("Price (BDT)"),
+                    _customTextField(
+                      _priceController,
+                      "e.g., 5500",
+                      fieldBg,
+                      isNumber: true,
+                    ),
+                    const SizedBox(height: 16),
+                    _formLabel("Description"),
+                    _customTextField(
+                      _descController,
+                      "Enter specifications...",
+                      fieldBg,
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Validate fields (optional)
+                        if (_nameController.text.isEmpty ||
+                            _priceController.text.isEmpty ||
+                            _descController.text.isEmpty ||
+                            _selectedFileName == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Please fill all fields and upload an image.",
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Product published in ${widget.sectionTitle}!",
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brandOrange,
+                        minimumSize: const Size(180, 45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        "Publish Product",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: const Text(
-              "Publish Product",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+              const SizedBox(width: 32),
+              // Image upload & category
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: fieldBg,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            color: Colors.blueAccent,
+                            size: 45,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "Image Upload",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          const SizedBox(height: 20),
+                          OutlinedButton(
+                            onPressed: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(
+                                    type: FileType.image,
+                                    allowMultiple: false,
+                                  );
+                              if (result != null && result.files.isNotEmpty) {
+                                setState(() {
+                                  _selectedFileName = result.files.first.name;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Selected: ${result.files.first.name}",
+                                    ),
+                                    backgroundColor: Colors.blue,
+                                  ),
+                                );
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: brandOrange),
+                            ),
+                            child: Text(
+                              "Select File",
+                              style: TextStyle(color: brandOrange),
+                            ),
+                          ),
+                          if (_selectedFileName != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                _selectedFileName!,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: fieldBg,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _formLabel("Category"),
+                          DropdownButton<String>(
+                            value: _selectedCategory,
+                            isExpanded: true,
+                            underline: Container(),
+                            dropdownColor: fieldBg,
+                            style: const TextStyle(color: Colors.white),
+                            items:
+                                [
+                                      'Home Utility',
+                                      'Personal Care',
+                                      'Kitchen',
+                                      'Cooling',
+                                    ]
+                                    .map(
+                                      (cat) => DropdownMenuItem(
+                                        value: cat,
+                                        child: Text(cat),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (val) =>
+                                setState(() => _selectedCategory = val!),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMediaAndCategory(Color cardBg, Color orange) {
-    return Column(
-      children: [
-        // Image Upload Section
-        Container(
-          padding: const EdgeInsets.all(24),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              const Icon(
-                Icons.cloud_upload_outlined,
-                color: Colors.grey,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "Upload Product Image",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "PNG, JPG up to 10MB",
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: orange),
-                ),
-                child: Text("Select File", style: TextStyle(color: orange)),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Category Selection
-        Container(
-          padding: const EdgeInsets.all(24),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _formLabel("Category"),
-              Theme(
-                data: Theme.of(context).copyWith(canvasColor: cardBg),
-                child: DropdownButton<String>(
-                  value: _selectedCategory,
-                  isExpanded: true,
-                  underline: Container(),
-                  style: const TextStyle(color: Colors.white),
-                  items: ['Home Utility', 'Personal Care', 'Kitchen', 'Cooling']
-                      .map(
-                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
-                      )
-                      .toList(),
-                  onChanged: (val) => setState(() => _selectedCategory = val!),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // UI Helpers
   Widget _formLabel(String label) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Text(
@@ -275,7 +355,8 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
 
   Widget _customTextField(
     TextEditingController controller,
-    String hint, {
+    String hint,
+    Color bg, {
     int maxLines = 1,
     bool isNumber = false,
   }) {
@@ -288,7 +369,7 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.white24),
         filled: true,
-        fillColor: const Color(0xFF0B121E),
+        fillColor: bg,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -296,22 +377,4 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
       ),
     );
   }
-
-  Widget _buildHeader(Color bgColor) => Container(
-    height: 70,
-    color: bgColor,
-    padding: const EdgeInsets.symmetric(horizontal: 32),
-    child: Row(
-      children: [
-        Expanded(
-          child: Center(
-            child: Text(
-              "Inventory Control",
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
 }
