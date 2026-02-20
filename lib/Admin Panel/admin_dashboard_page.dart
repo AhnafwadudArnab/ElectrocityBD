@@ -39,7 +39,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const AdminProductUploadPage(),
+                    builder: (_) => const AdminProductUploadPage(sectionTitle: 'Products'),
                   ),
                 );
               } else if (item == AdminSidebarItem.customers) {
