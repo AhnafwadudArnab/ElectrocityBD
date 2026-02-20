@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import '../../widgets/product_card.dart';
-import 'productss.dart';
 
 class CategoryPage extends StatelessWidget {
   final String title;
@@ -50,4 +48,12 @@ class CategoryPages extends StatelessWidget {
       ),
     );
   }
+}
+
+class Product {
+  final String title;
+  final double price;
+  final String imageUrl;
+
+  Product({required this.title, required this.price, required this.imageUrl});
 }
