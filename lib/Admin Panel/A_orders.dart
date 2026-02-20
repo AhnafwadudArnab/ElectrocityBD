@@ -21,29 +21,29 @@ class AdminOrdersPage extends StatelessWidget {
             onItemSelected: (item) {
               if (item == AdminSidebarItem.orders) return;
               if (item == AdminSidebarItem.dashboard) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
                 );
               } else if (item == AdminSidebarItem.products) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const AdminProductUploadPage(),
                   ),
                 );
               } else if (item == AdminSidebarItem.customers) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
                 );
               } else if (item == AdminSidebarItem.reports) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminReportsPage()),
                 );
               } else if (item == AdminSidebarItem.discounts) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
                 );

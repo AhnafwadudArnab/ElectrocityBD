@@ -33,27 +33,27 @@ class AdminProductUploadPage extends StatelessWidget {
             onItemSelected: (item) {
               if (item == AdminSidebarItem.products) return;
               if (item == AdminSidebarItem.dashboard) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
                 );
               } else if (item == AdminSidebarItem.orders) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
                 );
               } else if (item == AdminSidebarItem.customers) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
                 );
               } else if (item == AdminSidebarItem.reports) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminReportsPage()),
                 );
               } else if (item == AdminSidebarItem.discounts) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
                 );

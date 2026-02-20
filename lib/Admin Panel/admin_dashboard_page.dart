@@ -31,29 +31,29 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onItemSelected: (item) {
               if (item == AdminSidebarItem.dashboard) return;
               if (item == AdminSidebarItem.orders) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
                 );
               } else if (item == AdminSidebarItem.products) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const AdminProductUploadPage(),
                   ),
                 );
               } else if (item == AdminSidebarItem.customers) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
                 );
               } else if (item == AdminSidebarItem.reports) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminReportsPage()),
                 );
               } else if (item == AdminSidebarItem.discounts) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
                 );

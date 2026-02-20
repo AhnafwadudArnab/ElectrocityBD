@@ -66,29 +66,29 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             onItemSelected: (item) {
               if (item == AdminSidebarItem.discounts) return;
               if (item == AdminSidebarItem.dashboard) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
                 );
               } else if (item == AdminSidebarItem.orders) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
                 );
               } else if (item == AdminSidebarItem.products) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const AdminProductUploadPage(),
                   ),
                 );
               } else if (item == AdminSidebarItem.customers) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
                 );
               } else if (item == AdminSidebarItem.reports) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminReportsPage()),
                 );
