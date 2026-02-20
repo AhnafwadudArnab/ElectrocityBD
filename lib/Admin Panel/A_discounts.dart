@@ -222,6 +222,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                         setState(() {
                           activeDiscounts.remove(d);
                         });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Coupon '${d['code']}' deleted!"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       },
                     ),
                   ],

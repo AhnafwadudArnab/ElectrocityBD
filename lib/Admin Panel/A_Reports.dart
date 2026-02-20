@@ -141,7 +141,7 @@ class AdminReportsPage extends StatelessWidget {
                   ],
                 ),
               ),
-              _actionButton(reports[i]['status']!),
+              _actionButton(context, reports[i]['status']!),
             ],
           ),
         ),
@@ -149,9 +149,31 @@ class AdminReportsPage extends StatelessWidget {
     );
   }
 
-  Widget _actionButton(String status) {
+  Widget _actionButton(BuildContext context, String status) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        // Show feedback when pressed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Viewing details for $status report."),
+            backgroundColor: Colors.blueGrey,
+          ),
+        );
+        // Or show a dialog with more info if you want:
+        // showDialog(
+        //   context: context,
+        //   builder: (context) => AlertDialog(
+        //     title: Text("Report Details"),
+        //     content: Text("Status: $status"),
+        //     actions: [
+        //       TextButton(
+        //         onPressed: () => Navigator.pop(context),
+        //         child: const Text("Close"),
+        //       ),
+        //     ],
+        //   ),
+        // );
+      },
       style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey[800]),
       child: const Text("View Details", style: TextStyle(color: Colors.white)),
     );
