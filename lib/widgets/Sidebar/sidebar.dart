@@ -1,5 +1,5 @@
-import 'package:electrocitybd1/All%20Pages/Categories%20All/category_page.dart';
 import 'package:flutter/material.dart';
+
 import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
@@ -36,10 +36,8 @@ class _SidebarState extends State<Sidebar> {
     },
   ];
 
-  void _openCategory(BuildContext context, String title) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => CategoryPage(title: title)));
+  void _openCategory(BuildContext context, Widget page) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
   @override
@@ -134,7 +132,7 @@ class _SidebarState extends State<Sidebar> {
       child: Column(
         children: _categories.map((item) {
           return InkWell(
-            onTap: () => _openCategory(context, item['text']),
+            onTap: () => _openCategory(context, item['page']),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
