@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'Admin_sidebar.dart';
-import 'admin_dashboard_page.dart';
+import 'A_Reports.dart';
+import 'A_customers.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
+import 'Admin_sidebar.dart';
+import 'admin_dashboard_page.dart';
 
 class AdminDiscountPage extends StatefulWidget {
   const AdminDiscountPage({super.key});
@@ -27,6 +29,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           AdminSidebar(
             selected: AdminSidebarItem.discounts,
             onItemSelected: (item) {
+              if (item == AdminSidebarItem.discounts) return;
               if (item == AdminSidebarItem.dashboard) {
                 Navigator.pushReplacement(
                   context,
@@ -44,10 +47,17 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                     builder: (_) => const AdminProductUploadPage(),
                   ),
                 );
-              } else if (item == AdminSidebarItem.discounts) {
-               
+              } else if (item == AdminSidebarItem.customers) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
+                );
+              } else if (item == AdminSidebarItem.reports) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminReportsPage()),
+                );
               }
-              // Add navigation for other items as needed
             },
           ),
           Expanded(

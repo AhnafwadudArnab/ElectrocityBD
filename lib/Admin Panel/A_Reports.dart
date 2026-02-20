@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'A_customers.dart';
+import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
-// Add more if you have more pages (integrations, help, settings, etc.)
 
 class AdminReportsPage extends StatelessWidget {
   const AdminReportsPage({super.key});
@@ -21,6 +22,7 @@ class AdminReportsPage extends StatelessWidget {
           AdminSidebar(
             selected: AdminSidebarItem.reports,
             onItemSelected: (item) {
+              if (item == AdminSidebarItem.reports) return;
               if (item == AdminSidebarItem.dashboard) {
                 Navigator.pushReplacement(
                   context,
@@ -43,10 +45,12 @@ class AdminReportsPage extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
                 );
-              } else if (item == AdminSidebarItem.reports) {
-                // Already here
+              } else if (item == AdminSidebarItem.discounts) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
+                );
               }
-              // Add more navigation as needed
             },
           ),
           Expanded(

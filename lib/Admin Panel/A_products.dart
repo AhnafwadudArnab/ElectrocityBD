@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'A_Reports.dart';
+import 'A_customers.dart';
+import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
-// Add more if you have more pages (integrations, help, settings, etc.)
 
 class AdminProductUploadPage extends StatefulWidget {
   const AdminProductUploadPage({super.key});
@@ -33,6 +35,7 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
           AdminSidebar(
             selected: AdminSidebarItem.products,
             onItemSelected: (item) {
+              if (item == AdminSidebarItem.products) return;
               if (item == AdminSidebarItem.dashboard) {
                 Navigator.pushReplacement(
                   context,
@@ -43,8 +46,21 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
                   context,
                   MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
                 );
-              } else if (item == AdminSidebarItem.products) {
-                // Already on this page
+              } else if (item == AdminSidebarItem.customers) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
+                );
+              } else if (item == AdminSidebarItem.reports) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminReportsPage()),
+                );
+              } else if (item == AdminSidebarItem.discounts) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
+                );
               }
               // Add navigation for other items as needed
             },
