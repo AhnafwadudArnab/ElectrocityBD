@@ -1,6 +1,8 @@
 import 'package:electrocitybd1/All%20Pages/Categories%20All/category_page.dart';
 import 'package:flutter/material.dart';
-import '../../All Pages/Categories All/Side_Categories_pages.dart';
+import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
+import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
+import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 
 class Sidebar extends StatefulWidget {
