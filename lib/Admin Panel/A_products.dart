@@ -293,9 +293,13 @@ class _AdminProductUploadPageState extends State<AdminProductUploadPage> {
     padding: const EdgeInsets.symmetric(horizontal: 32),
     child: Row(
       children: const [
-        Text(
-          "Inventory Control",
-          style: TextStyle(color: Colors.white, fontSize: 18),
+        Expanded(
+          child: Center(
+            child: Text(
+              "Inventory Control",
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+          ),
         ),
         Spacer(),
         CircleAvatar(backgroundColor: Colors.blue, radius: 16),
