@@ -181,7 +181,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         ),
         SizedBox(height: r.hp(1)),
         Text(
-          widget.product.description ?? '',
+          widget.product.description,
           style: TextStyle(fontSize: 15, color: Colors.grey[800]),
         ),
         SizedBox(height: r.hp(2)),
