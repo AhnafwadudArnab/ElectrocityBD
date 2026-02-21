@@ -58,7 +58,7 @@ class AdminProductUploadPage extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
                 );
-              }else if (item == AdminSidebarItem.discounts) {
+              } else if (item == AdminSidebarItem.discounts) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminHelpPage()),
@@ -127,7 +127,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   String _selectedCategory = 'Home Utility';
-  String? _selectedFileName;
+  PlatformFile? _selectedFile;
+
+  // Store products for this section
+  List<Map<String, dynamic>> products = [];
 
   @override
   Widget build(BuildContext context) {
@@ -188,11 +191,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
-                        // Validate fields (optional)
                         if (_nameController.text.isEmpty ||
                             _priceController.text.isEmpty ||
                             _descController.text.isEmpty ||
-                            _selectedFileName == null) {
+                            _selectedFile == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -202,6 +204,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                             ),
                           );
                         } else {
+                          setState(() {
+                            products.insert(0, {
+                              "name": _nameController.text,
+                              "price": _priceController.text,
+                              "desc": _descController.text,
+                              "category": _selectedCategory,
+                              "image": _selectedFile,
+                            });
+                            _nameController.clear();
+                            _priceController.clear();
+                            _descController.clear();
+                            _selectedFile = null;
+                          });
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
@@ -245,11 +260,18 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       ),
                       child: Column(
                         children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            color: Colors.blueAccent,
-                            size: 45,
-                          ),
+                          _selectedFile != null
+                              ? Image.memory(
+                                  _selectedFile!.bytes!,
+                                  height: 80,
+                                  width: 80,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.cloud_upload_outlined,
+                                  color: Colors.blueAccent,
+                                  size: 45,
+                                ),
                           const SizedBox(height: 12),
                           const Text(
                             "Image Upload",
@@ -263,10 +285,11 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                                   .pickFiles(
                                     type: FileType.image,
                                     allowMultiple: false,
+                                    withData: true, // Needed for web preview
                                   );
                               if (result != null && result.files.isNotEmpty) {
                                 setState(() {
-                                  _selectedFileName = result.files.first.name;
+                                  _selectedFile = result.files.first;
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -286,11 +309,11 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                               style: TextStyle(color: brandOrange),
                             ),
                           ),
-                          if (_selectedFileName != null)
+                          if (_selectedFile != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                _selectedFileName!,
+                                _selectedFile!.name,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -342,6 +365,48 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          // Show uploaded products in real time
+          if (products.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(color: Colors.white24),
+                const SizedBox(height: 12),
+                const Text(
+                  "Published Products:",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...products.map(
+                  (p) => ListTile(
+                    leading: p["image"] != null
+                        ? Image.memory(
+                            p["image"].bytes!,
+                            height: 40,
+                            width: 40,
+                            fit: BoxFit.cover,
+                          )
+                        : const Icon(Icons.image, color: Colors.white),
+                    title: Text(
+                      p["name"],
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      "${p["price"]} BDT\n${p["desc"]}",
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    trailing: Text(
+                      p["category"],
+                      style: const TextStyle(color: Colors.orange),
+                    ),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
