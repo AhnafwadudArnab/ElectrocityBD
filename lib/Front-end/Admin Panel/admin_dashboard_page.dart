@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../All Pages/Registrations/signup.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
-import 'A_customers.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
@@ -31,72 +30,60 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             selected: AdminSidebarItem.dashboard,
             onItemSelected: (item) {
               if (item == AdminSidebarItem.dashboard) return;
-              if (item == AdminSidebarItem.orders) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
-                );
-              } else if (item == AdminSidebarItem.products) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminProductUploadPage(),
-                  ),
-                );
-              } else if (item == AdminSidebarItem.customers) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
-                );
-              } else if (item == AdminSidebarItem.reports) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminReportsPage()),
-                );
-              } else if (item == AdminSidebarItem.discounts) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
-                );
-              } else if (item == AdminSidebarItem.help) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
-                );
+
+              Widget page;
+
+              switch (item) {
+                case AdminSidebarItem.orders:
+                  page = const AdminOrdersPage();
+                  break;
+                case AdminSidebarItem.products:
+                  page = const AdminProductUploadPage();
+                  break;
+                // case AdminSidebarItem.customers:
+                //   page = const AdminLayoutPage();
+                //   break;
+                case AdminSidebarItem.reports:
+                  page = const AdminReportsPage();
+                  break;
+                case AdminSidebarItem.discounts:
+                  page = const AdminDiscountPage();
+                  break;
+                case AdminSidebarItem.help:
+                  page = const AdminHelpPage();
+                  break;
+                default:
+                  return;
               }
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => page),
+              );
             },
           ),
-          // Main Content
           Expanded(
             child: Column(
               children: [
                 _buildTopBar(),
+                const SizedBox(height: 24),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildStatsCards(),
                         const SizedBox(height: 24),
+                        _buildRevenueAnalytics(),
+                        const SizedBox(height: 24),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                children: [_buildRevenueAnalytics()],
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              flex: 1,
-                              child: Column(children: [_buildMonthlyTarget()]),
-                            ),
+                            Expanded(child: _buildMonthlyTarget()),
+                            const SizedBox(width: 16),
+                            Expanded(child: _buildConversionRate()),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        _buildConversionRate(),
                       ],
                     ),
                   ),

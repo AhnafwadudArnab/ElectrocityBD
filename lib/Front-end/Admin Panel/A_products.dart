@@ -43,12 +43,7 @@ class AdminProductUploadPage extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
                 );
-              } else if (item == AdminSidebarItem.customers) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
-                );
-              } else if (item == AdminSidebarItem.reports) {
+              }  else if (item == AdminSidebarItem.reports) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AdminReportsPage()),

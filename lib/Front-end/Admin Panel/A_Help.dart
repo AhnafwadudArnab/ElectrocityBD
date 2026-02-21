@@ -1,7 +1,10 @@
-import 'package:electrocitybd1/Front-end/Admin%20Panel/admin_dashboard_page.dart';
 import 'package:flutter/material.dart';
-import 'A_Reports.dart';
+
+import 'admin_dashboard_page.dart';
+import 'A_products.dart';
+import 'A_orders.dart';
 import 'A_customers.dart';
+import 'A_Reports.dart';
 import 'A_discounts.dart';
 import 'Admin_sidebar.dart';
 
@@ -10,51 +13,50 @@ class AdminHelpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color darkBg = Color(0xFF0B121E); // Outer Background
-    const Color cardBg = Color(0xFF151C2C); // Card Background
-    const Color brandOrange = Color(0xFFF59E0B); // Brand Orange
+    const Color darkBg = Color(0xFF0B121E);
+    const Color cardBg = Color(0xFF151C2C);
+    const Color brandOrange = Color(0xFFF59E0B);
 
     return Scaffold(
       backgroundColor: darkBg,
       body: Row(
         children: [
-          // Sidebar Section
+          /// SIDEBAR
           AdminSidebar(
-            selected: AdminSidebarItem.help, // Help item selected hobe
+            selected: AdminSidebarItem.help,
             onItemSelected: (item) {
-              if (item != AdminSidebarItem.help) {
-                // Example navigation logic
-                if (item == AdminSidebarItem.dashboard) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AdminDashboardPage(),
-                    ),
-                  );
-                } else if (item == AdminSidebarItem.products) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AdminReportsPage()),
-                  );
-                } else if (item == AdminSidebarItem.customers) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AdminCustomerPage(),
-                    ),
-                  );
-                } else if (item == AdminSidebarItem.discounts) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AdminDiscountPage(),
-                    ),
-                  );
-                }
-                // Add more navigation cases as needed
+              if (item == AdminSidebarItem.help) return;
+
+              Widget page;
+
+              switch (item) {
+                case AdminSidebarItem.dashboard:
+                  page = const AdminDashboardPage();
+                  break;
+                case AdminSidebarItem.products:
+                  page = const AdminProductUploadPage();
+                  break;
+                case AdminSidebarItem.orders:
+                  page = const AdminOrdersPage();
+                  break;
+                case AdminSidebarItem.reports:
+                  page = const AdminReportsPage();
+                  break;
+                case AdminSidebarItem.discounts:
+                  page = const AdminDiscountPage();
+                  break;
+                default:
+                  return;
               }
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => page),
+              );
             },
           ),
+
+          /// MAIN CONTENT
           Expanded(
             child: Column(
               children: [
@@ -80,20 +82,20 @@ class AdminHelpPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 32),
 
-                        // Main Help Content inside a Background Card
+                        /// MAIN CARD
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
                             color: cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.05),
+                              color: Colors.white10,
                             ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 1. FAQ Section
+                              /// FAQ
                               const Text(
                                 "Frequently Asked Questions",
                                 style: TextStyle(
@@ -103,6 +105,7 @@ class AdminHelpPage extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 20),
+
                               _buildFAQTile(
                                 "How to upload a new product?",
                                 "Go to the Products page and fill out the 'Add New Product' form.",
@@ -120,7 +123,7 @@ class AdminHelpPage extends StatelessWidget {
                               const Divider(color: Colors.white10),
                               const SizedBox(height: 32),
 
-                              // 2. Contact Support Row
+                              /// CONTACT
                               const Text(
                                 "Contact Technical Support",
                                 style: TextStyle(
@@ -130,6 +133,7 @@ class AdminHelpPage extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 20),
+
                               Row(
                                 children: [
                                   _buildContactCard(
@@ -164,18 +168,19 @@ class AdminHelpPage extends StatelessWidget {
     );
   }
 
-  // FAQ Expandable Tile
+  /// FAQ TILE
   Widget _buildFAQTile(String question, String answer) {
     return Theme(
       data: ThemeData(dividerColor: Colors.transparent),
       child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
         title: Text(
           question,
           style: const TextStyle(color: Colors.white70, fontSize: 15),
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               answer,
               style: const TextStyle(color: Colors.grey, fontSize: 14),
@@ -186,7 +191,7 @@ class AdminHelpPage extends StatelessWidget {
     );
   }
 
-  // Contact Info Card
+  /// CONTACT CARD
   Widget _buildContactCard(
     Color bg,
     IconData icon,
@@ -215,7 +220,10 @@ class AdminHelpPage extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               info,
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -223,15 +231,16 @@ class AdminHelpPage extends StatelessWidget {
     );
   }
 
+  /// HEADER
   Widget _buildHeader(Color bgColor) => Container(
-    height: 70,
-    color: bgColor,
-    padding: const EdgeInsets.symmetric(horizontal: 32),
-    child: const Center(
-      child: Text(
-        "Support Center",
-        style: TextStyle(color: Colors.white, fontSize: 18),
-      ),
-    ),
-  );
+        height: 70,
+        color: bgColor,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: const Center(
+          child: Text(
+            "Support Center",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+        ),
+      );
 }

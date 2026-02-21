@@ -95,46 +95,39 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
       backgroundColor: const Color(0xFFF7F8FD),
       body: Row(
         children: [
-          AdminSidebar(
+            AdminSidebar(
             selected: AdminSidebarItem.orders,
             onItemSelected: (item) {
               if (item == AdminSidebarItem.orders) return;
-              if (item == AdminSidebarItem.dashboard) {
-                Navigator.push(
+              Widget? page;
+              switch (item) {
+                case AdminSidebarItem.dashboard:
+                  page = const AdminDashboardPage();
+                  break;
+                case AdminSidebarItem.products:
+                  page = const AdminProductUploadPage();
+                  break;
+                 case AdminSidebarItem.reports:
+                  page =  const AdminReportsPage();
+                  break;
+                case AdminSidebarItem.discounts:
+                  page =  const AdminDiscountPage();
+                  break;
+                case AdminSidebarItem.help:
+                  page =  const AdminHelpPage();
+                  break;
+                default:
+                  page = null;
+              }
+              if (page != null) {
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-                );
-              } else if (item == AdminSidebarItem.products) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminProductUploadPage(),
-                  ),
-                );
-              } else if (item == AdminSidebarItem.customers) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminCustomerPage()),
-                );
-              } else if (item == AdminSidebarItem.reports) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminReportsPage()),
-                );
-              } else if (item == AdminSidebarItem.discounts) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminDiscountPage()),
-                );
-              }else if (item == AdminSidebarItem.discounts) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminHelpPage()),
+                  MaterialPageRoute(builder: (_) => page!),
                 );
               }
             },
-          ),
-          Expanded(
+            ),
+            Expanded(
             child: Column(children: [_buildTopBar(), _buildOrderTable()]),
           ),
         ],
