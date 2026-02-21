@@ -1,10 +1,10 @@
 //import 'package:electrocitybd1/pages/home_page.dart';
-import 'package:electrocitybd1/pages/home_page.dart';
+import 'package:electrocitybd1/Front-end/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'All Pages/CART/Cart_provider.dart';
-import 'pages/Profiles/Wishlist_provider.dart';
+import 'Front-end/All Pages/CART/Cart_provider.dart';
+import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
