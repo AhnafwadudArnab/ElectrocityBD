@@ -4,6 +4,8 @@ import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../pages/Templates/all_products_template.dart';
+import '../../pages/Templates/latest_arrival_page.dart';
 import '../Sections/Flash Sale/Flash_sale_all.dart';
 
 class Sidebar extends StatefulWidget {
@@ -160,6 +162,7 @@ class _SidebarState extends State<Sidebar> {
   }
 
   Widget _buildLivePromoCard(Color accent) {
+     const imgPath = "assets/flash";
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -190,7 +193,8 @@ class _SidebarState extends State<Sidebar> {
           ElevatedButton(
             onPressed: () {
               MaterialPageRoute route = MaterialPageRoute(
-                builder: (context) => FlashSaleAll(), // এখানে আপনার প্রোমো পেজের উইজেট দিন
+                builder: (context) =>
+                    FlashSaleAll(), // এখানে আপনার প্রোমো পেজের উইজেট দিন
               );
               Navigator.push(context, route);
             },
@@ -213,64 +217,101 @@ class _SidebarState extends State<Sidebar> {
   }
 
   Widget _buildProductMiniList(Color accent) {
+    const imgPath = "assets/flash";
     final products = [
       {
-        'name': 'RTX 4090 GPU',
-        'price': '1,85,000',
-        'img': 'https://picsum.photos/id/1/60/60',
+        'name': 'Circular Saw',
+        'price': 7200.0,
+        'category': 'Power Tools',
+        'brand': 'Brand A',
+        'specs': ['Corded', 'Laser Guide'],
+        'img': "$imgPath/Circular Saw.jpg",
+        'description': 'A powerful circular saw for cutting wood.',
+        'additionalInfo': {},
       },
       {
-        'name': 'MacBook M3 Pro',
-        'price': '2,45,000',
-        'img': 'https://picsum.photos/id/2/60/60',
+        'name': 'Orbital Sander',
+        'price': 3800.0,
+        'category': 'Power Tools',
+        'brand': 'Brand B',
+        'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
+        'img': "$imgPath/Orbital Sander.jpg",
+        'description': 'Smooth finish orbital sander.',
+        'additionalInfo': {},
       },
       {
-        'name': 'Sony WH-1000XM5',
-        'price': '35,500',
-        'img': 'https://picsum.photos/id/3/60/60',
-      },
+        'name': 'Rotary Hammer Drill',
+        'price': 6500.0,
+        'category': 'Power Tools',
+        'brand': 'Brand A',
+        'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
+        'img': "$imgPath/Rotary Hammer Drill.jpg",
+        'description': 'Heavy-duty rotary hammer drill.',
+        'additionalInfo': {},
+      }
     ];
 
     return Column(
       children: products.map((p) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  p['img']!,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
+          child: InkWell(
+            onTap: () {
+              final productData = ProductData(
+                id: p['name'] as String,
+                name: p['name'] as String,
+                category: p['category'] as String? ?? '',
+                priceBDT: p['price'] as double? ?? 0,
+                images: [p['img'] as String],
+                description: p['description'] as String? ?? '',
+                additionalInfo: Map<String, String>.from(
+                  p['additionalInfo'] as Map<dynamic, dynamic>? ?? {},
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p['name']!,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tk ${p['price']}',
-                      style: TextStyle(
-                        color: accent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+              );
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => LatestArrivalPage(product: productData),
                 ),
-              ),
-            ],
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    p['img'] as String,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        p['name'] as String,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Tk ${(p['price'] as double).toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: accent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }).toList(),
