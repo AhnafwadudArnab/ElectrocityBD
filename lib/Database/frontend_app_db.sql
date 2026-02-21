@@ -1,16 +1,17 @@
 -- Create the Database
-CREATE DATABASE IF NOT EXISTS electrocity_db;
-USE electrocity_db;
+CREATE DATABASE IF NOT EXISTS sql12817693;
+USE sql12817693;
 
 -- USERS TABLE (Admins, Moderators, Technicians, Customers)
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     PASSWORD VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
     address TEXT,
-    role ENUM('admin', 'moderator', 'technician', 'customer') DEFAULT 'customer',
+    role ENUM('admin','customer') DEFAULT 'customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -179,7 +180,80 @@ CREATE TABLE IF NOT EXISTS collection_products (
     FOREIGN KEY (collection_id) REFERENCES collections(collection_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
+-- DEALS OF THE DAY
+CREATE TABLE IF NOT EXISTS deals_of_the_day (
+    deal_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    deal_price DECIMAL(10,2),
+    start_date DATETIME,
+    end_date DATETIME,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
 
+-- FEATURED BRANDS
+CREATE TABLE IF NOT EXISTS featured_brands (
+    brand_id INT PRIMARY KEY,
+    featured BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (brand_id) REFERENCES brands(brand_id) ON DELETE CASCADE
+);
+
+-- MID BANNER ROW (for homepage banners)
+CREATE TABLE IF NOT EXISTS mid_banners (
+    banner_id INT AUTO_INCREMENT PRIMARY KEY,
+    image_url VARCHAR(255),
+    link_url VARCHAR(255),
+    active BOOLEAN DEFAULT TRUE,
+    start_date DATETIME,
+    end_date DATETIME
+);
+
+-- OFFERS UPTO 90%
+CREATE TABLE IF NOT EXISTS offers_upto_90 (
+    offer_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    discount_percent DECIMAL(5,2),
+    start_date DATETIME,
+    end_date DATETIME,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+-- PROMO CARDS (for promotional content)
+CREATE TABLE IF NOT EXISTS promo_cards (
+    promo_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100),
+    description TEXT,
+    image_url VARCHAR(255),
+    link_url VARCHAR(255),
+    active BOOLEAN DEFAULT TRUE,
+    start_date DATETIME,
+    end_date DATETIME
+);
+
+-- TECH PART (for tech-related featured products)
+CREATE TABLE IF NOT EXISTS tech_part (
+    tech_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    featured BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+-- BEST SELLINGS
+CREATE TABLE IF NOT EXISTS best_sellers (
+    product_id INT PRIMARY KEY,
+    sales_count INT DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+-- COLLECTIONS (already included previously)
+-- FLASH SALE (already included previously)
+-- TRENDINGS
+CREATE TABLE IF NOT EXISTS trending_products (
+    product_id INT PRIMARY KEY,
+    trending_score INT DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
 -- REPORTS TABLE
 CREATE TABLE IF NOT EXISTS reports (
     report_id INT AUTO_INCREMENT PRIMARY KEY,
