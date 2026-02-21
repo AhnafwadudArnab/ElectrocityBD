@@ -21,6 +21,7 @@ analyzer:
     dead_null_aware_expression: ignore
     prefer_final_fields: ignore
     library_private_types_in_public_api: ignore
+    unnecessary_type_check: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

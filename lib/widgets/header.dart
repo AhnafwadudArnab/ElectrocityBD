@@ -10,6 +10,24 @@ import '../All Pages/CART/Cart_provider.dart';
 import '../All Pages/CART/Main_carting.dart';
 import '../All Pages/Registrations/signup.dart';
 import '../Dimensions/responsive_dimensions.dart';
+import '../pages/Templates/all_products_template.dart';
+import 'SearchRes.dart';
+
+// Dummy product list for demo; replace with your actual product source/provider
+final List<ProductData> allProducts = [
+  ProductData(
+    id: '1',
+    name: 'Smartphone XYZ',
+    category: 'Electronics',
+
+    priceBDT: 32000,
+    images: ['https://via.placeholder.com/150'],
+
+    description: 'A demo smartphone for testing.',
+    additionalInfo: {},
+  ),
+  // ...add more products
+];
 
 class Header extends StatefulWidget implements PreferredSizeWidget {
   const Header({super.key});
@@ -22,6 +40,8 @@ class Header extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HeaderState extends State<Header> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
@@ -169,11 +189,25 @@ class _HeaderState extends State<Header> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: TextField(
+                                  controller: _searchController,
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Search here...',
                                     isDense: true,
                                   ),
+                                  onSubmitted: (query) {
+                                    if (query.isNotEmpty) {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              SearchResultsPage(
+                                                query: query,
+                                                allProducts: allProducts,
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                  },
                                 ),
                               ),
                             ],
@@ -319,8 +353,7 @@ class _HeaderState extends State<Header> {
                                       Navigator.pop(context);
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              const Signup(),
+                                          builder: (context) => const Signup(),
                                         ),
                                       );
                                     },
