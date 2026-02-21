@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'admin_dashboard_page.dart';
 import 'A_products.dart';
 import 'A_orders.dart';
-import 'A_customers.dart';
 import 'A_Reports.dart';
 import 'A_discounts.dart';
 import 'Admin_sidebar.dart';

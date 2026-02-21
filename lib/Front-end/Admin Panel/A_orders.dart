@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 
 import 'A_Help.dart';
 import 'A_Reports.dart';
-import 'A_customers.dart';
 import 'A_discounts.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
