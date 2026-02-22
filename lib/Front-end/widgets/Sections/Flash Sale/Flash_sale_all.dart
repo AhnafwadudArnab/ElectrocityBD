@@ -85,16 +85,19 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     // ... অন্যান্য স্যাম্পল প্রোডাক্ট
   ];
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    final s = v.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(s) ?? 0;
+  }
+
   // অ্যাডমিন প্রোডাক্টকে স্ট্যান্ডার্ড ফরম্যাটে কনভার্ট করা
   List<Map<String, dynamic>> _convertAdminProducts(
     List<Map<String, dynamic>> adminProducts,
   ) {
     return adminProducts.map((p) {
-      final price =
-          double.tryParse(
-            p['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
-          ) ??
-          0;
+      final price = _parsePrice(p['price']);
       final imageUrl = p['imageUrl'] != null &&
               (p['imageUrl'] as String).isNotEmpty
           ? p['imageUrl'] as String

@@ -39,13 +39,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     _loadDashboardStats();
   }
 
+  String? _statsError;
+
   Future<void> _loadDashboardStats() async {
+    _statsError = null;
     try {
       final stats = await ApiService.getDashboardStats();
-      if (mounted) setState(() { _dashboardStats = stats; _statsLoading = false; });
-    } catch (_) {
-      if (mounted) setState(() { _statsLoading = false; });
+      if (mounted) setState(() { _dashboardStats = stats; _statsLoading = false; _statsError = null; });
+    } catch (e) {
+      if (mounted) setState(() {
+        _statsLoading = false;
+        _statsError = e is ApiException ? e.message : 'Failed to load dashboard.';
+      });
     }
+  }
+
+  static double _toDouble(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0;
+    return 0;
+  }
+
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? 0;
+    return 0;
   }
 
   Widget _buildDashboardContent() {
@@ -279,9 +300,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    final totalRevenue = (_dashboardStats?['totalRevenue'] as num?)?.toDouble() ?? 0;
-    final totalOrders = (_dashboardStats?['totalOrders'] as int?) ?? 0;
-    final totalCustomers = (_dashboardStats?['totalCustomers'] as int?) ?? 0;
+    if (_statsError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_statsError!, style: TextStyle(color: Colors.red[700]), textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: _loadDashboardStats,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    final totalRevenue = _toDouble(_dashboardStats?['totalRevenue']);
+    final totalOrders = _toInt(_dashboardStats?['totalOrders']);
+    final totalCustomers = _toInt(_dashboardStats?['totalCustomers']);
     return Row(
       children: [
         Expanded(
@@ -433,17 +473,21 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 gridData: FlGridData(show: true),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) => Text('${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                    ),
                   ),
                   bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: true, reservedSize: 30),
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, meta) => Text('${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                    ),
                   ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [

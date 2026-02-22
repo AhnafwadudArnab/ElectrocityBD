@@ -145,8 +145,10 @@ class _TechpartState extends State<Techpart> {
     });
   }
 
-  double _parsePrice(String value) {
-    final cleaned = value.replaceAll(RegExp(r'[^0-9.]'), '');
+  double _parsePrice(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    final cleaned = value.toString().replaceAll(RegExp(r'[^0-9.]'), '');
     return double.tryParse(cleaned) ?? 0.0;
   }
 
@@ -156,15 +158,11 @@ class _TechpartState extends State<Techpart> {
 
     if (_selectedSort == 'price_low') {
       sorted.sort(
-        (a, b) => _parsePrice(
-          a['price'] as String,
-        ).compareTo(_parsePrice(b['price'] as String)),
+        (a, b) => _parsePrice(a['price']).compareTo(_parsePrice(b['price'])),
       );
     } else if (_selectedSort == 'price_high') {
       sorted.sort(
-        (a, b) => _parsePrice(
-          b['price'] as String,
-        ).compareTo(_parsePrice(a['price'] as String)),
+        (a, b) => _parsePrice(b['price']).compareTo(_parsePrice(a['price'])),
       );
     }
     return sorted;
@@ -176,7 +174,7 @@ class _TechpartState extends State<Techpart> {
         id: '${product['product_id'] ?? index}',
         name: product['name'] as String,
         category: 'Tech Part',
-        priceBDT: _parsePrice(product['price'] as String),
+        priceBDT: _parsePrice(product['price']),
         images: (product['image'] != null && (product['image'] as String).isNotEmpty) ? [product['image'] as String] : [],
         description: 'Tech part from our latest collection.',
         additionalInfo: {'Rating': '${product['rating'] ?? 4}'},
@@ -186,11 +184,7 @@ class _TechpartState extends State<Techpart> {
 
     if (isAdmin) {
       final adminData = product['adminData'] as Map<String, dynamic>;
-      final price =
-          double.tryParse(
-            adminData['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
-          ) ??
-          0;
+      final price = _parsePrice(adminData['price']);
       final adminImages = adminData['imageUrl'] != null &&
               (adminData['imageUrl'] as String).isNotEmpty
           ? [adminData['imageUrl'] as String]
@@ -210,7 +204,7 @@ class _TechpartState extends State<Techpart> {
         id: 'tech_$index',
         name: product['name'] as String,
         category: 'Tech Part',
-        priceBDT: _parsePrice(product['price'] as String),
+        priceBDT: _parsePrice(product['price']),
         images: [product['image'] as String],
         description: 'Tech part from our latest collection.',
         additionalInfo: {'Rating': '${product['rating']}'},

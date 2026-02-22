@@ -106,10 +106,17 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
     ),
   ];
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    final s = v.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(s) ?? 0;
+  }
+
   // অ্যাডমিন প্রোডাক্টকে FlashSaleItem-এ কনভার্ট করা
   List<FlashSaleItem> _convertAdminProducts(List<Map<String, dynamic>> adminProducts) {
     return adminProducts.map((p) {
-      final price = double.tryParse(p['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0') ?? 0;
+      final price = _parsePrice(p['price']);
       final discountedPrice = (price * 0.8).toInt(); // 20% ডিসকাউন্ট (ধরে নিলাম)
       
       return FlashSaleItem(
@@ -124,7 +131,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
 
   ProductData _buildProductData(dynamic product, int index, {bool isFromAdmin = false}) {
     if (isFromAdmin) {
-      final price = double.tryParse(product['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0') ?? 0;
+      final price = _parsePrice(product['price']);
       final adminImages = product['imageUrl'] != null &&
               (product['imageUrl'] as String).isNotEmpty
           ? [product['imageUrl'] as String]

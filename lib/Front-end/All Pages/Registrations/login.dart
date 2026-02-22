@@ -62,6 +62,9 @@ class _LogInState extends State<LogIn> {
             mergeFromGuest: true,
           );
       if (!mounted) return;
+      // Re-init cart from server for logged-in user so home page has consistent state
+      await context.read<CartProvider>().init();
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

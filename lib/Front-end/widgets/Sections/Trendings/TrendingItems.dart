@@ -66,16 +66,19 @@ class TrendingItems extends StatelessWidget {
     ),
   ];
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    final s = v.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(s) ?? 0;
+  }
+
   // অ্যাডমিন প্রোডাক্টকে TrendingItem-এ কনভার্ট করা
   List<TrendingItem> _convertAdminProducts(
     List<Map<String, dynamic>> adminProducts,
   ) {
     return adminProducts.map((p) {
-      final price =
-          double.tryParse(
-            p['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
-          ) ??
-          0;
+      final price = _parsePrice(p['price']);
       final discountedPrice = (price * 0.85).toInt(); // 15% ডিসকাউন্ট
 
       return TrendingItem(
@@ -95,11 +98,7 @@ class TrendingItems extends StatelessWidget {
     bool isFromAdmin = false,
   }) {
     if (isFromAdmin) {
-      final price =
-          double.tryParse(
-            product['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
-          ) ??
-          0;
+      final price = _parsePrice(product['price']);
       final adminImages = product['imageUrl'] != null &&
               (product['imageUrl'] as String).isNotEmpty
           ? [product['imageUrl'] as String]
