@@ -13,6 +13,13 @@ class AppConstants {
     return 'http://localhost:3000/api';
   }
 
+  /// Base URL for images (product images from backend uploads). API returns full URL; use this if you have relative path.
+  static String get baseUrlImages {
+    final api = baseUrl;
+    if (api.endsWith('/api')) return api.replaceAll('/api', '');
+    return api.replaceAll(RegExp(r'/api.*'), '');
+  }
+
   // Default Values
   static const int cartItemCount = 3;
   static const double defaultRating = 4.5;

@@ -10,6 +10,7 @@ import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
+import 'A_banners.dart';
 import 'A_carts.dart';
 import 'A_discounts.dart';
 import 'A_products.dart';
@@ -82,6 +83,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   break;
                 case AdminSidebarItem.discounts:
                   page = const AdminDiscountPage(embedded: true);
+                  break;
+                case AdminSidebarItem.banners:
+                  page = const AdminBannersPage(embedded: true);
                   break;
                 case AdminSidebarItem.help:
                   page = const AdminHelpPage(embedded: true);

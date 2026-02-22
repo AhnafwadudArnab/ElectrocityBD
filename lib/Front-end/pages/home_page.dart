@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
+import '../Provider/Banner_provider.dart';
 import '../Provider/Admin_product_provider.dart';
 import '../widgets/Sections/BestSellings/best_selling.dart';
 import '../widgets/Sections/Collections/collections_pages.dart';
@@ -61,37 +62,20 @@ class _MainContent extends StatefulWidget {
 class _MainContentState extends State<_MainContent> {
   int _currentIndex = 0;
 
-  final List<Map<String, String>> _slides = [
-    {
-      // 'title': 'Pre-Ramadan Sale\nUp to 70% Off',
-      // 'subtitle': 'Best selling on Nika',
-      'image': 'assets/Hero banner logos/pre-ramadan.png',
-      'label': 'SPECIAL OFFERS',
-    },
-    {
-      // 'title': 'Electronics Sale\nUp to 50% Off',
-      // 'subtitle': 'Best deals on gadgets',
-      'image': 'assets/Hero banner logos/dopp.png',
-      'label': 'HOT DEALS',
-    },
-    {
-      // 'title': 'New Arrivals\nJust For You',
-      // 'subtitle': 'Latest products in store',
-      'image': 'assets/Hero banner logos/top.png',
-      'label': 'NEW IN',
-    },
+  static const List<Map<String, String>> _defaultSlides = [
+    {'image': 'assets/Hero banner logos/pre-ramadan.png', 'label': 'SPECIAL OFFERS'},
+    {'image': 'assets/Hero banner logos/dopp.png', 'label': 'HOT DEALS'},
+    {'image': 'assets/Hero banner logos/top.png', 'label': 'NEW IN'},
   ];
 
-  void _nextSlide() {
-    setState(() {
-      _currentIndex = (_currentIndex + 1) % _slides.length;
-    });
+  void _nextSlide(int length) {
+    if (length == 0) return;
+    setState(() => _currentIndex = (_currentIndex + 1) % length);
   }
 
-  void _prevSlide() {
-    setState(() {
-      _currentIndex = (_currentIndex - 1 + _slides.length) % _slides.length;
-    });
+  void _prevSlide(int length) {
+    if (length == 0) return;
+    setState(() => _currentIndex = (_currentIndex - 1 + length) % length);
   }
 
   Widget _sliderButton(IconData icon, {VoidCallback? onTap}) {
@@ -117,8 +101,9 @@ class _MainContentState extends State<_MainContent> {
   Widget _buildHeroBanner(
     BuildContext context,
     Map<String, String> slide,
-    AppResponsive r,
-  ) {
+    AppResponsive r, {
+    int slidesLength = 1,
+  }) {
     final height = r.value(
       smallMobile: 200.0,
       mobile: 250.0,
@@ -217,7 +202,7 @@ class _MainContentState extends State<_MainContent> {
               top: 0,
               bottom: 0,
               child: Center(
-                child: _sliderButton(Icons.chevron_left, onTap: _prevSlide),
+                child: _sliderButton(Icons.chevron_left, onTap: slidesLength > 0 ? () => _prevSlide(slidesLength) : null),
               ),
             ),
 
@@ -227,7 +212,7 @@ class _MainContentState extends State<_MainContent> {
               top: 0,
               bottom: 0,
               child: Center(
-                child: _sliderButton(Icons.chevron_right, onTap: _nextSlide),
+                child: _sliderButton(Icons.chevron_right, onTap: slidesLength > 0 ? () => _nextSlide(slidesLength) : null),
               ),
             ),
 
@@ -239,7 +224,7 @@ class _MainContentState extends State<_MainContent> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  _slides.length,
+                  slidesLength,
                   (i) => GestureDetector(
                     onTap: () {
                       setState(() => _currentIndex = i);
@@ -249,7 +234,7 @@ class _MainContentState extends State<_MainContent> {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: i == _currentIndex
+                        color: i == (_currentIndex % slidesLength)
                             ? Colors.teal
                             : Colors.grey.shade400,
                         shape: BoxShape.circle,
@@ -306,7 +291,10 @@ class _MainContentState extends State<_MainContent> {
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
-    final slide = _slides[_currentIndex];
+    final bp = context.watch<BannerProvider>();
+    final slides = bp.heroSlides.isNotEmpty ? bp.heroSlides : _defaultSlides;
+    final len = slides.length;
+    final slide = slides[_currentIndex % len];
 
     return Consumer<AdminProductProvider>(
       builder: (context, adminProductProvider, _) {
@@ -328,7 +316,7 @@ class _MainContentState extends State<_MainContent> {
               ? Column(
                   children: [
                     /// HERO BANNER
-                    _buildHeroBanner(context, slide, r),
+                    _buildHeroBanner(context, slide, r, slidesLength: len),
                     const SizedBox(height: 12),
 
                     /// BEST SELLING (full width on mobile)
@@ -341,7 +329,7 @@ class _MainContentState extends State<_MainContent> {
                     /// HERO BANNER
                     Expanded(
                       flex: 7,
-                      child: _buildHeroBanner(context, slide, r),
+                      child: _buildHeroBanner(context, slide, r, slidesLength: len),
                     ),
                     const SizedBox(width: 12),
 

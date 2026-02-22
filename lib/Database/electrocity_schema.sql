@@ -226,6 +226,16 @@ CREATE TABLE IF NOT EXISTS trending_products (
 );
 
 -- ---------------------------------------------------------------------------
+-- 15b. Tech Part (homepage section)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tech_part_products (
+  product_id INT PRIMARY KEY,
+  display_order INT DEFAULT 0,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------------------------
 -- 16. Admin reports
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS reports (

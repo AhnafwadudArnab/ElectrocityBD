@@ -5,6 +5,7 @@ import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
+import '../../../utils/api_service.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -32,6 +33,11 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   final List<String> _selectedCategories = [];
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
+
+  // Products loaded from backend (DB). If empty, fallback to _flashSaleprod.
+  List<Map<String, Object>> _dbProducts = [];
+  bool _loadingProducts = false;
+  String? _loadError;
 
   // UPDATED: Standardized Data with BD Market Prices
   static const List<Map<String, Object>> _flashSaleprod = [
@@ -251,10 +257,52 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   void initState() {
     super.initState();
     _priceRange = const RangeValues(_priceMin, _priceMax);
+     _fetchProductsFromBackend();
+  }
+
+  Future<void> _fetchProductsFromBackend() async {
+    setState(() {
+      _loadingProducts = true;
+      _loadError = null;
+    });
+    try {
+      final res = await ApiService.getProducts(section: 'trending', sort: 'newest', limit: 60);
+      final list = (res['products'] as List<dynamic>? ?? [])
+          .map<Map<String, Object>>((raw) {
+        final p = raw as Map<String, dynamic>;
+        return {
+          'title': (p['product_name'] ?? '') as String,
+          'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+          'category': (p['category_name'] ?? 'General') as String,
+          'brand': (p['brand_name'] ?? '') as String,
+          // Specs can later be mapped from attributes if needed.
+          'specs': const <String>[],
+          'image': (p['image_url'] ?? '') as String,
+        };
+      }).toList();
+      if (mounted) {
+        setState(() {
+          _dbProducts = list;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadError = 'Products load failed';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingProducts = false;
+        });
+      }
+    }
   }
 
   List<Map<String, Object>> _filteredProducts() {
-    return _flashSaleprod.where((p) {
+    final base = _dbProducts.isNotEmpty ? _dbProducts : _flashSaleprod;
+    return base.where((p) {
       final price = p['price'] as double;
       final category = p['category'] as String;
       final brand = p['brand'] as String;

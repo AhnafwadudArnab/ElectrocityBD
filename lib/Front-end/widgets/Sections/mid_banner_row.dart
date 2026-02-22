@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../Provider/Banner_provider.dart';
 
 class MidBannerRow extends StatelessWidget {
   const MidBannerRow({super.key});
 
+  static const List<Map<String, String>> _defaultBanners = [
+    {'img': 'assets/1.png'},
+    {'img': 'assets/2.png'},
+    {'img': 'assets/3.png'},
+  ];
+
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
-    final banners = [
-      {
-        //'label': 'Super Deals',
-        'img': 'assets/1.png',
-      },
-      {
-        //'label': 'Up To 60% Off',
-        'img': 'assets/2.png',
-      },
-      {
-        //'label': 'Up To 60% Off',
-        'img': 'assets/3.png',
-      },
-    ];
+    final bp = context.watch<BannerProvider>();
+    final banners = bp.midBanners.isNotEmpty ? bp.midBanners : _defaultBanners;
 
     return Row(
       children: banners

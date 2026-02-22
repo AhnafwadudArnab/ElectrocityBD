@@ -6,6 +6,7 @@ import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/Templates/all_products_template.dart';
 import '../../Provider/Admin_product_provider.dart';
+import '../../utils/api_service.dart';
 
 class Techpart extends StatefulWidget {
   const Techpart({super.key});
@@ -19,6 +20,15 @@ class _TechpartState extends State<Techpart> {
   int _itemsToShow = 0;
   int _itemsPerPage = 0;
   String _selectedSort = 'featured';
+  List<Map<String, dynamic>> _dbProducts = [];
+
+  Future<void> _loadFromDb() async {
+    try {
+      final res = await ApiService.getProducts(section: 'tech_part', limit: 20);
+      final list = (res['products'] as List<dynamic>?) ?? [];
+      if (mounted) setState(() => _dbProducts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+    } catch (_) {}
+  }
 
   static const List<String> _techImages = [
     'assets/Products/1.png',
@@ -85,6 +95,7 @@ class _TechpartState extends State<Techpart> {
   @override
   void initState() {
     super.initState();
+    _loadFromDb();
     for (var i = 0; i < sampleProducts.length; i++) {
       sampleProducts[i]['image'] = _techImages[i % _techImages.length];
     }
@@ -106,13 +117,23 @@ class _TechpartState extends State<Techpart> {
     }).toList();
   }
 
-  // সব প্রোডাক্ট
-  List<Map<String, dynamic>> _allProducts(BuildContext context) {
-    final adminProducts = Provider.of<AdminProductProvider>(context)
-        .getProductsBySection("Tech Part");
+  List<Map<String, dynamic>> _convertDbProducts(List<Map<String, dynamic>> list) {
+    return list.map((p) => {
+      'name': p['product_name'] ?? '',
+      'price': '৳${((p['price'] as num?) ?? 0).toStringAsFixed(0)}',
+      'rating': 4,
+      'image': p['image_url'] as String? ?? '',
+      'isDb': true,
+      'product_id': p['product_id'],
+    }).toList();
+  }
 
+  // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
+  List<Map<String, dynamic>> _allProducts(BuildContext context) {
+    final adminProducts = Provider.of<AdminProductProvider>(context).getProductsBySection("Tech Part");
     final adminConverted = _convertAdminProducts(adminProducts);
-    return [...adminConverted, ...sampleProducts];
+    final dbConverted = _convertDbProducts(_dbProducts);
+    return [...dbConverted, ...adminConverted, ...sampleProducts];
   }
 
   void _loadMore() {
@@ -149,6 +170,17 @@ class _TechpartState extends State<Techpart> {
   }
 
   ProductData _buildProductData(Map<String, dynamic> product, int index) {
+    if (product['isDb'] == true) {
+      return ProductData(
+        id: '${product['product_id'] ?? index}',
+        name: product['name'] as String,
+        category: 'Tech Part',
+        priceBDT: _parsePrice(product['price'] as String),
+        images: (product['image'] != null && (product['image'] as String).isNotEmpty) ? [product['image'] as String] : [],
+        description: 'Tech part from our latest collection.',
+        additionalInfo: {'Rating': '${product['rating'] ?? 4}'},
+      );
+    }
     final isAdmin = product.containsKey('isAdmin');
 
     if (isAdmin) {
@@ -349,17 +381,19 @@ class _TechpartState extends State<Techpart> {
               child: Stack(
                 children: [
                   Center(
-                    child: isAdmin
-                        ? _buildAdminProductImage(product)
-                        : Image.asset(
-                            imagePath!,
+                    child: product['isDb'] == true
+                        ? Image.network(
+                            product['image'] as String? ?? '',
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.monitor,
-                              size: 100,
-                              color: Colors.grey[300],
-                            ),
-                          ),
+                            errorBuilder: (_, __, ___) => Icon(Icons.image, size: 100, color: Colors.grey[300]),
+                          )
+                        : isAdmin
+                            ? _buildAdminProductImage(product)
+                            : Image.asset(
+                                imagePath!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Icon(Icons.monitor, size: 100, color: Colors.grey[300]),
+                              ),
                   ),
                   if (isAdmin)
                     Positioned(

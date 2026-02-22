@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'Front-end/All Pages/CART/Cart_provider.dart';
 import 'Front-end/Provider/Admin_product_provider.dart';
+import 'Front-end/Provider/Banner_provider.dart';
 import 'Front-end/Provider/Orders_provider.dart';
 import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 
@@ -12,6 +13,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AdminProductProvider()),
+        ChangeNotifierProvider(create: (_) => BannerProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
         ChangeNotifierProvider<CartProvider>.value(value: CartProvider()),
         ChangeNotifierProvider<WishlistProvider>.value(
@@ -37,6 +39,7 @@ class _MyAppState extends State<MyApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CartProvider>().init();
       context.read<OrdersProvider>().init();
+      context.read<BannerProvider>().load();
     });
   }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../Admin Panel/A_customers.dart';
+import '../../Provider/Banner_provider.dart';
 import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
@@ -88,14 +90,14 @@ class _SidebarState extends State<Sidebar> {
 
             const SizedBox(height: 24),
 
-            // 🆕 LATEST TECH (Real-time feel)
-            _buildSectionHeader('LATEST ARRIVALS'),
-            const SizedBox(height: 10),
+            // 🆕 LATEST ARRIVALS (website-style)
+            _buildLatestArrivalsHeader(),
+            const SizedBox(height: 14),
             _buildProductMiniList(primaryRed),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // ⚙️ TRUST BADGES
+            // ⚙️ SERVICE ASSURANCES (dark grey block)
             _buildTrustSection(),
 
             const SizedBox(height: 20),
@@ -168,6 +170,19 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
+  /// Website-style header for LATEST ARRIVALS (lighter, uppercase)
+  Widget _buildLatestArrivalsHeader() {
+    return Text(
+      'LATEST ARRIVALS',
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey.shade500,
+        letterSpacing: 1.4,
+      ),
+    );
+  }
+
   Widget _buildCategoryList(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -205,57 +220,62 @@ class _SidebarState extends State<Sidebar> {
   }
 
   Widget _buildLivePromoCard(Color accent) {
-     const imgPath = "assets/flash";
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [accent, Colors.red.shade900]),
-        borderRadius: BorderRadius.circular(12),
-        image: DecorationImage(
-          image: const AssetImage('assets/images/carbon-fibre.png'),
-          fit: BoxFit.cover,
-          repeat: ImageRepeat.repeat,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'FLASH SALE',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+    return Consumer<BannerProvider>(
+      builder: (context, bp, _) {
+        final title = bp.sidebarTitle;
+        final subtitle = bp.sidebarSubtitle;
+        final buttonText = bp.sidebarButtonText;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [accent, Colors.red.shade900]),
+            borderRadius: BorderRadius.circular(12),
+            image: DecorationImage(
+              image: const AssetImage('assets/images/carbon-fibre.png'),
+              fit: BoxFit.cover,
+              repeat: ImageRepeat.repeat,
             ),
           ),
-          const Text(
-            'Up to 40% Off on Earbuds',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {
-              MaterialPageRoute route = MaterialPageRoute(
-                builder: (context) =>
-                    FlashSaleAll(), // এখানে আপনার প্রোমো পেজের উইজেট দিন
-              );
-              Navigator.push(context, route);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.red,
-              minimumSize: const Size(80, 32),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            ),
-            child: const Text(
-              'VIEW ALL',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-            ),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => FlashSaleAll()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red,
+                  minimumSize: const Size(80, 32),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                child: Text(
+                  buttonText,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -297,7 +317,7 @@ class _SidebarState extends State<Sidebar> {
     return Column(
       children: products.map((p) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: 18),
           child: InkWell(
             onTap: () {
               final productData = ProductData(
@@ -319,35 +339,44 @@ class _SidebarState extends State<Sidebar> {
             },
             borderRadius: BorderRadius.circular(8),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                   child: Image.asset(
                     p['img'] as String,
-                    width: 50,
-                    height: 50,
+                    width: 56,
+                    height: 56,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 56,
+                      height: 56,
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.image_not_supported, color: Colors.grey.shade400),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         p['name'] as String,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
+                          color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         'Tk ${(p['price'] as double).toStringAsFixed(0)}',
                         style: TextStyle(
                           color: accent,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 13,
                         ),
                       ),
                     ],
@@ -363,17 +392,18 @@ class _SidebarState extends State<Sidebar> {
 
   Widget _buildTrustSection() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade900,
+        color: const Color(0xFF424242),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
-          _trustItem(Icons.verified_user, 'Official Warranty'),
-          const Divider(color: Colors.white10),
-          _trustItem(Icons.support_agent, '24/7 Tech Support'),
-          const Divider(color: Colors.white10),
+          _trustItem(Icons.shield, 'Official Warranty'),
+          Divider(height: 20, color: Colors.white.withOpacity(0.12), thickness: 1),
+          _trustItem(Icons.headset_mic, '24/7 Tech Support'),
+          Divider(height: 20, color: Colors.white.withOpacity(0.12), thickness: 1),
           _trustItem(Icons.local_shipping, 'Fast Island-wide Delivery'),
         ],
       ),
@@ -382,14 +412,18 @@ class _SidebarState extends State<Sidebar> {
 
   Widget _trustItem(IconData icon, String label) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(icon, color: Colors.orange, size: 16),
-          const SizedBox(width: 10),
+          Icon(icon, color: Colors.amber.shade700, size: 20),
+          const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 11),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

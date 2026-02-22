@@ -68,10 +68,13 @@ INSERT IGNORE INTO collection_products (collection_id, product_id) VALUES
 (1, 1), (1, 4);
 
 -- ---------------------------------------------------------------------------
--- Deals of the day / Best sellers / Trending (optional)
+-- Deals of the day / Best sellers / Trending / Tech Part
+-- (Products show on homepage sections when listed here. Images: upload via Admin, path in products.image_url.)
 -- ---------------------------------------------------------------------------
 INSERT IGNORE INTO deals_of_the_day (product_id, deal_price, start_date, end_date) VALUES
-(1, 120.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY));
+(1, 120.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),
+(2, 200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY));
 
-INSERT IGNORE INTO best_sellers (product_id, sales_count) VALUES (1, 50);
-INSERT IGNORE INTO trending_products (product_id, trending_score) VALUES (2, 80);
+INSERT IGNORE INTO best_sellers (product_id, sales_count) VALUES (1, 50), (2, 30), (3, 20);
+INSERT IGNORE INTO trending_products (product_id, trending_score) VALUES (1, 80), (2, 70), (3, 60), (4, 50), (5, 40), (6, 30);
+INSERT IGNORE INTO tech_part_products (product_id, display_order) VALUES (1, 0), (4, 1), (5, 2), (6, 3);

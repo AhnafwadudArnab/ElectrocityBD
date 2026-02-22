@@ -190,6 +190,13 @@ async function initDatabase() {
       FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS tech_part_products (
+      product_id INT PRIMARY KEY,
+      display_order INT DEFAULT 0,
+      added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS reports (
       report_id INT AUTO_INCREMENT PRIMARY KEY,
       admin_id INT,
@@ -257,6 +264,14 @@ async function initDatabase() {
        VALUES (?, ?, ?, ?, ?, ?, ?)`, p
     );
   }
+
+  // Section tables: so products show on homepage (Best Selling, Trending, Deals, Flash Sale, Tech Part)
+  await connection.query('INSERT IGNORE INTO deals_of_the_day (product_id, deal_price, start_date, end_date) VALUES (1, 120, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)), (2, 200, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY))');
+  await connection.query('INSERT IGNORE INTO best_sellers (product_id, sales_count) VALUES (1, 50), (2, 30), (3, 20)');
+  await connection.query('INSERT IGNORE INTO trending_products (product_id, trending_score) VALUES (1, 80), (2, 70), (3, 60), (4, 50), (5, 40), (6, 30)');
+  await connection.query("INSERT IGNORE INTO flash_sales (title, start_time, end_time, active) VALUES ('Flash Sale', NOW(), DATE_ADD(NOW(), INTERVAL 12 HOUR), TRUE)");
+  await connection.query('INSERT IGNORE INTO flash_sale_products (flash_sale_id, product_id) VALUES (1, 1), (1, 2)');
+  await connection.query('INSERT IGNORE INTO tech_part_products (product_id, display_order) VALUES (1, 0), (4, 1), (5, 2), (6, 3)');
 
   console.log('Sample data seeded successfully.');
   await connection.end();

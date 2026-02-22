@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../Provider/Admin_product_provider.dart';
+import '../../utils/api_service.dart';
 
 class DealsOfTheDay extends StatefulWidget {
   const DealsOfTheDay({Key? key}) : super(key: key);
@@ -18,7 +19,8 @@ class DealsOfTheDay extends StatefulWidget {
 
 class _DealsOfTheDayState extends State<DealsOfTheDay> {
   late Timer _timer;
-  late ScrollController _scrollController; // fixed initialization
+  late ScrollController _scrollController;
+  List<Map<String, dynamic>> _dbDeals = [];
   Duration _remaining = const Duration(
     days: 3,
     hours: 11,
@@ -29,8 +31,8 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   @override
   void initState() {
     super.initState();
-
     _scrollController = ScrollController();
+    _loadDealsFromDb();
 
     // countdown timer
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -49,6 +51,29 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     _timer.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDealsFromDb() async {
+    try {
+      final res = await ApiService.getProducts(section: 'deals', limit: 20);
+      final list = (res['products'] as List<dynamic>?) ?? [];
+      if (mounted) setState(() => _dbDeals = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+    } catch (_) {}
+  }
+
+  ProductData _buildProductDataFromDb(Map<String, dynamic> p, int index) {
+    final price = (p['price'] as num?)?.toDouble() ?? 0.0;
+    final oldPrice = price * 1.15;
+    final imageUrl = p['image_url'] as String? ?? '';
+    return ProductData(
+      id: 'deal_db_${p['product_id'] ?? index}',
+      name: p['product_name'] ?? '',
+      category: 'Deals of the Day',
+      priceBDT: price,
+      images: imageUrl.isNotEmpty ? [imageUrl] : [],
+      description: p['description'] ?? '',
+      additionalInfo: {'Brand': p['brand_name'] ?? '', 'Old Price': '৳${oldPrice.toStringAsFixed(0)}'},
+    );
   }
 
   double _parsePrice(String value) {
@@ -194,6 +219,38 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                 builder: (context, adminProvider, _) {
                   final adminDeals = adminProvider.getProductsBySection("Deals of the Day");
                   final List<Widget> cards = [];
+
+                  for (var i = 0; i < _dbDeals.length; i++) {
+                    final p = _dbDeals[i];
+                    final priceVal = (p['price'] as num?)?.toDouble() ?? 0.0;
+                    final oldPriceVal = priceVal * 1.15;
+                    final imageUrl = p['image_url'] as String? ?? '';
+                    final productData = _buildProductDataFromDb(p, i);
+                    cards.add(_productCard(
+                      brand: p['brand_name'] ?? 'Deal',
+                      title: p['product_name'] ?? '',
+                      price: '৳${priceVal.toStringAsFixed(0)}',
+                      oldPrice: '৳${oldPriceVal.toStringAsFixed(0)}',
+                      imagePath: '',
+                      onTap: () => _openDetails(productData),
+                      imageWidget: imageUrl.isNotEmpty
+                          ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Colors.grey))
+                          : null,
+                      onAddToCart: () async {
+                        await context.read<CartProvider>().addToCart(
+                          productId: productData.id,
+                          name: productData.name,
+                          price: productData.priceBDT,
+                          imageUrl: productData.images.isNotEmpty ? productData.images.first : '',
+                          category: productData.category,
+                        );
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${productData.name} added to cart'), duration: const Duration(milliseconds: 900)),
+                        );
+                      },
+                    ));
+                  }
 
                   for (var i = 0; i < adminDeals.length; i++) {
                     final p = adminDeals[i];

@@ -50,5 +50,11 @@ mysql -u root -p < lib/Database/All_db.sql
 - **customer_support** – support tickets
 - **promotions**, **flash_sales**, **flash_sale_products** – promotions and flash sales
 - **collections**, **collection_products** – product collections
-- **deals_of_the_day**, **best_sellers**, **trending_products** – homepage sections
+- **deals_of_the_day**, **best_sellers**, **trending_products**, **tech_part_products** – homepage sections (which products show where)
 - **reports** – admin reports
+
+## How product images work (real-website flow)
+
+1. **Upload:** Admin adds a product in the app and uploads an image → backend saves the file in `backend/uploads/` and stores the path (e.g. `/uploads/1234567890-photo.jpg`) in `products.image_url`.
+2. **Show on site:** All product lists (Best Selling, Flash Sale, Trending, Deals of the Day, Tech Part) load from the API. The API returns `image_url`; the app shows the image from **base URL + image_url** (e.g. `http://localhost:3000/uploads/1234567890-photo.jpg`).
+3. **Sections:** A product appears on a homepage section only if it is listed in the right table: `best_sellers`, `flash_sale_products`, `trending_products`, `deals_of_the_day`, or `tech_part_products`. Admin can assign products to sections via the Products page (or section APIs).

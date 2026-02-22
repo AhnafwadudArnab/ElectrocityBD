@@ -6,6 +6,7 @@ import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
+import '../../../utils/api_service.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -26,10 +27,41 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
   int _currentPage = 1;
   String _selectedSort = 'featured';
+  List<Map<String, dynamic>> _dbProducts = [];
 
   final List<String> _selectedCategories = [];
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
+
+  late RangeValues _priceRange;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceRange = const RangeValues(_priceMin, _priceMax);
+    _loadFromDb();
+  }
+
+  Future<void> _loadFromDb() async {
+    try {
+      final res = await ApiService.getProducts(section: 'flash_sale', limit: 60);
+      final list = (res['products'] as List<dynamic>?) ?? [];
+      if (mounted) setState(() => _dbProducts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+    } catch (_) {}
+  }
+
+  List<Map<String, Object>> _convertDbProducts() {
+    return _dbProducts.map((p) => <String, Object>{
+      'title': p['product_name'] ?? '',
+      'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+      'category': p['category_name'] ?? 'General',
+      'brand': p['brand_name'] ?? '',
+      'specs': const <String>[],
+      'image': p['image_url'] ?? '',
+      'isDb': true,
+      'product_id': p['product_id'],
+    }).toList();
+  }
 
   // স্যাম্পল প্রোডাক্ট (ডিফল্ট)
   static const List<Map<String, Object>> _sampleProducts = [
@@ -51,14 +83,6 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     },
     // ... অন্যান্য স্যাম্পল প্রোডাক্ট
   ];
-
-  late RangeValues _priceRange;
-
-  @override
-  void initState() {
-    super.initState();
-    _priceRange = const RangeValues(_priceMin, _priceMax);
-  }
 
   // অ্যাডমিন প্রোডাক্টকে স্ট্যান্ডার্ড ফরম্যাটে কনভার্ট করা
   List<Map<String, dynamic>> _convertAdminProducts(
@@ -119,15 +143,12 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  // সব প্রোডাক্ট (অ্যাডমিন + স্যাম্পল)
+  // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
   List<Map<String, Object>> _allProducts(BuildContext context) {
-    final adminProducts = Provider.of<AdminProductProvider>(context)
-        .getProductsBySection("Flash Sale");
-
-    final adminConverted = _convertAdminProducts(
-      adminProducts,
-    ).map((e) => Map<String, Object>.from(e)).toList();
-    return [...adminConverted, ..._sampleProducts];
+    final adminProducts = Provider.of<AdminProductProvider>(context).getProductsBySection("Flash Sale");
+    final adminConverted = _convertAdminProducts(adminProducts).map((e) => Map<String, Object>.from(e)).toList();
+    final dbConverted = _convertDbProducts();
+    return [...dbConverted, ...adminConverted, ..._sampleProducts];
   }
 
   List<Map<String, Object>> _filteredProducts(BuildContext context) {
@@ -186,11 +207,12 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
   void _openDetails(Map<String, Object> item, int index) {
     final isAdmin = item.containsKey('isAdmin');
+    final isDb = item['isDb'] == true;
     final imageStr = item['image'] as String;
     final images = imageStr.isNotEmpty ? [imageStr] : <String>[];
 
     final product = ProductData(
-      id: isAdmin ? 'admin_flash_$index' : '${item['title']}_${item['price']}',
+      id: isDb ? '${item['product_id']}' : (isAdmin ? 'admin_flash_$index' : '${item['title']}_${item['price']}'),
       name: item['title'] as String,
       category: item['category'] as String,
       priceBDT: item['price'] as double,
@@ -490,12 +512,18 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     width: double.infinity,
-                    child: isAdmin
-                        ? _buildAdminImage(item)
-                        : Image.asset(
+                    child: item['isDb'] == true
+                        ? Image.network(
                             item['image'] as String,
                             fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
+                            errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], child: const Icon(Icons.image)),
+                          )
+                        : isAdmin
+                            ? _buildAdminImage(item)
+                            : Image.asset(
+                                item['image'] as String,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[300],
                                 child: const Icon(Icons.image_not_supported),

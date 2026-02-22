@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
+import 'A_banners.dart';
 import 'A_carts.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
@@ -61,6 +62,8 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
         return const AdminReportsPage(embedded: true);
       case AdminSidebarItem.discounts:
         return const AdminDiscountPage(embedded: true);
+      case AdminSidebarItem.banners:
+        return const AdminBannersPage(embedded: true);
       case AdminSidebarItem.help:
         return const AdminHelpPage(embedded: true);
       case AdminSidebarItem.carts:

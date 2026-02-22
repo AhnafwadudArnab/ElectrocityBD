@@ -7,6 +7,7 @@ import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../Provider/Admin_product_provider.dart';
+import '../../../utils/api_service.dart';
 import 'Flash_sale_all.dart';
 
 class FlashSaleItem {
@@ -25,8 +26,45 @@ class FlashSaleItem {
   });
 }
 
-class FlashSaleCarousel extends StatelessWidget {
-   FlashSaleCarousel({super.key});
+class FlashSaleCarousel extends StatefulWidget {
+  const FlashSaleCarousel({super.key});
+
+  @override
+  State<FlashSaleCarousel> createState() => _FlashSaleCarouselState();
+}
+
+class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
+  List<FlashSaleItem> _dbFlashItems = [];
+  List<Map<String, dynamic>> _dbFlashProducts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFromDb();
+  }
+
+  Future<void> _loadFromDb() async {
+    try {
+      final res = await ApiService.getProducts(section: 'flash_sale', limit: 20);
+      final list = (res['products'] as List<dynamic>?) ?? [];
+      final maps = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      if (mounted) {
+        setState(() {
+          _dbFlashProducts = maps;
+          _dbFlashItems = maps.map((p) {
+            final price = (p['price'] as num?)?.toDouble() ?? 0.0;
+            return FlashSaleItem(
+              image: p['image_url'] as String? ?? '',
+              title: p['product_name'] ?? '',
+              originalPrice: (price * 1.25).toInt(),
+              discountedPrice: price.toInt(),
+              timeRemaining: '23:59:59',
+            );
+          }).toList();
+        });
+      }
+    } catch (_) {}
+  }
 
   // স্যাম্পল প্রোডাক্ট (ডিফল্ট)
   final List<FlashSaleItem> sampleProducts = [
@@ -129,16 +167,9 @@ class FlashSaleCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // অ্যাডমিন থেকে আপলোড করা প্রোডাক্ট
-    final adminProducts = Provider.of<AdminProductProvider>(
-      context,
-    ).getProductsBySection("Flash Sale");
-    
-    // অ্যাডমিন প্রোডাক্ট কনভার্ট করা
+    final adminProducts = Provider.of<AdminProductProvider>(context).getProductsBySection("Flash Sale");
     final adminFlashItems = _convertAdminProducts(adminProducts);
-    
-    // সব প্রোডাক্ট একসাথে (অ্যাডমিন + স্যাম্পল)
-    final allProducts = [...adminFlashItems, ...sampleProducts];
+    final allProducts = [..._dbFlashItems, ...adminFlashItems, ...sampleProducts];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,18 +224,30 @@ class FlashSaleCarousel extends StatelessWidget {
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
                       final product = allProducts[index];
-                      final isFromAdmin = index < adminFlashItems.length;
+                      final isFromDb = index < _dbFlashItems.length;
+                      final isFromAdmin = !isFromDb && index < _dbFlashItems.length + adminFlashItems.length;
 
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: () => _openDetails(
-                            context, 
-                            isFromAdmin ? adminProducts[index] : product, 
-                            index,
-                            isFromAdmin: isFromAdmin,
-                          ),
+                          onTap: () {
+                            if (isFromDb) {
+                              final p = _dbFlashProducts[index];
+                              final pd = ProductData(
+                                id: '${p['product_id']}',
+                                name: p['product_name'] ?? '',
+                                category: 'Flash Sale',
+                                priceBDT: (p['price'] as num?)?.toDouble() ?? 0,
+                                images: (p['image_url'] != null && (p['image_url'] as String).isNotEmpty) ? [p['image_url'] as String] : [],
+                                description: p['description'] ?? '',
+                                additionalInfo: {'Brand': p['brand_name'] ?? ''},
+                              );
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => UniversalProductDetails(product: pd)));
+                            } else {
+                              _openDetails(context, isFromAdmin ? adminProducts[index - _dbFlashItems.length] : product, index, isFromAdmin: isFromAdmin);
+                            }
+                          },
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
@@ -269,39 +312,39 @@ class FlashSaleCarousel extends StatelessWidget {
                                                 const BorderRadius.vertical(
                                                   top: Radius.circular(12),
                                                 ),
-                                            child: isFromAdmin
-                                                ? (adminProducts[index]['image']?.bytes != null
-                                                    ? Image.memory(
-                                                        adminProducts[index]['image'].bytes!,
-                                                        fit: BoxFit.fill,
-                                                        width: double.infinity,
-                                                        height: double.infinity,
-                                                      )
-                                                    : (adminProducts[index]['imageUrl'] != null &&
-                                                            (adminProducts[index]['imageUrl'] as String).isNotEmpty
-                                                        ? Image.network(
-                                                            adminProducts[index]['imageUrl'] as String,
-                                                            fit: BoxFit.fill,
-                                                            width: double.infinity,
-                                                            height: double.infinity,
-                                                            errorBuilder: (_, __, ___) => Container(
-                                                              color: Colors.grey[300],
-                                                              child: const Icon(Icons.image),
-                                                            ),
-                                                          )
-                                                        : Container(
-                                                            color: Colors.grey[300],
-                                                            child: const Icon(Icons.image),
-                                                          )))
-                                                : Image.asset(
+                                            child: isFromDb
+                                                ? Image.network(
                                                     product.image,
                                                     fit: BoxFit.fill,
                                                     width: double.infinity,
                                                     height: double.infinity,
-                                                    errorBuilder:
-                                                        (context, error, stackTrace) =>
-                                                            const Icon(Icons.error),
-                                                  ),
+                                                    errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], child: const Icon(Icons.image)),
+                                                  )
+                                                : isFromAdmin
+                                                    ? (adminProducts[index - _dbFlashItems.length]['image']?.bytes != null
+                                                        ? Image.memory(
+                                                            adminProducts[index - _dbFlashItems.length]['image'].bytes!,
+                                                            fit: BoxFit.fill,
+                                                            width: double.infinity,
+                                                            height: double.infinity,
+                                                          )
+                                                        : (adminProducts[index - _dbFlashItems.length]['imageUrl'] != null &&
+                                                                (adminProducts[index - _dbFlashItems.length]['imageUrl'] as String).isNotEmpty
+                                                            ? Image.network(
+                                                                adminProducts[index - _dbFlashItems.length]['imageUrl'] as String,
+                                                                fit: BoxFit.fill,
+                                                                width: double.infinity,
+                                                                height: double.infinity,
+                                                                errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], child: const Icon(Icons.image)),
+                                                              )
+                                                            : Container(color: Colors.grey[300], child: const Icon(Icons.image))))
+                                                    : Image.asset(
+                                                        product.image,
+                                                        fit: BoxFit.fill,
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                        errorBuilder: (_, __, ___) => const Icon(Icons.error),
+                                                      ),
                                           ),
                                           if (isFromAdmin)
                                             Positioned(

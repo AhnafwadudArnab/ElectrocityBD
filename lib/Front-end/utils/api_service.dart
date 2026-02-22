@@ -141,10 +141,12 @@ class ApiService {
 
   // ─── Products API ───
 
+  /// [section] = best_sellers | trending | deals | flash_sale | tech_part for homepage sections
   static Future<Map<String, dynamic>> getProducts({
     int? categoryId,
     String? search,
     String? sort,
+    String? section,
     int limit = 50,
     int offset = 0,
   }) async {
@@ -152,7 +154,12 @@ class ApiService {
     if (categoryId != null) query += '&category_id=$categoryId';
     if (search != null && search.isNotEmpty) query += '&search=$search';
     if (sort != null) query += '&sort=$sort';
+    if (section != null && section.isNotEmpty) query += '&section=$section';
     return await get('/products$query', withAuth: false) as Map<String, dynamic>;
+  }
+
+  static Future<void> updateProductSections(int productId, Map<String, bool> sections) async {
+    await put('/products/$productId/sections', sections);
   }
 
   static Future<Map<String, dynamic>> getProduct(int id) async {
