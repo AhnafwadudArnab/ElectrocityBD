@@ -9,6 +9,7 @@ import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../Provider/Admin_product_provider.dart';
 import '../../utils/api_service.dart';
+import '../../utils/image_resolver.dart';
 
 class DealsOfTheDay extends StatefulWidget {
   const DealsOfTheDay({Key? key}) : super(key: key);
@@ -234,7 +235,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                       imagePath: '',
                       onTap: () => _openDetails(productData),
                       imageWidget: imageUrl.isNotEmpty
-                          ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Colors.grey))
+                          ? ImageResolver.image(imageUrl: imageUrl, fit: BoxFit.cover)
                           : null,
                       onAddToCart: () async {
                         await context.read<CartProvider>().addToCart(

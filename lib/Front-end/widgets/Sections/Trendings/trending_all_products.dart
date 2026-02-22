@@ -6,6 +6,7 @@ import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
+import '../../../utils/image_resolver.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -646,15 +647,9 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 width: double.infinity,
-                child: Image.asset(
-                  image,
+                child: ImageResolver.image(
+                  imageUrl: image,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Icon(Icons.image_not_supported),
-                    );
-                  },
                 ),
               ),
             ),

@@ -12,9 +12,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-// Helper: prepend base URL to image_url so app can load images
+// Helper: full URL for images. Keep 'asset:...' as-is so Flutter loads from assets; uploads get base URL.
 function imageFullUrl(req, imageUrl) {
   if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
+  if (imageUrl.startsWith('asset:')) return imageUrl;
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
   const base = `${req.protocol}://${req.get('host') || 'localhost:3000'}`;
   return imageUrl.startsWith('/') ? base + imageUrl : base + '/' + imageUrl;

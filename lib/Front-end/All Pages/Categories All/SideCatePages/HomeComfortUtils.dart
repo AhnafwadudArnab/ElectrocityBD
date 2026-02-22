@@ -5,6 +5,8 @@ import '../../CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
+import '../../../utils/api_service.dart';
+import '../../../utils/image_resolver.dart';
 import '../../../widgets/footer.dart';
 import '../../../widgets/header.dart';
 
@@ -24,11 +26,40 @@ class _HomeComfortUtilityPageState extends State<HomeComfortUtilityPage> {
   static const double _priceMax = 50000;
 
   RangeValues _priceRange = const RangeValues(_priceMin, _priceMax);
+  List<Map<String, Object>> _dbProducts = [];
   final List<String> _selectedCategories = [];
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
 
-  final List<Map<String, Object>> _products = [
+  @override
+  void initState() {
+    super.initState();
+    _loadFromDb();
+  }
+
+  Future<void> _loadFromDb() async {
+    try {
+      final res = await ApiService.getProducts(categoryId: 3, limit: 50);
+      final list = (res['products'] as List<dynamic>?) ?? [];
+      if (mounted) setState(() {
+        _dbProducts = list.map((e) {
+          final p = e as Map<String, dynamic>;
+          return <String, Object>{
+            'title': p['product_name'] ?? '',
+            'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+            'subCat': p['category_name'] ?? '',
+            'brand': p['brand_name'] ?? 'Brand',
+            'specs': '',
+            'image': p['image_url'] ?? '',
+          };
+        }).toList();
+      });
+    } catch (_) {}
+  }
+
+  List<Map<String, Object>> get _products => _dbProducts.isNotEmpty ? _dbProducts : _fallbackProducts;
+
+  final List<Map<String, Object>> _fallbackProducts = [
     {
       'title': 'Charger fan',
       'price': 2200.0,
@@ -246,7 +277,7 @@ class _HomeComfortUtilityPageState extends State<HomeComfortUtilityPage> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Image.asset(item['image'] as String),
+                child: ImageResolver.image(imageUrl: item['image'] as String?),
               ),
             ),
             Padding(

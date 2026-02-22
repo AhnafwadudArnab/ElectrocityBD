@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
+import '../utils/image_resolver.dart';
 
 class CommonProductCard extends StatelessWidget {
   final ProductData product;
@@ -12,13 +13,7 @@ class CommonProductCard extends StatelessWidget {
 
   const CommonProductCard({super.key, required this.product, this.onTap});
 
-  ImageProvider _resolveImageProvider(String path) {
-    final lower = path.toLowerCase();
-    if (lower.startsWith('http://') || lower.startsWith('https://')) {
-      return NetworkImage(path);
-    }
-    return AssetImage(path);
-  }
+  ImageProvider _resolveImageProvider(String path) => ImageResolver.imageProvider(path);
 
   @override
   Widget build(BuildContext context) {

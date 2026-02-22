@@ -7,6 +7,7 @@ import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
+import '../../../utils/image_resolver.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -513,10 +514,9 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                     padding: const EdgeInsets.all(10),
                     width: double.infinity,
                     child: item['isDb'] == true
-                        ? Image.network(
-                            item['image'] as String,
+                        ? ImageResolver.image(
+                            imageUrl: item['image'] as String?,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], child: const Icon(Icons.image)),
                           )
                         : isAdmin
                             ? _buildAdminImage(item)

@@ -7,6 +7,7 @@ import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/Templates/all_products_template.dart';
 import '../../Provider/Admin_product_provider.dart';
 import '../../utils/api_service.dart';
+import '../../utils/image_resolver.dart';
 
 class Techpart extends StatefulWidget {
   const Techpart({super.key});
@@ -382,10 +383,9 @@ class _TechpartState extends State<Techpart> {
                 children: [
                   Center(
                     child: product['isDb'] == true
-                        ? Image.network(
-                            product['image'] as String? ?? '',
+                        ? ImageResolver.image(
+                            imageUrl: product['image'] as String?,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(Icons.image, size: 100, color: Colors.grey[300]),
                           )
                         : isAdmin
                             ? _buildAdminProductImage(product)

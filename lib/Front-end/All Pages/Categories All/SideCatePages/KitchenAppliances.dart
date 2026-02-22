@@ -5,6 +5,8 @@ import '../../CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
+import '../../../utils/api_service.dart';
+import '../../../utils/image_resolver.dart';
 import '../../../widgets/footer.dart';
 import '../../../widgets/header.dart';
 
@@ -26,14 +28,41 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
   int _currentPage = 1;
   String _selectedSort = 'featured';
   RangeValues _priceRange = const RangeValues(_priceMin, _priceMax);
+  List<Map<String, Object>> _dbProducts = [];
 
-  // Filter Lists
   final List<String> _selectedCategories = [];
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
 
-  // Data mapping from your chat image
-  final List<Map<String, Object>> _products = [
+  @override
+  void initState() {
+    super.initState();
+    _loadFromDb();
+  }
+
+  Future<void> _loadFromDb() async {
+    try {
+      final res = await ApiService.getProducts(categoryId: 1, limit: 50);
+      final list = (res['products'] as List<dynamic>?) ?? [];
+      if (mounted) setState(() {
+        _dbProducts = list.map((e) {
+          final p = e as Map<String, dynamic>;
+          return <String, Object>{
+            'title': p['product_name'] ?? '',
+            'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+            'subCat': p['category_name'] ?? 'Cooking',
+            'brand': p['brand_name'] ?? 'Brand',
+            'specs': '',
+            'image': p['image_url'] ?? '',
+          };
+        }).toList();
+      });
+    } catch (_) {}
+  }
+
+  List<Map<String, Object>> get _products => _dbProducts.isNotEmpty ? _dbProducts : _fallbackProducts;
+
+  final List<Map<String, Object>> _fallbackProducts = [
     {
       'title': 'Rice cooker',
       'price': 5500.0,
@@ -306,7 +335,7 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Image.asset(item['image'] as String),
+                child: ImageResolver.image(imageUrl: item['image'] as String?),
               ),
             ),
             Padding(

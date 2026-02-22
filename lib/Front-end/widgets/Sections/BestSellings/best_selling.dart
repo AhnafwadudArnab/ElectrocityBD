@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
+import '../../../utils/image_resolver.dart';
 
 class BestSellingBox extends StatefulWidget {
   const BestSellingBox({super.key});
@@ -98,7 +99,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                 height: 60,
                 color: Colors.grey[200],
                 child: imageUrl.isNotEmpty
-                    ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image))
+                    ? ImageResolver.image(imageUrl: imageUrl, width: 60, height: 60, fit: BoxFit.cover)
                     : const Icon(Icons.image, color: Colors.grey),
               ),
             ),

@@ -8,6 +8,7 @@ This folder holds **MySQL schema and sample data** for the ElectrocityBD e-comme
 |------|--------|
 | **electrocity_schema.sql** | CREATE DATABASE, all tables, indexes. No data. |
 | **electrocity_sample_data.sql** | Sample categories, brands, products, promotions, flash sales, etc. Run after schema. |
+| **electrocity_assets_products.sql** | Category-wise products from app assets (image_url = `asset:assets/...`). Run after sample_data. |
 | **All_db.sql** | One-file setup: schema + sample data (no admin user). |
 
 ## Backend link
@@ -58,3 +59,5 @@ mysql -u root -p < lib/Database/All_db.sql
 1. **Upload:** Admin adds a product in the app and uploads an image → backend saves the file in `backend/uploads/` and stores the path (e.g. `/uploads/1234567890-photo.jpg`) in `products.image_url`.
 2. **Show on site:** All product lists (Best Selling, Flash Sale, Trending, Deals of the Day, Tech Part) load from the API. The API returns `image_url`; the app shows the image from **base URL + image_url** (e.g. `http://localhost:3000/uploads/1234567890-photo.jpg`).
 3. **Sections:** A product appears on a homepage section only if it is listed in the right table: `best_sellers`, `flash_sale_products`, `trending_products`, `deals_of_the_day`, or `tech_part_products`. Admin can assign products to sections via the Products page (or section APIs).
+
+4. **Asset products (category-wise):** Run `electrocity_assets_products.sql` after sample_data to load all app asset images into DB as products with `image_url = 'asset:assets/prod/...'` (or `asset:assets/flash/...`, etc.). The app shows these from Flutter assets; new uploads from Admin use `/uploads/...` and load from network. Category pages (Kitchen, Personal Care, Home Comfort) load products from API by `category_id`, so DB products and new ones join together.

@@ -8,6 +8,7 @@ import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../utils/api_service.dart';
+import '../../../utils/image_resolver.dart';
 import 'Flash_sale_all.dart';
 
 class FlashSaleItem {
@@ -313,12 +314,9 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
                                                   top: Radius.circular(12),
                                                 ),
                                             child: isFromDb
-                                                ? Image.network(
-                                                    product.image,
+                                                ? ImageResolver.image(
+                                                    imageUrl: product.image,
                                                     fit: BoxFit.fill,
-                                                    width: double.infinity,
-                                                    height: double.infinity,
-                                                    errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], child: const Icon(Icons.image)),
                                                   )
                                                 : isFromAdmin
                                                     ? (adminProducts[index - _dbFlashItems.length]['image']?.bytes != null
