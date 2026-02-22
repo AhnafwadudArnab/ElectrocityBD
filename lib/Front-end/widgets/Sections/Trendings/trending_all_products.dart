@@ -40,6 +40,13 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   bool _loadingProducts = false;
   String? _loadError;
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   // UPDATED: Standardized Data with BD Market Prices
   static const List<Map<String, Object>> _flashSaleprod = [
     {
@@ -273,7 +280,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
         final p = raw as Map<String, dynamic>;
         return {
           'title': (p['product_name'] ?? '') as String,
-          'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+          'price': _parsePrice(p['price']),
           'category': (p['category_name'] ?? 'General') as String,
           'brand': (p['brand_name'] ?? '') as String,
           // Specs can later be mapped from attributes if needed.

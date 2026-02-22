@@ -25,6 +25,13 @@ class _HomeComfortUtilityPageState extends State<HomeComfortUtilityPage> {
   static const double _priceMin = 0;
   static const double _priceMax = 50000;
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   RangeValues _priceRange = const RangeValues(_priceMin, _priceMax);
   List<Map<String, Object>> _dbProducts = [];
   final List<String> _selectedCategories = [];
@@ -46,7 +53,7 @@ class _HomeComfortUtilityPageState extends State<HomeComfortUtilityPage> {
           final p = e as Map<String, dynamic>;
           return <String, Object>{
             'title': p['product_name'] ?? '',
-            'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+            'price': _parsePrice(p['price']),
             'subCat': p['category_name'] ?? '',
             'brand': p['brand_name'] ?? 'Brand',
             'specs': '',

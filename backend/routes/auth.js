@@ -24,6 +24,8 @@ function ensureJwtSecret(req, res, next) {
 
 // POST /api/auth/register
 router.post('/register', ensureJwtSecret, async (req, res) => {
+  let userId;
+  let conn;
   try {
     const body = req.body || {};
     const { firstName, lastName, email, password, phone, gender } = body;
@@ -31,24 +33,36 @@ router.post('/register', ensureJwtSecret, async (req, res) => {
       return res.status(400).json({ error: 'firstName, email, and password are required.' });
     }
 
-    const [existing] = await pool.query('SELECT user_id FROM users WHERE email = ?', [email]);
-    if (existing.length > 0) {
-      return res.status(409).json({ error: 'Email already registered.' });
-    }
+    conn = await pool.getConnection();
+    try {
+      const [existing] = await conn.query('SELECT user_id FROM users WHERE email = ?', [email]);
+      if (existing.length > 0) {
+        conn.release();
+        conn = null;
+        return res.status(409).json({ error: 'Email already registered.' });
+      }
 
-    const [result] = await pool.query(
-      `INSERT INTO users (full_name, last_name, email, password, phone_number, gender, role)
-       VALUES (?, ?, ?, ?, ?, ?, 'customer')`,
-      [firstName, lastName || '', email, String(password), phone || '', gender || 'Male']
-    );
-    const userId = result.insertId;
-    await pool.query(
-      `INSERT INTO user_profile (user_id, full_name, last_name, phone_number, address, gender)
-       VALUES (?, ?, ?, ?, '', ?)
-       ON DUPLICATE KEY UPDATE full_name = VALUES(full_name), last_name = VALUES(last_name),
-         phone_number = VALUES(phone_number), gender = VALUES(gender)`,
-      [userId, firstName, lastName || '', phone || '', gender || 'Male']
-    );
+      const [result] = await conn.query(
+        `INSERT INTO users (full_name, last_name, email, password, phone_number, gender, role)
+         VALUES (?, ?, ?, ?, ?, ?, 'customer')`,
+        [firstName, lastName || '', email, String(password), phone || '', gender || 'Male']
+      );
+      userId = result.insertId;
+
+      try {
+        await conn.query(
+          `INSERT INTO user_profile (user_id, full_name, last_name, phone_number, address, gender)
+           VALUES (?, ?, ?, ?, '', ?)
+           ON DUPLICATE KEY UPDATE full_name = VALUES(full_name), last_name = VALUES(last_name),
+             phone_number = VALUES(phone_number), gender = VALUES(gender)`,
+          [userId, firstName, lastName || '', phone || '', gender || 'Male']
+        );
+      } catch (profileErr) {
+        console.error('Register: user_profile insert failed (user created):', profileErr.message);
+      }
+    } finally {
+      if (conn) conn.release();
+    }
 
     const token = jwt.sign(
       { userId, email, role: 'customer' },
@@ -56,7 +70,7 @@ router.post('/register', ensureJwtSecret, async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Registration successful',
       token,
       user: {
@@ -70,9 +84,10 @@ router.post('/register', ensureJwtSecret, async (req, res) => {
       },
     });
   } catch (err) {
+    if (conn) try { conn.release(); } catch (_) {}
     console.error('Register error:', err);
     const msg = process.env.NODE_ENV === 'development' ? err.message : 'Server error.';
-    res.status(500).json({ error: msg });
+    return res.status(500).json({ error: msg });
   }
 });
 

@@ -77,10 +77,17 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     );
   }
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   Widget _buildTileFromDb(BuildContext context, Map<String, dynamic> p, int index) {
     final id = p['product_id']?.toString() ?? '${index}';
     final name = p['product_name'] ?? '';
-    final price = (p['price'] as num?)?.toDouble() ?? 0.0;
+    final price = _parsePrice(p['price']);
     final imageUrl = p['image_url'] as String? ?? '';
 
     final productData = ProductData(

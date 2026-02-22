@@ -121,7 +121,7 @@ class _TechpartState extends State<Techpart> {
   List<Map<String, dynamic>> _convertDbProducts(List<Map<String, dynamic>> list) {
     return list.map((p) => {
       'name': p['product_name'] ?? '',
-      'price': '৳${((p['price'] as num?) ?? 0).toStringAsFixed(0)}',
+      'price': '৳${_parsePrice(p['price']).toStringAsFixed(0)}',
       'rating': 4,
       'image': p['image_url'] as String? ?? '',
       'isDb': true,

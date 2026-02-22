@@ -53,7 +53,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
         setState(() {
           _dbFlashProducts = maps;
           _dbFlashItems = maps.map((p) {
-            final price = (p['price'] as num?)?.toDouble() ?? 0.0;
+            final price = _parsePrice(p['price']);
             return FlashSaleItem(
               image: p['image_url'] as String? ?? '',
               title: p['product_name'] ?? '',
@@ -246,7 +246,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
                                 id: '${p['product_id']}',
                                 name: p['product_name'] ?? '',
                                 category: 'Flash Sale',
-                                priceBDT: (p['price'] as num?)?.toDouble() ?? 0,
+                                priceBDT: _parsePrice(p['price']),
                                 images: (p['image_url'] != null && (p['image_url'] as String).isNotEmpty) ? [p['image_url'] as String] : [],
                                 description: p['description'] ?? '',
                                 additionalInfo: {'Brand': p['brand_name'] ?? ''},

@@ -62,8 +62,15 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     } catch (_) {}
   }
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   ProductData _buildProductDataFromDb(Map<String, dynamic> p, int index) {
-    final price = (p['price'] as num?)?.toDouble() ?? 0.0;
+    final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
     final imageUrl = p['image_url'] as String? ?? '';
     return ProductData(
@@ -75,11 +82,6 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       description: p['description'] ?? '',
       additionalInfo: {'Brand': p['brand_name'] ?? '', 'Old Price': '৳${oldPrice.toStringAsFixed(0)}'},
     );
-  }
-
-  double _parsePrice(String value) {
-    final cleaned = value.replaceAll(RegExp(r'[^0-9.]'), '');
-    return double.tryParse(cleaned) ?? 0.0;
   }
 
   ProductData _buildProductData({
@@ -102,7 +104,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   }
 
   ProductData _buildProductDataFromAdmin(Map<String, dynamic> p, int index) {
-    final price = _parsePrice('${p['price']}');
+    final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
     final images = <String>[];
     if (p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty) {
@@ -223,7 +225,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
                   for (var i = 0; i < _dbDeals.length; i++) {
                     final p = _dbDeals[i];
-                    final priceVal = (p['price'] as num?)?.toDouble() ?? 0.0;
+                    final priceVal = _parsePrice(p['price']);
                     final oldPriceVal = priceVal * 1.15;
                     final imageUrl = p['image_url'] as String? ?? '';
                     final productData = _buildProductDataFromDb(p, i);
@@ -255,7 +257,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
                   for (var i = 0; i < adminDeals.length; i++) {
                     final p = adminDeals[i];
-                    final priceVal = _parsePrice('${p['price']}');
+                    final priceVal = _parsePrice(p['price']);
                     final oldPriceVal = priceVal * 1.15;
                     Widget? imageWidget;
                     if (p['image']?.bytes != null) {

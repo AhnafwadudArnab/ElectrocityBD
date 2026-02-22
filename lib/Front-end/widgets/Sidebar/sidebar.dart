@@ -279,6 +279,13 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   Widget _buildProductMiniList(Color accent) {
     const imgPath = "assets/flash";
     final products = [
@@ -324,7 +331,7 @@ class _SidebarState extends State<Sidebar> {
                 id: p['name'] as String,
                 name: p['name'] as String,
                 category: p['category'] as String? ?? '',
-                priceBDT: p['price'] as double? ?? 0,
+                priceBDT: _parsePrice(p['price']),
                 images: [p['img'] as String],
                 description: p['description'] as String? ?? '',
                 additionalInfo: Map<String, String>.from(
@@ -372,7 +379,7 @@ class _SidebarState extends State<Sidebar> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Tk ${(p['price'] as double).toStringAsFixed(0)}',
+                        'Tk ${_parsePrice(p['price']).toStringAsFixed(0)}',
                         style: TextStyle(
                           color: accent,
                           fontWeight: FontWeight.bold,

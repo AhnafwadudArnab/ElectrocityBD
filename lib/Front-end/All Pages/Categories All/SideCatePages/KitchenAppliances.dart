@@ -25,6 +25,13 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
   static const double _priceMin = 0;
   static const double _priceMax = 50000;
 
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   int _currentPage = 1;
   String _selectedSort = 'featured';
   RangeValues _priceRange = const RangeValues(_priceMin, _priceMax);
@@ -49,7 +56,7 @@ class _KitchenAppliancesPageState extends State<KitchenAppliancesPage> {
           final p = e as Map<String, dynamic>;
           return <String, Object>{
             'title': p['product_name'] ?? '',
-            'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+            'price': _parsePrice(p['price']),
             'subCat': p['category_name'] ?? 'Cooking',
             'brand': p['brand_name'] ?? 'Brand',
             'specs': '',

@@ -54,7 +54,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   List<Map<String, Object>> _convertDbProducts() {
     return _dbProducts.map((p) => <String, Object>{
       'title': p['product_name'] ?? '',
-      'price': (p['price'] as num?)?.toDouble() ?? 0.0,
+      'price': _parsePrice(p['price']),
       'category': p['category_name'] ?? 'General',
       'brand': p['brand_name'] ?? '',
       'specs': const <String>[],

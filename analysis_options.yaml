@@ -23,6 +23,7 @@ analyzer:
     library_private_types_in_public_api: ignore
     unnecessary_type_check: ignore
     unnecessary_cast: ignore
+    no_leading_underscores_for_local_identifiers: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
