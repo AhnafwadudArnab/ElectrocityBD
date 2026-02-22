@@ -5,10 +5,28 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || String(secret).trim() === '') {
+    return null;
+  }
+  return secret;
+}
+
+function ensureJwtSecret(req, res, next) {
+  if (!getJwtSecret()) {
+    return res.status(503).json({
+      error: 'Server misconfiguration: JWT_SECRET is not set. Add JWT_SECRET in Vercel Project Settings > Environment Variables.',
+    });
+  }
+  next();
+}
+
 // POST /api/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', ensureJwtSecret, async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, gender } = req.body;
+    const body = req.body || {};
+    const { firstName, lastName, email, password, phone, gender } = body;
     if (!firstName || !email || !password) {
       return res.status(400).json({ error: 'firstName, email, and password are required.' });
     }
@@ -34,7 +52,7 @@ router.post('/register', async (req, res) => {
 
     const token = jwt.sign(
       { userId, email, role: 'customer' },
-      process.env.JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 
@@ -53,14 +71,16 @@ router.post('/register', async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    res.status(500).json({ error: 'Server error.' });
+    const msg = process.env.NODE_ENV === 'development' ? err.message : 'Server error.';
+    res.status(500).json({ error: msg });
   }
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', ensureJwtSecret, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const body = req.body || {};
+    const { email, password } = body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
@@ -77,7 +97,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { userId: user.user_id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 
@@ -96,14 +116,16 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ error: 'Server error.' });
+    const msg = process.env.NODE_ENV === 'development' ? err.message : 'Server error.';
+    res.status(500).json({ error: msg });
   }
 });
 
 // POST /api/auth/admin-login (username + password shortcut)
-router.post('/admin-login', async (req, res) => {
+router.post('/admin-login', ensureJwtSecret, async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const body = req.body || {};
+    const { username, password } = body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required.' });
     }
@@ -125,7 +147,7 @@ router.post('/admin-login', async (req, res) => {
 
     const token = jwt.sign(
       { userId: admin.user_id, email: admin.email, role: 'admin' },
-      process.env.JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 

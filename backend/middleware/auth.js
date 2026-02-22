@@ -8,8 +8,12 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: 'Access denied. No token provided.' });
   }
 
+  const secret = process.env.JWT_SECRET;
+  if (!secret || String(secret).trim() === '') {
+    return res.status(503).json({ error: 'Server misconfiguration: JWT_SECRET is not set.' });
+  }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, secret);
     req.user = decoded;
     next();
   } catch (err) {
