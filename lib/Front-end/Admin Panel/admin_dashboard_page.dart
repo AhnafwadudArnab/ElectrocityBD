@@ -35,14 +35,39 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   String selectedPeriod = 'Last 8 Days';
   Map<String, dynamic>? _dashboardStats;
   bool _statsLoading = true;
+  String? _adminName;
 
   @override
   void initState() {
     super.initState();
     _loadDashboardStats();
+    _loadAdminName();
   }
 
   String? _statsError;
+
+  Future<void> _loadAdminName() async {
+    try {
+      // First try local cached user data
+      final local = await AuthSession.getUserData();
+      String? name = local?.fullName.trim().isNotEmpty == true ? local!.fullName.trim() : null;
+
+      // If not found, fetch from profile API and cache
+      if (name == null || name.isEmpty) {
+        final profile = await ApiService.getProfile();
+        final user = UserData.fromApiResponse(profile);
+        await AuthSession.saveUserData(user);
+        name = user.fullName.trim();
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _adminName = name;
+      });
+    } catch (_) {
+      // Ignore; fall back to generic label
+    }
+  }
 
   Future<void> _loadDashboardStats() async {
     _statsError = null;
@@ -185,7 +210,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           Expanded(
             child: Center(
               child: Text(
-                'Admin Dashboard',
+                _adminName == null || _adminName!.isEmpty
+                    ? 'Admin Dashboard'
+                    : 'Admin Dashboard – $_adminName',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
