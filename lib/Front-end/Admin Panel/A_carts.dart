@@ -3,18 +3,65 @@ import 'package:provider/provider.dart';
 
 import '../All Pages/CART/Cart_provider.dart';
 import '../pages/home_page.dart';
-import 'Admin_sidebar.dart';
-import 'admin_dashboard_page.dart';
+import 'A_Help.dart';
+import 'A_Reports.dart';
+import 'A_Settings.dart';
+import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
-import 'A_Reports.dart';
-import 'A_discounts.dart';
-import 'A_Help.dart';
+import 'Admin_sidebar.dart';
+import 'admin_dashboard_page.dart';
 
-class AdminCartsPage extends StatelessWidget {
+class AdminCartsPage extends StatefulWidget {
   const AdminCartsPage({super.key});
 
-  static void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
+  @override
+  State<AdminCartsPage> createState() => _AdminCartsPageState();
+}
+
+class _AdminCartsPageState extends State<AdminCartsPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _refreshController;
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRefresh() async {
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+    _refreshController.repeat();
+
+    await context.read<CartProvider>().init();
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    _refreshController.stop();
+    _refreshController.reset();
+    if (mounted) {
+      setState(() => _isRefreshing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Carts refreshed!'),
+          backgroundColor: Color(0xFFF59E0B),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
     if (item == AdminSidebarItem.carts) return;
     if (item == AdminSidebarItem.viewStore) {
       Navigator.pushAndRemoveUntil(
@@ -43,6 +90,9 @@ class AdminCartsPage extends StatelessWidget {
         break;
       case AdminSidebarItem.help:
         page = const AdminHelpPage();
+        break;
+      case AdminSidebarItem.settings:
+        page = const AdminSettingsPage();
         break;
       default:
         return;
@@ -86,6 +136,54 @@ class AdminCartsPage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey[600],
+                        ),
+                      ),
+                      const Spacer(),
+                      Tooltip(
+                        message: 'Refresh carts',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: _handleRefresh,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B).withAlpha(25),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFFF59E0B).withAlpha(80),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RotationTransition(
+                                    turns: _refreshController,
+                                    child: Icon(
+                                      Icons.refresh,
+                                      size: 20,
+                                      color: _isRefreshing
+                                          ? const Color(0xFFF59E0B)
+                                          : const Color(0xFFD97706),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _isRefreshing ? 'Refreshing...' : 'Refresh',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFD97706),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -138,7 +236,9 @@ class AdminCartsPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.orange.shade100,
                                 child: Icon(
-                                  isGuest ? Icons.person_outline : Icons.person,
+                                  isGuest
+                                      ? Icons.person_outline
+                                      : Icons.person,
                                   color: Colors.orange.shade800,
                                 ),
                               ),

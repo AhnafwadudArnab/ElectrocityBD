@@ -36,6 +36,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CartProvider>().init();
+      context.read<OrdersProvider>().init();
     });
   }
 

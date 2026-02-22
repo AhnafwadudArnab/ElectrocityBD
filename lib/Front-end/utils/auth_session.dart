@@ -42,6 +42,7 @@ class UserData {
 class AuthSession {
   static const String _loggedInKey = 'electrocity_is_logged_in';
   static const String _userDataKey = 'electrocity_user_data';
+  static const String _isAdminKey = 'electrocity_is_admin';
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
@@ -51,6 +52,16 @@ class AuthSession {
   static Future<void> setLoggedIn(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_loggedInKey, value);
+  }
+
+  static Future<bool> isAdmin() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isAdminKey) ?? false;
+  }
+
+  static Future<void> setAdmin(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_isAdminKey, value);
   }
 
   // Save user data
@@ -88,5 +99,6 @@ class AuthSession {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_loggedInKey);
     await prefs.remove(_userDataKey);
+    await prefs.remove(_isAdminKey);
   }
 }

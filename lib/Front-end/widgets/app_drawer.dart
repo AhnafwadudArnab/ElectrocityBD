@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../All Pages/CART/Main_carting.dart';
+import '../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
+import '../pages/Profiles/Profile.dart';
+import '../pages/Profiles/WishLists.dart';
 import '../pages/home_page.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -54,18 +58,33 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Categories'),
             onTap: () {
               Navigator.pop(context);
-              // Navigate to categories page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const KitchenAppliancesPage()),
+              );
             },
           ),
           ListTile(
             leading: const Icon(Icons.shopping_cart_outlined),
             title: const Text('Cart'),
-            onTap: () => Navigator.pushNamed(context, '/cart'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ShoppingCartPage()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.favorite_border),
             title: const Text('Wishlist'),
-            onTap: () => Navigator.pushNamed(context, '/wishlist'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WishlistPage()),
+              );
+            },
           ),
           const Divider(),
           ListTile(
@@ -73,15 +92,10 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
-              // Navigate to profile page
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
             },
           ),
           ListTile(
@@ -89,7 +103,12 @@ class AppDrawer extends StatelessWidget {
             title: const Text('About'),
             onTap: () {
               Navigator.pop(context);
-              // Show about dialog
+              showAboutDialog(
+                context: context,
+                applicationName: 'ElectroCityBD',
+                applicationVersion: '1.0.0',
+                applicationLegalese: '\u00a9 2025 ElectroCityBD',
+              );
             },
           ),
         ],

@@ -1,13 +1,15 @@
-import 'dart:io';
+import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../Provider/Orders_provider.dart';
 import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
+import 'A_Settings.dart';
 import 'A_carts.dart';
 import 'A_discounts.dart';
 import 'A_products.dart';
@@ -70,6 +72,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   break;
                 case AdminSidebarItem.help:
                   page = const AdminHelpPage();
+                  break;
+                case AdminSidebarItem.settings:
+                  page = const AdminSettingsPage();
                   break;
                 default:
                   page = null;
@@ -154,12 +159,17 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                         csv +=
                             "${o['id'] ?? ''},${o['store'] ?? ''},${o['method'] ?? ''},${o['slot'] ?? ''},${o['created'] ?? ''},${o['status'] ?? ''},${o['transactionId'] ?? ''},${o['total'] ?? ''}\n";
                       }
-                      final dir = await getApplicationDocumentsDirectory();
-                      final file = File('${dir.path}/orders.csv');
-                      await file.writeAsString(csv);
+                      final bytes = utf8.encode(csv);
+                      final blob = html.Blob([bytes], 'text/csv');
+                      final url = html.Url.createObjectUrlFromBlob(blob);
+                      html.AnchorElement(href: url)
+                        ..setAttribute('download', 'orders.csv')
+                        ..click();
+                      html.Url.revokeObjectUrl(url);
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Exported to ${file.path}"),
+                        const SnackBar(
+                          content: Text("CSV downloaded!"),
                           backgroundColor: Colors.blue,
                         ),
                       );
@@ -388,27 +398,21 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Widget _statusChip(String status) {
     Color color;
-    Color textColor = Colors.white;
     switch (status) {
       case "New Order":
         color = Colors.green;
-        textColor = Colors.white;
         break;
       case "Accepted by Restaurant":
         color = Colors.orange;
-        textColor = Colors.white;
         break;
       case "Prepared":
         color = Colors.brown;
-        textColor = Colors.white;
         break;
       case "Rejected by Store":
         color = Colors.red;
-        textColor = Colors.white;
         break;
       default:
         color = Colors.grey;
-        textColor = Colors.white;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

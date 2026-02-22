@@ -5,8 +5,8 @@ class AppConstants {
   static const String appName = 'ElectroCityBD';
   static const String appVersion = '1.0.0';
 
-  // API URLs (if needed in future)
-  static const String baseUrl = 'https://api.electrocitybd.com';
+  // API URL - change to your deployed server URL in production
+  static const String baseUrl = 'http://localhost:3000/api';
 
   // Default Values
   static const int cartItemCount = 3;

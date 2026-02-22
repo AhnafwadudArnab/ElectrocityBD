@@ -63,6 +63,7 @@ class _LogInState extends State<LogIn> {
     );
 
     await AuthSession.saveUserData(userData);
+    await AuthSession.setAdmin(false);
 
     if (mounted) {
       await context.read<CartProvider>().setCurrentUserId(
@@ -89,7 +90,9 @@ class _LogInState extends State<LogIn> {
   Future<void> _onAdminLogin() async {
     if (_emailController.text.trim() == 'ahnaf' &&
         _passwordController.text == '1234@') {
-      // Admin login successful
+      await AuthSession.setAdmin(true);
+      await AuthSession.setLoggedIn(true);
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
         (route) => false,

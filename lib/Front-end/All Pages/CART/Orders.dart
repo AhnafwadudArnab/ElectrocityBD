@@ -2,15 +2,15 @@ class OrderItem {
   final String name;
   final String color;
   final int qty;
-  final String imagePath;
-  final double? price;
+  final double price;
+  final String? imagePath;
 
   OrderItem({
     required this.name,
     required this.color,
     required this.qty,
-    required this.imagePath,
-    this.price,
+    required this.price,
+    this.imagePath,
   });
 }
 

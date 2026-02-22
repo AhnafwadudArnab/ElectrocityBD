@@ -261,69 +261,74 @@ class FlashSaleCarousel extends StatelessWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    // Product Image
                                     Expanded(
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                              top: Radius.circular(12),
-                                            ),
-                                        child: isFromAdmin
-                                            ? (adminProducts[index]['image']?.bytes != null
-                                                ? Image.memory(
-                                                    adminProducts[index]['image'].bytes!,
-                                                    fit: BoxFit.fill,
-                                                  )
-                                                : (adminProducts[index]['imageUrl'] != null &&
-                                                        (adminProducts[index]['imageUrl'] as String).isNotEmpty
-                                                    ? Image.network(
-                                                        adminProducts[index]['imageUrl'] as String,
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.vertical(
+                                                  top: Radius.circular(12),
+                                                ),
+                                            child: isFromAdmin
+                                                ? (adminProducts[index]['image']?.bytes != null
+                                                    ? Image.memory(
+                                                        adminProducts[index]['image'].bytes!,
                                                         fit: BoxFit.fill,
-                                                        errorBuilder: (_, __, ___) => Container(
-                                                          color: Colors.grey[300],
-                                                          child: const Icon(Icons.image),
-                                                        ),
+                                                        width: double.infinity,
+                                                        height: double.infinity,
                                                       )
-                                                    : Container(
-                                                        color: Colors.grey[300],
-                                                        child: const Icon(Icons.image),
-                                                      )))
-                                            : Image.asset(
-                                                product.image,
-                                                fit: BoxFit.fill,
-                                                width: double.infinity,
-                                                errorBuilder:
-                                                    (context, error, stackTrace) =>
-                                                        const Icon(Icons.error),
+                                                    : (adminProducts[index]['imageUrl'] != null &&
+                                                            (adminProducts[index]['imageUrl'] as String).isNotEmpty
+                                                        ? Image.network(
+                                                            adminProducts[index]['imageUrl'] as String,
+                                                            fit: BoxFit.fill,
+                                                            width: double.infinity,
+                                                            height: double.infinity,
+                                                            errorBuilder: (_, __, ___) => Container(
+                                                              color: Colors.grey[300],
+                                                              child: const Icon(Icons.image),
+                                                            ),
+                                                          )
+                                                        : Container(
+                                                            color: Colors.grey[300],
+                                                            child: const Icon(Icons.image),
+                                                          )))
+                                                : Image.asset(
+                                                    product.image,
+                                                    fit: BoxFit.fill,
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    errorBuilder:
+                                                        (context, error, stackTrace) =>
+                                                            const Icon(Icons.error),
+                                                  ),
+                                          ),
+                                          if (isFromAdmin)
+                                            Positioned(
+                                              top: 8,
+                                              right: 8,
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: const Text(
+                                                  'NEW',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
                                               ),
+                                            ),
+                                        ],
                                       ),
                                     ),
-                                    
-                                    // অ্যাডমিন প্রোডাক্ট হলে "New" ব্যাজ দেখান
-                                    if (isFromAdmin)
-                                      Positioned(
-                                        top: 8,
-                                        right: 8,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: const Text(
-                                            'NEW',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Column(

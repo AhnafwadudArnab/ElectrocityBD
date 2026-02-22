@@ -63,7 +63,7 @@ class CommonProductCard extends StatelessWidget {
                   ),
                   color: Colors.grey[100],
                   image: DecorationImage(
-                    image: _resolveImageProvider(product.images.first),
+                    image: _resolveImageProvider(product.images.isNotEmpty ? product.images.first : 'assets/images/placeholder.png'),
                     fit: BoxFit.cover,
                   ),
                 ),

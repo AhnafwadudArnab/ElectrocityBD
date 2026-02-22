@@ -92,7 +92,9 @@ class _LatestArrivalPageState extends State<LatestArrivalPage> {
             ),
             image: DecorationImage(
               image: _resolveImageProvider(
-                widget.product.images[_activeImageIndex],
+                widget.product.images.isNotEmpty
+                    ? widget.product.images[_activeImageIndex]
+                    : 'assets/images/placeholder.png',
               ),
               fit: BoxFit.contain,
             ),

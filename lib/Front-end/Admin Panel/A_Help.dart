@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../pages/home_page.dart';
-import 'admin_dashboard_page.dart';
-import 'A_products.dart';
-import 'A_orders.dart';
 import 'A_Reports.dart';
+import 'A_Settings.dart';
 import 'A_carts.dart';
 import 'A_discounts.dart';
+import 'A_orders.dart';
+import 'A_products.dart';
 import 'Admin_sidebar.dart';
+import 'admin_dashboard_page.dart';
 
 class AdminHelpPage extends StatelessWidget {
   const AdminHelpPage({super.key});
@@ -56,6 +57,9 @@ class AdminHelpPage extends StatelessWidget {
                   break;
                 case AdminSidebarItem.discounts:
                   page = const AdminDiscountPage();
+                  break;
+                case AdminSidebarItem.settings:
+                  page = const AdminSettingsPage();
                   break;
                 default:
                   return;

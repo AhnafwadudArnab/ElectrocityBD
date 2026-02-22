@@ -1,16 +1,16 @@
 -- ============================================================
--- ElectrocityBD - Full database (schema + sample data)
--- Single file for manual MySQL import.
--- Backend equivalent: cd backend && npm run db:init
+-- ElectrocityBD - MySQL Schema
+-- Matches backend (Node.js) config/init_db.js
+-- Run: mysql -u root -p < electrocity_schema.sql
+-- Or create DB first: CREATE DATABASE electrocity_db; USE electrocity_db;
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS electrocity_db;
 USE electrocity_db;
 
--- ----------------------------------------
--- SCHEMA (matches backend config/init_db.js)
--- ----------------------------------------
-
+-- ---------------------------------------------------------------------------
+-- 1. Users (customers + admin)
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   full_name VARCHAR(100) NOT NULL,
@@ -24,18 +24,27 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ---------------------------------------------------------------------------
+-- 2. Brands
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS brands (
   brand_id INT AUTO_INCREMENT PRIMARY KEY,
   brand_name VARCHAR(100) NOT NULL,
   brand_logo VARCHAR(255)
 );
 
+-- ---------------------------------------------------------------------------
+-- 3. Categories
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS categories (
   category_id INT AUTO_INCREMENT PRIMARY KEY,
   category_name VARCHAR(50) NOT NULL,
   category_image VARCHAR(255)
 );
 
+-- ---------------------------------------------------------------------------
+-- 4. Products
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS products (
   product_id INT AUTO_INCREMENT PRIMARY KEY,
   category_id INT,
@@ -50,6 +59,9 @@ CREATE TABLE IF NOT EXISTS products (
   FOREIGN KEY (brand_id) REFERENCES brands(brand_id) ON DELETE SET NULL
 );
 
+-- ---------------------------------------------------------------------------
+-- 5. Discounts
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS discounts (
   discount_id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT,
@@ -59,6 +71,9 @@ CREATE TABLE IF NOT EXISTS discounts (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 6. Cart
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS cart (
   cart_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
@@ -69,6 +84,9 @@ CREATE TABLE IF NOT EXISTS cart (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 7. Orders
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS orders (
   order_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
@@ -83,6 +101,9 @@ CREATE TABLE IF NOT EXISTS orders (
   FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
+-- ---------------------------------------------------------------------------
+-- 8. Order items
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS order_items (
   order_item_id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT,
@@ -96,6 +117,9 @@ CREATE TABLE IF NOT EXISTS order_items (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE SET NULL
 );
 
+-- ---------------------------------------------------------------------------
+-- 9. Wishlists
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS wishlists (
   wishlist_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
@@ -105,6 +129,9 @@ CREATE TABLE IF NOT EXISTS wishlists (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 10. Customer support
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS customer_support (
   ticket_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
@@ -118,6 +145,9 @@ CREATE TABLE IF NOT EXISTS customer_support (
   FOREIGN KEY (resolved_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
+-- ---------------------------------------------------------------------------
+-- 11. Promotions
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS promotions (
   promotion_id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(100) NOT NULL,
@@ -128,6 +158,9 @@ CREATE TABLE IF NOT EXISTS promotions (
   active BOOLEAN DEFAULT TRUE
 );
 
+-- ---------------------------------------------------------------------------
+-- 12. Flash sales
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS flash_sales (
   flash_sale_id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(100),
@@ -144,6 +177,9 @@ CREATE TABLE IF NOT EXISTS flash_sale_products (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 13. Collections
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS collections (
   collection_id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -160,6 +196,9 @@ CREATE TABLE IF NOT EXISTS collection_products (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 14. Deals of the day
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS deals_of_the_day (
   deal_id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT,
@@ -169,6 +208,9 @@ CREATE TABLE IF NOT EXISTS deals_of_the_day (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 15. Best sellers / Trending
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS best_sellers (
   product_id INT PRIMARY KEY,
   sales_count INT DEFAULT 0,
@@ -183,6 +225,9 @@ CREATE TABLE IF NOT EXISTS trending_products (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+-- ---------------------------------------------------------------------------
+-- 16. Admin reports
+-- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS reports (
   report_id INT AUTO_INCREMENT PRIMARY KEY,
   admin_id INT,
@@ -192,35 +237,15 @@ CREATE TABLE IF NOT EXISTS reports (
   FOREIGN KEY (admin_id) REFERENCES users(user_id)
 );
 
+-- ---------------------------------------------------------------------------
+-- Indexes for performance
+-- ---------------------------------------------------------------------------
 CREATE INDEX idx_products_category ON products(category_id);
+CREATE INDEX idx_products_brand ON products(brand_id);
 CREATE INDEX idx_cart_user ON cart(user_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_date ON orders(order_date);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_wishlists_user ON wishlists(user_id);
-
--- ----------------------------------------
--- SAMPLE DATA
--- ----------------------------------------
-
-INSERT IGNORE INTO categories (category_name, category_image) VALUES
-('Kitchen Appliances', 'kitchen.png'),
-('Personal Care & Lifestyle', 'personalcare.png'),
-('Home Comfort & Utility', 'homecomfort.png'),
-('Lighting', 'lighting.png'),
-('Wiring', 'wiring.png'),
-('Tools', 'tools.png');
-
-INSERT IGNORE INTO brands (brand_name, brand_logo) VALUES
-('Philips', 'philips_logo.png'),
-('Walton', 'walton_logo.png'),
-('Samsung', 'samsung_logo.png');
-
-INSERT IGNORE INTO products (category_id, brand_id, product_name, description, price, stock_quantity, image_url) VALUES
-(1, 1, 'LED Bulb', 'Energy saving LED bulb', 150.00, 100, 'led_bulb.png'),
-(1, 1, 'Tube Light', 'Bright tube light', 250.00, 50, 'tube_light.png'),
-(5, 2, 'Copper Wire', 'High quality copper wire', 500.00, 200, 'copper_wire.png'),
-(6, 2, 'Screwdriver Set', 'Multi-purpose screwdriver set', 350.00, 75, 'screwdriver_set.png'),
-(1, 3, 'Smart LED Strip', 'RGB Smart LED Strip 5m', 1200.00, 30, 'led_strip.png'),
-(3, 2, 'Electric Iron', 'Walton Electric Iron', 1500.00, 40, 'electric_iron.png');
-
--- Admin user: use backend "npm run db:init" to create with bcrypt password (email: ahnaf@electrocitybd.com, password: 1234@)
+CREATE INDEX idx_customer_support_user ON customer_support(user_id);
+CREATE INDEX idx_customer_support_status ON customer_support(status);

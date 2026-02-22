@@ -1,10 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../All Pages/CART/Cart_provider.dart';
 import '../All Pages/Registrations/signup.dart';
 import '../pages/home_page.dart';
+import '../utils/auth_session.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
+import 'A_Settings.dart';
 import 'A_carts.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
@@ -63,8 +67,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   page = const AdminHelpPage();
                   break;
                 case AdminSidebarItem.settings:
-                  // Keep on dashboard for now; could replace with a dedicated settings page
-                  return;
+                  page = const AdminSettingsPage();
+                  break;
                 default:
                   return;
               }
@@ -190,11 +194,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     'Logout',
                     style: TextStyle(color: Colors.red),
                   ),
-                  onTap: () {
-                    Navigator.pop(context); // Close the popup menu
-                    Navigator.pushReplacement(
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await AuthSession.clear();
+                    if (!context.mounted) return;
+                    await context.read<CartProvider>().switchToGuest();
+                    if (!context.mounted) return;
+                    Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => const Signup()),
+                      MaterialPageRoute(builder: (_) => const Signup()),
+                      (route) => false,
                     );
                   },
                 ),
@@ -587,7 +596,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           Row(
             children: [
               const Text(
-                'Convertion Rate',
+                'Conversion Rate',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const Spacer(),

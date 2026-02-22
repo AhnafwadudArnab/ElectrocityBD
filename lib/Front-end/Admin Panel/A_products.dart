@@ -4,13 +4,14 @@ import 'package:provider/provider.dart';
 
 import '../Provider/Admin_product_provider.dart';
 import '../pages/home_page.dart';
+import 'A_Help.dart';
+import 'A_Reports.dart';
+import 'A_Settings.dart';
+import 'A_carts.dart';
+import 'A_discounts.dart';
+import 'A_orders.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
-import 'A_carts.dart';
-import 'A_orders.dart';
-import 'A_Reports.dart';
-import 'A_discounts.dart';
-import 'A_Help.dart';
 
 class AdminProductUploadPage extends StatelessWidget {
   const AdminProductUploadPage({super.key});
@@ -44,6 +45,9 @@ class AdminProductUploadPage extends StatelessWidget {
         break;
       case AdminSidebarItem.help:
         page = const AdminHelpPage();
+        break;
+      case AdminSidebarItem.settings:
+        page = const AdminSettingsPage();
         break;
       default:
         return;
