@@ -139,6 +139,16 @@ class ApiService {
     await put('/auth/me', data);
   }
 
+  static Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await put('/auth/change-password', {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
+  }
+
   // ─── Products API ───
 
   /// [section] = best_sellers | trending | deals | flash_sale | tech_part for homepage sections

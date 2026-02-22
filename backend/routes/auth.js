@@ -1,5 +1,4 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
@@ -19,11 +18,10 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Email already registered.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await pool.query(
       `INSERT INTO users (full_name, last_name, email, password, phone_number, gender, role)
        VALUES (?, ?, ?, ?, ?, ?, 'customer')`,
-      [firstName, lastName || '', email, hashedPassword, phone || '', gender || 'Male']
+      [firstName, lastName || '', email, String(password), phone || '', gender || 'Male']
     );
     const userId = result.insertId;
     await pool.query(
@@ -73,8 +71,7 @@ router.post('/login', async (req, res) => {
     }
 
     const user = rows[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
+    if (user.password !== String(password)) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -121,12 +118,8 @@ router.post('/admin-login', async (req, res) => {
     }
 
     const admin = rows[0];
-    const storedPassword = admin.password || admin.PASSWORD;
-    if (!storedPassword) {
-      return res.status(500).json({ error: 'Admin user has no password set. Run: npm run db:init' });
-    }
-    const validPassword = await bcrypt.compare(String(password), storedPassword);
-    if (!validPassword) {
+    const storedPassword = admin.password || admin.PASSWORD || '';
+    if (storedPassword !== String(password)) {
       return res.status(401).json({ error: 'Invalid admin credentials.' });
     }
 
@@ -176,6 +169,25 @@ router.get('/me', authenticateToken, async (req, res) => {
     });
   } catch (err) {
     console.error('Get profile error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// PUT /api/auth/change-password - plain password update
+router.put('/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current and new password are required.' });
+    }
+    const [[row]] = await pool.query('SELECT password FROM users WHERE user_id = ?', [req.user.userId]);
+    if (!row || row.password !== String(currentPassword)) {
+      return res.status(401).json({ error: 'Current password is wrong.' });
+    }
+    await pool.query('UPDATE users SET password = ? WHERE user_id = ?', [String(newPassword), req.user.userId]);
+    res.json({ message: 'Password updated.' });
+  } catch (err) {
+    console.error('Change password error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 });

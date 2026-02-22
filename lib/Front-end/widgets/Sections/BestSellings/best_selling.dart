@@ -43,8 +43,18 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     final bool useDb = _dbProducts.isNotEmpty;
     final bool hasAdmin = adminProducts.isNotEmpty && !useDb;
 
+    final listTiles = <Widget>[
+      if (!_loading && useDb)
+        ..._dbProducts.asMap().entries.map((e) => _buildTileFromDb(context, e.value, e.key)),
+      if (!_loading && !useDb && hasAdmin)
+        ...adminProducts.asMap().entries.map((e) => _buildBestSellingTile(context, e.value, index: e.key, isFromAdmin: true)),
+      if (!_loading && !useDb && !hasAdmin)
+        ...sampleProducts.asMap().entries.map((e) => _buildBestSellingTile(context, e.value, index: e.key, isFromAdmin: false)),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Padding(
           padding: EdgeInsets.all(8.0),
@@ -52,12 +62,17 @@ class _BestSellingBoxState extends State<BestSellingBox> {
         ),
         if (_loading)
           const Padding(padding: EdgeInsets.all(16), child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)))),
-        if (!_loading && useDb)
-          ..._dbProducts.asMap().entries.map((e) => _buildTileFromDb(context, e.value, e.key)),
-        if (!_loading && !useDb && hasAdmin)
-          ...adminProducts.asMap().entries.map((e) => _buildBestSellingTile(context, e.value, index: e.key, isFromAdmin: true)),
-        if (!_loading && !useDb && !hasAdmin)
-          ...sampleProducts.asMap().entries.map((e) => _buildBestSellingTile(context, e.value, index: e.key, isFromAdmin: false)),
+        if (!_loading && listTiles.isNotEmpty)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 420),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: listTiles,
+              ),
+            ),
+          ),
       ],
     );
   }

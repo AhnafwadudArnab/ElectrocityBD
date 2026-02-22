@@ -1822,7 +1822,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _showSnackBar("Card added successfully!", Colors.green);
   }
 
-  void _updatePassword() {
+  Future<void> _updatePassword() async {
     if (currentPasswordController.text.isEmpty ||
         newPasswordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
@@ -1840,11 +1840,23 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    currentPasswordController.clear();
-    newPasswordController.clear();
-    confirmPasswordController.clear();
-
-    _showSnackBar("Password updated successfully!", Colors.green);
+    try {
+      await ApiService.changePassword(
+        currentPassword: currentPasswordController.text,
+        newPassword: newPasswordController.text,
+      );
+      if (!mounted) return;
+      currentPasswordController.clear();
+      newPasswordController.clear();
+      confirmPasswordController.clear();
+      _showSnackBar("Password updated successfully! (Saved to database)", Colors.green);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.message, Colors.red);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnackBar("Could not update password. Check backend.", Colors.orange);
+    }
   }
 
   void _showSnackBar(String message, Color color) {
