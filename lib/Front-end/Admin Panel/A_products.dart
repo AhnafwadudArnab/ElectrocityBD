@@ -2,15 +2,53 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// আপনার প্রোজেক্টের পাথ অনুযায়ী ইমপোর্ট করুন
-// import 'path_to_your_provider/product_provider.dart';
 import '../Provider/Admin_product_provider.dart';
+import '../pages/home_page.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 import 'A_orders.dart';
+import 'A_Reports.dart';
+import 'A_discounts.dart';
+import 'A_Help.dart';
 
 class AdminProductUploadPage extends StatelessWidget {
   const AdminProductUploadPage({super.key});
+
+  static void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
+    if (item == AdminSidebarItem.products) return;
+    if (item == AdminSidebarItem.viewStore) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+      return;
+    }
+    Widget page;
+    switch (item) {
+      case AdminSidebarItem.dashboard:
+        page = const AdminDashboardPage();
+        break;
+      case AdminSidebarItem.orders:
+        page = const AdminOrdersPage();
+        break;
+      case AdminSidebarItem.reports:
+        page = const AdminReportsPage();
+        break;
+      case AdminSidebarItem.discounts:
+        page = const AdminDiscountPage();
+        break;
+      case AdminSidebarItem.help:
+        page = const AdminHelpPage();
+        break;
+      default:
+        return;
+    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,20 +69,7 @@ class AdminProductUploadPage extends StatelessWidget {
         children: [
           AdminSidebar(
             selected: AdminSidebarItem.products,
-            onItemSelected: (item) {
-              if (item == AdminSidebarItem.products) return;
-              if (item == AdminSidebarItem.dashboard) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-                );
-              } else if (item == AdminSidebarItem.orders) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
-                );
-              } // ... অন্য ন্যাভিগেশন গুলো এখানে থাকবে
-            },
+            onItemSelected: (item) => _navigateFromSidebar(context, item),
           ),
           Expanded(
             child: Column(
@@ -53,15 +78,32 @@ class AdminProductUploadPage extends StatelessWidget {
                   height: 70,
                   color: cardBg,
                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: const Center(
-                    child: Text(
-                      "Inventory Control & Upload",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Inventory Control & Upload",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (_) => const HomePage()),
+                            (route) => false,
+                          );
+                        },
+                        icon: const Icon(Icons.store, color: Color(0xFFF59E0B), size: 20),
+                        label: const Text(
+                          "Back to Store",
+                          style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -282,10 +324,20 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     "৳ ${p['price']}",
                     style: const TextStyle(color: Colors.green),
                   ),
-                  trailing: const Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 16,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Color(0xFFF59E0B), size: 20),
+                        onPressed: () => _showEditDialog(context, productProvider, index, p),
+                        tooltip: 'Edit',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                        onPressed: () => _confirmDelete(context, productProvider, index),
+                        tooltip: 'Delete',
+                      ),
+                    ],
                   ),
                 );
               },
@@ -293,6 +345,164 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           ],
         ],
       ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, AdminProductProvider provider, int index) {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF151C2C),
+        title: const Text('Remove product?', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'This will remove the product from this section.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    ).then((ok) {
+      if (ok == true) {
+        provider.removeProduct(widget.sectionTitle, index);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(backgroundColor: Colors.orange, content: Text('Product removed')),
+          );
+        }
+      }
+    });
+  }
+
+  void _showEditDialog(BuildContext context, AdminProductProvider provider, int index, Map<String, dynamic> p) {
+    final nameC = TextEditingController(text: '${p['name']}');
+    final priceC = TextEditingController(text: '${p['price']}');
+    final descC = TextEditingController(text: '${p['desc']}');
+    final imageUrlC = TextEditingController(text: '${p['imageUrl'] ?? ''}');
+    String category = p['category'] ?? 'Home Utility';
+    PlatformFile? pickedFile;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF151C2C),
+              title: const Text('Edit product', style: TextStyle(color: Colors.white)),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 400,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nameC,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Product name',
+                          labelStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: priceC,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Price (BDT)',
+                          labelStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: descC,
+                        maxLines: 2,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                          labelStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: imageUrlC,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Image URL',
+                          labelStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: category,
+                        dropdownColor: const Color(0xFF0B121E),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                          labelStyle: TextStyle(color: Colors.white54),
+                        ),
+                        items: ['Home Utility', 'Personal Care', 'Kitchen', 'Cooling']
+                            .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                            .toList(),
+                        onChanged: (v) => setDialogState(() => category = v ?? category),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+                          if (result != null) setDialogState(() => pickedFile = result.files.first);
+                        },
+                        icon: const Icon(Icons.add_photo_alternate, color: Color(0xFFF59E0B)),
+                        label: const Text('Change image', style: TextStyle(color: Color(0xFFF59E0B))),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
+                  onPressed: () {
+                    if (nameC.text.trim().isEmpty || priceC.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Name and price required')),
+                      );
+                      return;
+                    }
+                    final Map<String, dynamic> data = {
+                      'name': nameC.text.trim(),
+                      'price': priceC.text.trim(),
+                      'desc': descC.text.trim(),
+                      'category': category,
+                      'imageUrl': imageUrlC.text.trim().isEmpty ? null : imageUrlC.text.trim(),
+                    };
+                    if (pickedFile != null) data['image'] = pickedFile;
+                    else if (p['image'] != null) data['image'] = p['image'];
+                    provider.updateProduct(widget.sectionTitle, index, data);
+                    Navigator.pop(ctx);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(backgroundColor: Colors.green, content: Text('Product updated')),
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

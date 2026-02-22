@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../Admin Panel/admin_dashboard_page.dart';
 import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
@@ -95,6 +96,29 @@ class _SidebarState extends State<Sidebar> {
 
             // ⚙️ TRUST BADGES
             _buildTrustSection(),
+
+            const SizedBox(height: 20),
+            // 🔧 Admin Panel (for store managers)
+            InkWell(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(Icons.admin_panel_settings_outlined, size: 20, color: Colors.orange.shade700),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Admin Panel',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.chevron_right, size: 14, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

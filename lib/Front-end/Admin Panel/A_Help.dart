@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../pages/home_page.dart';
 import 'admin_dashboard_page.dart';
 import 'A_products.dart';
 import 'A_orders.dart';
@@ -26,8 +27,16 @@ class AdminHelpPage extends StatelessWidget {
             onItemSelected: (item) {
               if (item == AdminSidebarItem.help) return;
 
-              Widget page;
+              if (item == AdminSidebarItem.viewStore) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  (route) => false,
+                );
+                return;
+              }
 
+              Widget page;
               switch (item) {
                 case AdminSidebarItem.dashboard:
                   page = const AdminDashboardPage();

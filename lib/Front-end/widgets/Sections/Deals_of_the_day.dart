@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../Provider/Admin_product_provider.dart';
 
 class DealsOfTheDay extends StatefulWidget {
   const DealsOfTheDay({Key? key}) : super(key: key);
@@ -71,6 +72,24 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       images: [imagePath],
       description: '$title by $brand.',
       additionalInfo: {'Brand': brand, 'Old Price': oldPrice},
+    );
+  }
+
+  ProductData _buildProductDataFromAdmin(Map<String, dynamic> p, int index) {
+    final price = _parsePrice('${p['price']}');
+    final oldPrice = price * 1.15;
+    final images = <String>[];
+    if (p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty) {
+      images.add(p['imageUrl'] as String);
+    }
+    return ProductData(
+      id: 'deal_admin_$index',
+      name: p['name'] ?? '',
+      category: 'Deals of the Day',
+      priceBDT: price,
+      images: images,
+      description: p['desc'] ?? '',
+      additionalInfo: {'Category': p['category'] ?? '', 'Old Price': '৳${oldPrice.toStringAsFixed(0)}'},
     );
   }
 
@@ -168,167 +187,78 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
             ),
             const SizedBox(height: 12),
 
-            // Product cards list
+            // Product cards list (admin products first, then static deals)
             SizedBox(
               height: 120,
-              child: ListView(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _productCard(
-                    brand: 'Samsung',
-                    title: 'CCTV Camera',
-                    price: '৳8,500',
-                    oldPrice: '৳10,500',
-                    imagePath: 'assets/Deals of the Day/2.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 0,
-                        brand: 'Samsung',
-                        title: 'CCTV Camera',
-                        price: '৳8,500',
-                        oldPrice: '৳10,500',
-                        imagePath: 'assets/Deals of the Day/2.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Walton',
-                    title: 'Blender 3-in-1 Machine',
-                    price: '৳5,500',
-                    oldPrice: '৳7,000',
-                    imagePath: 'assets/Deals of the Day/9.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 1,
-                        brand: 'Walton',
-                        title: 'Blender 3-in-1 Machine',
-                        price: '৳5,500',
-                        oldPrice: '৳7,000',
-                        imagePath: 'assets/Deals of the Day/9.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Panasonic',
-                    title: 'Cooker 5L',
-                    price: '৳8,500',
-                    oldPrice: '৳11,000',
-                    imagePath: 'assets/Deals of the Day/3.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 2,
-                        brand: 'Panasonic',
-                        title: 'Cooker 5L',
-                        price: '৳8,500',
-                        oldPrice: '৳11,000',
-                        imagePath: 'assets/Deals of the Day/3.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Jamuna',
-                    title: 'Fan',
-                    price: '৳4,200',
-                    oldPrice: '৳4,800',
-                    imagePath: 'assets/Deals of the Day/5.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 3,
-                        brand: 'Jamuna',
-                        title: 'Fan',
-                        price: '৳4,200',
-                        oldPrice: '৳4,800',
-                        imagePath: 'assets/Deals of the Day/5.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Walton',
-                    title: 'AC 1.5 Ton',
-                    price: '৳32,200',
-                    oldPrice: '৳38,800',
-                    imagePath: 'assets/Deals of the Day/6.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 4,
-                        brand: 'Walton',
-                        title: 'AC 1.5 Ton',
-                        price: '৳32,200',
-                        oldPrice: '৳38,800',
-                        imagePath: 'assets/Deals of the Day/6.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Walton',
-                    title: 'AC 2 Ton',
-                    price: '৳46,500',
-                    oldPrice: '৳55,750',
-                    imagePath: 'assets/Deals of the Day/6.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 5,
-                        brand: 'Walton',
-                        title: 'AC 2 Ton',
-                        price: '৳46,500',
-                        oldPrice: '৳55,750',
-                        imagePath: 'assets/Deals of the Day/6.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Panasonic',
-                    title: 'Mixer Grinder',
-                    price: '৳2,800',
-                    oldPrice: '৳3,200',
-                    imagePath: 'assets/Deals of the Day/09.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 6,
-                        brand: 'Panasonic',
-                        title: 'Mixer Grinder',
-                        price: '৳2,800',
-                        oldPrice: '৳3,200',
-                        imagePath: 'assets/Deals of the Day/09.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'Hikvision',
-                    title: 'Air Purifier',
-                    price: '৳18,500',
-                    oldPrice: '৳22,000',
-                    imagePath: 'assets/Deals of the Day/7.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 7,
-                        brand: 'Hikvision',
-                        title: 'Air Purifier',
-                        price: '৳18,500',
-                        oldPrice: '৳22,000',
-                        imagePath: 'assets/Deals of the Day/7.png',
-                      ),
-                    ),
-                  ),
-                  _productCard(
-                    brand: 'P9 Max',
-                    title: 'Bluetooth Headphones',
-                    price: '৳1,850',
-                    oldPrice: '৳2,500',
-                    imagePath: 'assets/Deals of the Day/1.png',
-                    onTap: () => _openDetails(
-                      _buildProductData(
-                        index: 8,
-                        brand: 'P9 Max',
-                        title: 'Bluetooth Headphones',
-                        price: '৳1,850',
-                        oldPrice: '৳2,500',
-                        imagePath: 'assets/Deals of the Day/1.png',
-                      ),
-                    ),
-                  ),
-                ],
+              child: Consumer<AdminProductProvider>(
+                builder: (context, adminProvider, _) {
+                  final adminDeals = adminProvider.getProductsBySection("Deals of the Day");
+                  final List<Widget> cards = [];
+
+                  for (var i = 0; i < adminDeals.length; i++) {
+                    final p = adminDeals[i];
+                    final priceVal = _parsePrice('${p['price']}');
+                    final oldPriceVal = priceVal * 1.15;
+                    Widget? imageWidget;
+                    if (p['image']?.bytes != null) {
+                      imageWidget = Image.memory(p['image'].bytes!, fit: BoxFit.cover);
+                    } else if (p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty) {
+                      imageWidget = Image.network(p['imageUrl'] as String, fit: BoxFit.cover);
+                    }
+                    final productData = _buildProductDataFromAdmin(p, i);
+                    cards.add(_productCard(
+                      brand: p['category'] ?? 'Deal',
+                      title: p['name'] ?? '',
+                      price: '৳${priceVal.toStringAsFixed(0)}',
+                      oldPrice: '৳${oldPriceVal.toStringAsFixed(0)}',
+                      imagePath: '',
+                      onTap: () => _openDetails(productData),
+                      imageWidget: imageWidget,
+                      onAddToCart: () async {
+                        await context.read<CartProvider>().addToCart(
+                          productId: productData.id,
+                          name: productData.name,
+                          price: productData.priceBDT,
+                          imageUrl: productData.images.isNotEmpty ? productData.images.first : '',
+                          category: productData.category,
+                        );
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${productData.name} added to cart'), duration: const Duration(milliseconds: 900)),
+                        );
+                      },
+                    ));
+                  }
+
+                  const List<Map<String, String>> staticDeals = [
+                    {'brand': 'Samsung', 'title': 'CCTV Camera', 'price': '৳8,500', 'oldPrice': '৳10,500', 'imagePath': 'assets/Deals of the Day/2.png'},
+                    {'brand': 'Walton', 'title': 'Blender 3-in-1 Machine', 'price': '৳5,500', 'oldPrice': '৳7,000', 'imagePath': 'assets/Deals of the Day/9.png'},
+                    {'brand': 'Panasonic', 'title': 'Cooker 5L', 'price': '৳8,500', 'oldPrice': '৳11,000', 'imagePath': 'assets/Deals of the Day/3.png'},
+                    {'brand': 'Jamuna', 'title': 'Fan', 'price': '৳4,200', 'oldPrice': '৳4,800', 'imagePath': 'assets/Deals of the Day/5.png'},
+                    {'brand': 'Walton', 'title': 'AC 1.5 Ton', 'price': '৳32,200', 'oldPrice': '৳38,800', 'imagePath': 'assets/Deals of the Day/6.png'},
+                    {'brand': 'Walton', 'title': 'AC 2 Ton', 'price': '৳46,500', 'oldPrice': '৳55,750', 'imagePath': 'assets/Deals of the Day/6.png'},
+                    {'brand': 'Panasonic', 'title': 'Mixer Grinder', 'price': '৳2,800', 'oldPrice': '৳3,200', 'imagePath': 'assets/Deals of the Day/09.png'},
+                    {'brand': 'Hikvision', 'title': 'Air Purifier', 'price': '৳18,500', 'oldPrice': '৳22,000', 'imagePath': 'assets/Deals of the Day/7.png'},
+                    {'brand': 'P9 Max', 'title': 'Bluetooth Headphones', 'price': '৳1,850', 'oldPrice': '৳2,500', 'imagePath': 'assets/Deals of the Day/1.png'},
+                  ];
+                  for (var i = 0; i < staticDeals.length; i++) {
+                    final d = staticDeals[i];
+                    cards.add(_productCard(
+                      brand: d['brand']!,
+                      title: d['title']!,
+                      price: d['price']!,
+                      oldPrice: d['oldPrice']!,
+                      imagePath: d['imagePath']!,
+                      onTap: () => _openDetails(_buildProductData(index: i, brand: d['brand']!, title: d['title']!, price: d['price']!, oldPrice: d['oldPrice']!, imagePath: d['imagePath']!)),
+                    ));
+                  }
+
+                  return ListView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    children: cards,
+                  );
+                },
               ),
             ),
           ],
@@ -389,6 +319,8 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     String? badge,
     required String imagePath,
     required VoidCallback onTap,
+    Widget? imageWidget,
+    VoidCallback? onAddToCart,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -400,20 +332,13 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
         decoration: BoxDecoration(
           color: Colors.grey[50],
           borderRadius: BorderRadius.circular(6),
-          // border: Border.all(color: Colors.grey.withOpacity(0.12)),
           border: Border.all(
-            color: const Color.fromARGB(
-              255,
-              207,
-              150,
-              65,
-            ), // Using red border color
+            color: const Color.fromARGB(255, 207, 150, 65),
             width: 1.5,
           ),
         ),
         child: Row(
           children: [
-            //pic part
             Container(
               width: 85,
               height: 85,
@@ -423,13 +348,13 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.image, color: Colors.grey);
-                  },
-                ),
+                child: imageWidget ?? (imagePath.isNotEmpty
+                    ? Image.asset(
+                        imagePath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.image, color: Colors.grey),
+                      )
+                    : const Icon(Icons.image, color: Colors.grey)),
               ),
             ),
             const SizedBox(width: 5),
@@ -486,7 +411,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
               ),
             ),
             IconButton(
-              onPressed: () async {
+              onPressed: onAddToCart ?? () async {
                 final productId = title
                     .toLowerCase()
                     .replaceAll(RegExp(r'[^a-z0-9]+'), '-')

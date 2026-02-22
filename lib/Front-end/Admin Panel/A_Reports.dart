@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
@@ -14,6 +15,15 @@ class AdminReportsPage extends StatelessWidget {
   void _navigate(BuildContext context, AdminSidebarItem item) {
     if (item == AdminSidebarItem.reports) return;
 
+    if (item == AdminSidebarItem.viewStore) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+      return;
+    }
+
     Widget page;
     switch (item) {
       case AdminSidebarItem.dashboard:
@@ -24,7 +34,8 @@ class AdminReportsPage extends StatelessWidget {
         break;
       case AdminSidebarItem.products:
         page = const AdminProductUploadPage();
-        break; case AdminSidebarItem.discounts:
+        break;
+      case AdminSidebarItem.discounts:
         page = const AdminDiscountPage();
         break;
       case AdminSidebarItem.help:

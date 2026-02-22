@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_orders.dart';
@@ -56,11 +57,19 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     super.dispose();
   }
 
-  void _navigate(AdminSidebarItem item) {
+  void _navigate(BuildContext context, AdminSidebarItem item) {
     if (item == AdminSidebarItem.discounts) return;
 
-    Widget page;
+    if (item == AdminSidebarItem.viewStore) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+      return;
+    }
 
+    Widget page;
     switch (item) {
       case AdminSidebarItem.dashboard:
         page = const AdminDashboardPage();
@@ -92,7 +101,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         children: [
           AdminSidebar(
             selected: AdminSidebarItem.discounts,
-            onItemSelected: _navigate,
+            onItemSelected: (item) => _navigate(context, item),
           ),
 
           /// MAIN CONTENT

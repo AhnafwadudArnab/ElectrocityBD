@@ -10,16 +10,39 @@ class AdminProductProvider extends ChangeNotifier {
     "Tech Part": [],
   };
 
+  static int _idCounter = 0;
+  static String _nextId() => 'admin_${DateTime.now().millisecondsSinceEpoch}_${_idCounter++}';
+
   // গেটার
   Map<String, List<Map<String, dynamic>>> get sectionProducts =>
       Map.unmodifiable(_sectionProducts);
 
-  // প্রোডাক্ট যোগ করার মেথড
+  // প্রোডাক্ট যোগ করার মেথড (unique id অটো অ্যাড)
   void addProduct(String sectionTitle, Map<String, dynamic> product) {
     if (_sectionProducts.containsKey(sectionTitle)) {
-      _sectionProducts[sectionTitle]!.add(product);
+      final data = Map<String, dynamic>.from(product);
+      if (!data.containsKey('id')) data['id'] = _nextId();
+      _sectionProducts[sectionTitle]!.add(data);
       notifyListeners();
     }
+  }
+
+  // প্রোডাক্ট আপডেট
+  void updateProduct(String sectionTitle, int index, Map<String, dynamic> product) {
+    final list = _sectionProducts[sectionTitle];
+    if (list == null || index < 0 || index >= list.length) return;
+    final data = Map<String, dynamic>.from(product);
+    if (list[index].containsKey('id')) data['id'] = list[index]['id'];
+    list[index] = data;
+    notifyListeners();
+  }
+
+  // প্রোডাক্ট ডিলিট
+  void removeProduct(String sectionTitle, int index) {
+    final list = _sectionProducts[sectionTitle];
+    if (list == null || index < 0 || index >= list.length) return;
+    list.removeAt(index);
+    notifyListeners();
   }
 
   // একটি সেকশনের সব প্রোডাক্ট পাওয়া

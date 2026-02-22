@@ -9,6 +9,7 @@ enum AdminSidebarItem {
   integrations,
   help,
   settings,
+  viewStore,
 }
 
 class AdminSidebar extends StatelessWidget {
@@ -122,6 +123,15 @@ class AdminSidebar extends StatelessWidget {
                     item: AdminSidebarItem.help,
                     icon: Icons.help_outline_rounded,
                     label: 'Help Center',
+                    onItemSelected: onItemSelected,
+                    activeColor: brandOrange,
+                    activeBg: activeBackground,
+                    inactiveColor: inactiveGrey,
+                  ),
+                  _buildSidebarItem(
+                    item: AdminSidebarItem.viewStore,
+                    icon: Icons.store_outlined,
+                    label: 'View Store',
                     onItemSelected: onItemSelected,
                     activeColor: brandOrange,
                     activeBg: activeBackground,

@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../All Pages/Registrations/signup.dart';
+import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_discounts.dart';
@@ -31,8 +32,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onItemSelected: (item) {
               if (item == AdminSidebarItem.dashboard) return;
 
-              Widget page;
+              if (item == AdminSidebarItem.viewStore) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  (route) => false,
+                );
+                return;
+              }
 
+              Widget page;
               switch (item) {
                 case AdminSidebarItem.orders:
                   page = const AdminOrdersPage();
@@ -40,9 +49,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 case AdminSidebarItem.products:
                   page = const AdminProductUploadPage();
                   break;
-                // case AdminSidebarItem.customers:
-                //   page = const AdminLayoutPage();
-                //   break;
                 case AdminSidebarItem.reports:
                   page = const AdminReportsPage();
                   break;
@@ -52,6 +58,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 case AdminSidebarItem.help:
                   page = const AdminHelpPage();
                   break;
+                case AdminSidebarItem.settings:
+                  // Keep on dashboard for now; could replace with a dedicated settings page
+                  return;
                 default:
                   return;
               }

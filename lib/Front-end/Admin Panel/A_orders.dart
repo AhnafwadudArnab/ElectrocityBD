@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_discounts.dart';
@@ -98,6 +99,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             selected: AdminSidebarItem.orders,
             onItemSelected: (item) {
               if (item == AdminSidebarItem.orders) return;
+              if (item == AdminSidebarItem.viewStore) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  (route) => false,
+                );
+                return;
+              }
               Widget? page;
               switch (item) {
                 case AdminSidebarItem.dashboard:
@@ -106,14 +115,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 case AdminSidebarItem.products:
                   page = const AdminProductUploadPage();
                   break;
-                 case AdminSidebarItem.reports:
-                  page =  const AdminReportsPage();
+                case AdminSidebarItem.reports:
+                  page = const AdminReportsPage();
                   break;
                 case AdminSidebarItem.discounts:
-                  page =  const AdminDiscountPage();
+                  page = const AdminDiscountPage();
                   break;
                 case AdminSidebarItem.help:
-                  page =  const AdminHelpPage();
+                  page = const AdminHelpPage();
                   break;
                 default:
                   page = null;
