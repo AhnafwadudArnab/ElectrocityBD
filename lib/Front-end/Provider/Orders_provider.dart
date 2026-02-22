@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/api_service.dart';
+
 /// Single placed order (customer checkout).
 class PlacedOrder {
   final String orderId;
@@ -82,10 +84,16 @@ class OrdersProvider extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    try {
+      final token = await ApiService.getToken();
+      if (token != null) {
+        await refreshFromApi();
+        return;
+      }
+    } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_storageKey);
     if (raw == null || raw.isEmpty) return;
-
     try {
       final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
       _orders.clear();
@@ -93,6 +101,42 @@ class OrdersProvider extends ChangeNotifier {
         _orders.add(PlacedOrder.fromJson(Map<String, dynamic>.from(e as Map)));
       }
       notifyListeners();
+    } catch (_) {}
+  }
+
+  /// Load orders from backend (real-time DB). Call after place order or on init when logged in.
+  Future<void> refreshFromApi() async {
+    try {
+      final list = await ApiService.getOrders() as List<dynamic>;
+      _orders.clear();
+      for (final o in list) {
+        final row = Map<String, dynamic>.from(o as Map);
+        final orderId = (row['order_id'] ?? row['orderId'])?.toString() ?? '';
+        final createdAt = row['order_date'] ?? row['createdAt'] ?? '';
+        String createdStr = createdAt.toString();
+        if (createdAt is String) createdStr = createdAt;
+        if (createdAt != null && createdAt is! String) {
+          try {
+            final d = DateTime.parse(createdAt.toString());
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            createdStr = '${d.day} ${months[d.month - 1]} ${d.year}, ${d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour)}:${d.minute.toString().padLeft(2, '0')} ${d.hour >= 12 ? 'PM' : 'AM'}';
+          } catch (_) {}
+        }
+        final items = (row['items'] as List<dynamic>?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+        _orders.add(PlacedOrder(
+          orderId: orderId,
+          transactionId: (row['transaction_id'] ?? row['transactionId'] ?? '').toString(),
+          paymentMethod: (row['payment_method'] ?? row['paymentMethod'] ?? 'Cash').toString(),
+          total: ((row['total_amount'] ?? row['total']) as num?)?.toDouble() ?? 0.0,
+          createdAt: createdStr,
+          createdAtMillis: DateTime.tryParse(createdAt.toString())?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
+          status: (row['order_status'] ?? row['status'] ?? 'New Order').toString(),
+          estimatedDelivery: (row['estimated_delivery'] ?? row['estimatedDelivery'])?.toString(),
+          items: items,
+        ));
+      }
+      notifyListeners();
+      await _persist();
     } catch (_) {}
   }
 

@@ -13,7 +13,9 @@ import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
 class AdminCartsPage extends StatefulWidget {
-  const AdminCartsPage({super.key});
+  final bool embedded;
+
+  const AdminCartsPage({super.key, this.embedded = false});
 
   @override
   State<AdminCartsPage> createState() => _AdminCartsPageState();
@@ -74,25 +76,25 @@ class _AdminCartsPageState extends State<AdminCartsPage>
     Widget page;
     switch (item) {
       case AdminSidebarItem.dashboard:
-        page = const AdminDashboardPage();
+        page = const AdminDashboardPage(embedded: true);
         break;
       case AdminSidebarItem.orders:
-        page = const AdminOrdersPage();
+        page = const AdminOrdersPage(embedded: true);
         break;
       case AdminSidebarItem.products:
-        page = const AdminProductUploadPage();
+        page = const AdminProductUploadPage(embedded: true);
         break;
       case AdminSidebarItem.reports:
-        page = const AdminReportsPage();
+        page = const AdminReportsPage(embedded: true);
         break;
       case AdminSidebarItem.discounts:
-        page = const AdminDiscountPage();
+        page = const AdminDiscountPage(embedded: true);
         break;
       case AdminSidebarItem.help:
-        page = const AdminHelpPage();
+        page = const AdminHelpPage(embedded: true);
         break;
       case AdminSidebarItem.settings:
-        page = const AdminSettingsPage();
+        page = const AdminSettingsPage(embedded: true);
         break;
       default:
         return;
@@ -103,18 +105,8 @@ class _AdminCartsPageState extends State<AdminCartsPage>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FD),
-      body: Row(
-        children: [
-          AdminSidebar(
-            selected: AdminSidebarItem.carts,
-            onItemSelected: (item) => _navigateFromSidebar(context, item),
-          ),
-          Expanded(
-            child: Column(
+  Widget _buildCartsContent(BuildContext context) {
+    return Column(
               children: [
                 Container(
                   height: 64,
@@ -291,8 +283,26 @@ class _AdminCartsPageState extends State<AdminCartsPage>
                   ),
                 ),
               ],
-            ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return Container(
+        color: const Color(0xFFF7F8FD),
+        child: _buildCartsContent(context),
+      );
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FD),
+      body: Row(
+        children: [
+          AdminSidebar(
+            selected: AdminSidebarItem.carts,
+            onItemSelected: (item) => _navigateFromSidebar(context, item),
           ),
+          Expanded(child: _buildCartsContent(context)),
         ],
       ),
     );

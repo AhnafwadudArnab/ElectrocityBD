@@ -11,12 +11,12 @@ import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
 class AdminReportsPage extends StatelessWidget {
-  const AdminReportsPage({super.key});
+  final bool embedded;
 
-  // Simplified navigation helper
+  const AdminReportsPage({super.key, this.embedded = false});
+
   void _navigate(BuildContext context, AdminSidebarItem item) {
     if (item == AdminSidebarItem.reports) return;
-
     if (item == AdminSidebarItem.viewStore) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -25,46 +25,86 @@ class AdminReportsPage extends StatelessWidget {
       );
       return;
     }
-
     Widget page;
     switch (item) {
       case AdminSidebarItem.dashboard:
-        page = const AdminDashboardPage();
+        page = const AdminDashboardPage(embedded: true);
         break;
       case AdminSidebarItem.orders:
-        page = const AdminOrdersPage();
+        page = const AdminOrdersPage(embedded: true);
         break;
       case AdminSidebarItem.products:
-        page = const AdminProductUploadPage();
+        page = const AdminProductUploadPage(embedded: true);
         break;
       case AdminSidebarItem.carts:
-        page = const AdminCartsPage();
+        page = const AdminCartsPage(embedded: true);
         break;
       case AdminSidebarItem.discounts:
-        page = const AdminDiscountPage();
+        page = const AdminDiscountPage(embedded: true);
         break;
       case AdminSidebarItem.help:
-        page = const AdminHelpPage();
+        page = const AdminHelpPage(embedded: true);
         break;
       case AdminSidebarItem.settings:
-        page = const AdminSettingsPage();
+        page = const AdminSettingsPage(embedded: true);
         break;
       default:
         return;
     }
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+  }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => page),
+  Widget _buildReportsContent(BuildContext context) {
+    const Color cardBg = Color(0xFF151C2C);
+    const Color brandOrange = Color(0xFFF59E0B);
+    return Column(
+      children: [
+        _buildHeader(cardBg),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Customer Reports & Issues",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.download_rounded),
+                      label: const Text("Export PDF"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brandOrange.withOpacity(0.1),
+                        foregroundColor: brandOrange,
+                        side: BorderSide(color: brandOrange),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                _buildReportsList(cardBg),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     const Color darkBg = Color(0xFF0B121E);
-    const Color cardBg = Color(0xFF151C2C);
-    const Color brandOrange = Color(0xFFF59E0B);
-
+    if (embedded) {
+      return Container(color: darkBg, child: _buildReportsContent(context));
+    }
     return Scaffold(
       backgroundColor: darkBg,
       body: Row(
@@ -73,48 +113,7 @@ class AdminReportsPage extends StatelessWidget {
             selected: AdminSidebarItem.reports,
             onItemSelected: (item) => _navigate(context, item),
           ),
-          Expanded(
-            child: Column(
-              children: [
-                _buildHeader(cardBg),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Customer Reports & Issues",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.download_rounded),
-                              label: const Text("Export PDF"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: brandOrange.withOpacity(0.1),
-                                foregroundColor: brandOrange,
-                                side: BorderSide(color: brandOrange),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-                        _buildReportsList(cardBg),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _buildReportsContent(context)),
         ],
       ),
     );

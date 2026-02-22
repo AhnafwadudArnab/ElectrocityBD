@@ -11,174 +11,164 @@ import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
 class AdminHelpPage extends StatelessWidget {
-  const AdminHelpPage({super.key});
+  final bool embedded;
 
-  @override
-  Widget build(BuildContext context) {
+  const AdminHelpPage({super.key, this.embedded = false});
+
+  void _navigate(BuildContext context, AdminSidebarItem item) {
+    if (item == AdminSidebarItem.help) return;
+    if (item == AdminSidebarItem.viewStore) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+      return;
+    }
+    Widget page;
+    switch (item) {
+      case AdminSidebarItem.dashboard:
+        page = const AdminDashboardPage(embedded: true);
+        break;
+      case AdminSidebarItem.products:
+        page = const AdminProductUploadPage(embedded: true);
+        break;
+      case AdminSidebarItem.orders:
+        page = const AdminOrdersPage(embedded: true);
+        break;
+      case AdminSidebarItem.carts:
+        page = const AdminCartsPage(embedded: true);
+        break;
+      case AdminSidebarItem.reports:
+        page = const AdminReportsPage(embedded: true);
+        break;
+      case AdminSidebarItem.discounts:
+        page = const AdminDiscountPage(embedded: true);
+        break;
+      case AdminSidebarItem.settings:
+        page = const AdminSettingsPage(embedded: true);
+        break;
+      default:
+        return;
+    }
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+  }
+
+  Widget _buildHelpContent(BuildContext context) {
     const Color darkBg = Color(0xFF0B121E);
     const Color cardBg = Color(0xFF151C2C);
     const Color brandOrange = Color(0xFFF59E0B);
-
-    return Scaffold(
-      backgroundColor: darkBg,
-      body: Row(
-        children: [
-          /// SIDEBAR
-          AdminSidebar(
-            selected: AdminSidebarItem.help,
-            onItemSelected: (item) {
-              if (item == AdminSidebarItem.help) return;
-
-              if (item == AdminSidebarItem.viewStore) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HomePage()),
-                  (route) => false,
-                );
-                return;
-              }
-
-              Widget page;
-              switch (item) {
-                case AdminSidebarItem.dashboard:
-                  page = const AdminDashboardPage();
-                  break;
-                case AdminSidebarItem.products:
-                  page = const AdminProductUploadPage();
-                  break;
-                case AdminSidebarItem.orders:
-                  page = const AdminOrdersPage();
-                  break;
-                case AdminSidebarItem.carts:
-                  page = const AdminCartsPage();
-                  break;
-                case AdminSidebarItem.reports:
-                  page = const AdminReportsPage();
-                  break;
-                case AdminSidebarItem.discounts:
-                  page = const AdminDiscountPage();
-                  break;
-                case AdminSidebarItem.settings:
-                  page = const AdminSettingsPage();
-                  break;
-                default:
-                  return;
-              }
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => page),
-              );
-            },
-          ),
-
-          /// MAIN CONTENT
-          Expanded(
+    return Column(
+      children: [
+        _buildHeader(cardBg),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(cardBg),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Help & Support Center",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
+                const Text(
+                  "Help & Support Center",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Find answers to common questions or contact support.",
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Frequently Asked Questions",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          "Find answers to common questions or contact support.",
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFAQTile(
+                        "How to upload a new product?",
+                        "Go to the Products page and fill out the 'Add New Product' form.",
+                      ),
+                      _buildFAQTile(
+                        "How to manage discounts?",
+                        "Use the Discounts section to create coupon codes and flash sales.",
+                      ),
+                      _buildFAQTile(
+                        "Where can I see customer reports?",
+                        "Check the 'Reports' tab for all user complaints and feedback.",
+                      ),
+                      const SizedBox(height: 40),
+                      const Divider(color: Colors.white10),
+                      const SizedBox(height: 32),
+                      const Text(
+                        "Contact Technical Support",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 32),
-
-                        /// MAIN CARD
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white10,
-                            ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          _buildContactCard(
+                            darkBg,
+                            Icons.email,
+                            "Email Us",
+                            "support@electrocitybd.com",
+                            brandOrange,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              /// FAQ
-                              const Text(
-                                "Frequently Asked Questions",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-
-                              _buildFAQTile(
-                                "How to upload a new product?",
-                                "Go to the Products page and fill out the 'Add New Product' form.",
-                              ),
-                              _buildFAQTile(
-                                "How to manage discounts?",
-                                "Use the Discounts section to create coupon codes and flash sales.",
-                              ),
-                              _buildFAQTile(
-                                "Where can I see customer reports?",
-                                "Check the 'Reports' tab for all user complaints and feedback.",
-                              ),
-
-                              const SizedBox(height: 40),
-                              const Divider(color: Colors.white10),
-                              const SizedBox(height: 32),
-
-                              /// CONTACT
-                              const Text(
-                                "Contact Technical Support",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-
-                              Row(
-                                children: [
-                                  _buildContactCard(
-                                    darkBg,
-                                    Icons.email,
-                                    "Email Us",
-                                    "support@electrocitybd.com",
-                                    brandOrange,
-                                  ),
-                                  const SizedBox(width: 20),
-                                  _buildContactCard(
-                                    darkBg,
-                                    Icons.phone,
-                                    "Call Us",
-                                    "+880 1XXX-XXXXXX",
-                                    brandOrange,
-                                  ),
-                                ],
-                              ),
-                            ],
+                          const SizedBox(width: 20),
+                          _buildContactCard(
+                            darkBg,
+                            Icons.phone,
+                            "Call Us",
+                            "+880 1XXX-XXXXXX",
+                            brandOrange,
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const Color darkBg = Color(0xFF0B121E);
+    if (embedded) {
+      return Container(color: darkBg, child: _buildHelpContent(context));
+    }
+    return Scaffold(
+      backgroundColor: darkBg,
+      body: Row(
+        children: [
+          AdminSidebar(
+            selected: AdminSidebarItem.help,
+            onItemSelected: (item) => _navigate(context, item),
+          ),
+          Expanded(child: _buildHelpContent(context)),
         ],
       ),
     );

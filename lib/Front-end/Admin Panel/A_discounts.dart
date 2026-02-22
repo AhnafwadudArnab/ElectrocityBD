@@ -11,7 +11,9 @@ import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
 class AdminDiscountPage extends StatefulWidget {
-  const AdminDiscountPage({super.key});
+  final bool embedded;
+
+  const AdminDiscountPage({super.key, this.embedded = false});
 
   @override
   State<AdminDiscountPage> createState() => _AdminDiscountPageState();
@@ -74,25 +76,25 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     Widget page;
     switch (item) {
       case AdminSidebarItem.dashboard:
-        page = const AdminDashboardPage();
+        page = const AdminDashboardPage(embedded: true);
         break;
       case AdminSidebarItem.orders:
-        page = const AdminOrdersPage();
+        page = const AdminOrdersPage(embedded: true);
         break;
       case AdminSidebarItem.products:
-        page = const AdminProductUploadPage();
+        page = const AdminProductUploadPage(embedded: true);
         break;
       case AdminSidebarItem.carts:
-        page = const AdminCartsPage();
+        page = const AdminCartsPage(embedded: true);
         break;
       case AdminSidebarItem.reports:
-        page = const AdminReportsPage();
+        page = const AdminReportsPage(embedded: true);
         break;
       case AdminSidebarItem.help:
-        page = const AdminHelpPage();
+        page = const AdminHelpPage(embedded: true);
         break;
       case AdminSidebarItem.settings:
-        page = const AdminSettingsPage();
+        page = const AdminSettingsPage(embedded: true);
         break;
       default:
         return;
@@ -101,23 +103,11 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: darkBg,
-      body: Row(
-        children: [
-          AdminSidebar(
-            selected: AdminSidebarItem.discounts,
-            onItemSelected: (item) => _navigate(context, item),
-          ),
-
-          /// MAIN CONTENT
-          Expanded(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
+  Widget _buildDiscountContent() {
+    return Column(
+      children: [
+        _buildHeader(),
+        Expanded(
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(32),
@@ -145,8 +135,23 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                   ),
                 ),
               ],
-            ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return Container(color: darkBg, child: _buildDiscountContent());
+    }
+    return Scaffold(
+      backgroundColor: darkBg,
+      body: Row(
+        children: [
+          AdminSidebar(
+            selected: AdminSidebarItem.discounts,
+            onItemSelected: (item) => _navigate(context, item),
           ),
+          Expanded(child: _buildDiscountContent()),
         ],
       ),
     );

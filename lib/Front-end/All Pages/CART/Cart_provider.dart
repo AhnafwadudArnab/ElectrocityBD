@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
 import 'Main_carting.dart';
 
@@ -13,6 +14,8 @@ class CartProvider extends ChangeNotifier {
 
   /// userId (email) or guest_xxx -> productId -> CartItem
   final Map<String, Map<String, CartItem>> _carts = {};
+  /// productId -> server cart_id (for API delete/update when logged in)
+  final Map<String, int> _serverCartIds = {};
   String _currentUserId = '';
 
   String get currentUserId => _currentUserId;
@@ -44,6 +47,30 @@ class CartProvider extends ChangeNotifier {
     final userData = await AuthSession.getUserData();
     if (userData != null && userData.email.isNotEmpty) {
       _currentUserId = userData.email;
+      try {
+        final token = await ApiService.getToken();
+        if (token != null) {
+          _serverCartIds.clear();
+          final res = await ApiService.getCart();
+          final list = (res['items'] as List<dynamic>?) ?? [];
+          final map = <String, CartItem>{};
+          for (final row in list) {
+            final r = Map<String, dynamic>.from(row as Map);
+            final pid = (r['product_id'] ?? r['productId'])?.toString() ?? '';
+            final cartId = r['cart_id'] as int?;
+            if (cartId != null) _serverCartIds[pid] = cartId;
+            map[pid] = CartItem(
+              productId: pid,
+              name: (r['product_name'] ?? r['productName'] ?? '').toString(),
+              price: (r['price'] as num?)?.toDouble() ?? 0,
+              imageUrl: (r['image_url'] ?? r['imageUrl'] ?? '').toString(),
+              quantity: (r['quantity'] as num?)?.toInt() ?? 1,
+              category: (r['category_name'] ?? r['category'] ?? '').toString(),
+            );
+          }
+          _carts[_currentUserId] = map;
+        }
+      } catch (_) {}
     } else {
       String guestId = prefs.getString(_guestIdKey) ?? '';
       if (guestId.isEmpty) {
@@ -136,11 +163,25 @@ class CartProvider extends ChangeNotifier {
         quantity: quantity,
       );
     }
+    final pid = int.tryParse(productId);
+    if (pid != null && !_currentUserId.startsWith('guest_')) {
+      try {
+        await ApiService.addToCart(pid, quantity: quantity);
+      } catch (_) {}
+    }
     notifyListeners();
     await _persist();
   }
 
   Future<void> removeFromCart(String productId) async {
+    if (!_currentUserId.startsWith('guest_')) {
+      final cartId = _serverCartIds.remove(productId);
+      if (cartId != null) {
+        try {
+          await ApiService.removeCartItem(cartId);
+        } catch (_) {}
+      }
+    }
     _carts[_currentUserId]?.remove(productId);
     notifyListeners();
     await _persist();
@@ -182,6 +223,12 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> clearCart() async {
+    if (!_currentUserId.startsWith('guest_')) {
+      try {
+        await ApiService.clearCart();
+      } catch (_) {}
+      _serverCartIds.clear();
+    }
     _carts[_currentUserId]?.clear();
     notifyListeners();
     await _persist();

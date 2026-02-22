@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../utils/api_service.dart';
+import '../../utils/auth_session.dart';
+import '../../pages/home_page.dart';
+import '../CART/Cart_provider.dart';
 import 'login.dart';
 
 class Signup extends StatefulWidget {
@@ -39,23 +44,63 @@ class _SignupState extends State<Signup> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Account created successfully!'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.white,
-      ),
-    );
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LogIn()),
-    );
+    try {
+      final name = _nameController.text.trim();
+      final parts = name.split(RegExp(r'\s+'));
+      final firstName = parts.isNotEmpty ? parts.first : 'User';
+      final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      final result = await ApiService.register(
+        firstName: firstName,
+        lastName: lastName,
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        phone: '',
+        gender: 'Male',
+      );
+      if (!mounted) return;
+      final userMap = result['user'] as Map<String, dynamic>?;
+      if (userMap != null) {
+        await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
+      }
+      await AuthSession.setAdmin(false);
+      if (mounted) {
+        final email = (userMap?['email'] ?? _emailController.text).toString();
+        await context.read<CartProvider>().setCurrentUserId(email, mergeFromGuest: true);
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully!'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+        ),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Server connection failed. Start backend (npm run dev).'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override

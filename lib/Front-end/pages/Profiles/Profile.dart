@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
@@ -1492,6 +1493,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       SizedBox(height: padding),
                       ElevatedButton(
                         onPressed: () async {
+                          await ApiService.clearToken();
                           await AuthSession.clear();
                           if (mounted) await context.read<CartProvider>().switchToGuest();
                           if (!mounted) return;
@@ -1556,6 +1558,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       SizedBox(width: padding),
                       ElevatedButton(
                         onPressed: () async {
+                          await ApiService.clearToken();
                           await AuthSession.clear();
                           if (mounted) await context.read<CartProvider>().switchToGuest();
                           if (!mounted) return;
@@ -1652,7 +1655,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // Update Methods
-  void _updatePersonalInfo() {
+  Future<void> _updatePersonalInfo() async {
     if (firstNameController.text.isEmpty ||
         lastNameController.text.isEmpty ||
         emailController.text.isEmpty ||
@@ -1667,12 +1670,47 @@ class _ProfilePageState extends State<ProfilePage> {
       isEditingPersonalInfo = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Profile updated successfully!"),
-        backgroundColor: Colors.green,
-      ),
+    final userData = UserData(
+      firstName: firstNameController.text.trim(),
+      lastName: lastNameController.text.trim(),
+      email: emailController.text.trim(),
+      phone: phoneController.text.trim(),
+      gender: selectedGender,
     );
+    await AuthSession.updateUserData(userData);
+
+    try {
+      await ApiService.updateProfile({
+        'firstName': userData.firstName,
+        'lastName': userData.lastName,
+        'phone': userData.phone,
+        'address': addresses.isNotEmpty ? (addresses.first['address'] ?? '') : '',
+        'gender': userData.gender,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Profile updated successfully! (Saved to database)"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Profile saved locally. DB update failed: ${e.message}"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Profile saved locally. Start backend to sync to database."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
   void _addAddress() {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppConstants {
@@ -5,8 +6,12 @@ class AppConstants {
   static const String appName = 'ElectroCityBD';
   static const String appVersion = '1.0.0';
 
-  // API URL - change to your deployed server URL in production
-  static const String baseUrl = 'http://localhost:3000/api';
+  // API URL - real-time DB connection
+  // Web / same machine: localhost. Android emulator: 10.0.2.2. Real device: use your PC IP e.g. http://192.168.1.5:3000/api
+  static String get baseUrl {
+    if (kIsWeb) return 'http://localhost:3000/api';
+    return 'http://localhost:3000/api';
+  }
 
   // Default Values
   static const int cartItemCount = 3;

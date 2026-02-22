@@ -104,16 +104,20 @@ router.post('/admin-login', async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      "SELECT * FROM users WHERE (email = ? OR full_name = ?) AND role = 'admin'",
-      [username, username]
+      "SELECT * FROM users WHERE (LOWER(TRIM(email)) = LOWER(TRIM(?)) OR LOWER(TRIM(full_name)) = LOWER(TRIM(?))) AND role = 'admin'",
+      [String(username).trim(), String(username).trim()]
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid admin credentials.' });
+      return res.status(401).json({ error: 'Invalid admin credentials. Run: cd backend && npm run db:init' });
     }
 
     const admin = rows[0];
-    const validPassword = await bcrypt.compare(password, admin.password);
+    const storedPassword = admin.password || admin.PASSWORD;
+    if (!storedPassword) {
+      return res.status(500).json({ error: 'Admin user has no password set. Run: npm run db:init' });
+    }
+    const validPassword = await bcrypt.compare(String(password), storedPassword);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid admin credentials.' });
     }

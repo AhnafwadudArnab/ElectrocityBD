@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../All Pages/CART/Cart_provider.dart';
 import '../All Pages/Registrations/signup.dart';
 import '../pages/home_page.dart';
+import '../utils/api_service.dart';
 import '../utils/auth_session.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
@@ -16,7 +17,10 @@ import 'A_products.dart';
 import 'Admin_sidebar.dart';
 
 class AdminDashboardPage extends StatefulWidget {
-  const AdminDashboardPage({super.key});
+  /// When true, only the content is shown (no sidebar). Used inside AdminLayoutPage.
+  final bool embedded;
+
+  const AdminDashboardPage({super.key, this.embedded = false});
 
   @override
   State<AdminDashboardPage> createState() => _AdminDashboardPageState();
@@ -25,9 +29,59 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   String selectedMenu = 'Dashboard';
   String selectedPeriod = 'Last 8 Days';
+  Map<String, dynamic>? _dashboardStats;
+  bool _statsLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardStats();
+  }
+
+  Future<void> _loadDashboardStats() async {
+    try {
+      final stats = await ApiService.getDashboardStats();
+      if (mounted) setState(() { _dashboardStats = stats; _statsLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _statsLoading = false; });
+    }
+  }
+
+  Widget _buildDashboardContent() {
+    return Column(
+      children: [
+        _buildTopBar(),
+        const SizedBox(height: 24),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStatsCards(),
+                const SizedBox(height: 24),
+                _buildRevenueAnalytics(),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(child: _buildMonthlyTarget()),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildConversionRate()),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return Container(color: Colors.grey[50], child: _buildDashboardContent());
+    }
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Row(
@@ -36,7 +90,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             selected: AdminSidebarItem.dashboard,
             onItemSelected: (item) {
               if (item == AdminSidebarItem.dashboard) return;
-
               if (item == AdminSidebarItem.viewStore) {
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -45,69 +98,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 );
                 return;
               }
-
               Widget page;
               switch (item) {
                 case AdminSidebarItem.orders:
-                  page = const AdminOrdersPage();
+                  page = const AdminOrdersPage(embedded: true);
                   break;
                 case AdminSidebarItem.products:
-                  page = const AdminProductUploadPage();
+                  page = const AdminProductUploadPage(embedded: true);
                   break;
                 case AdminSidebarItem.carts:
-                  page = const AdminCartsPage();
+                  page = const AdminCartsPage(embedded: true);
                   break;
                 case AdminSidebarItem.reports:
-                  page = const AdminReportsPage();
+                  page = const AdminReportsPage(embedded: true);
                   break;
                 case AdminSidebarItem.discounts:
-                  page = const AdminDiscountPage();
+                  page = const AdminDiscountPage(embedded: true);
                   break;
                 case AdminSidebarItem.help:
-                  page = const AdminHelpPage();
+                  page = const AdminHelpPage(embedded: true);
                   break;
                 case AdminSidebarItem.settings:
-                  page = const AdminSettingsPage();
+                  page = const AdminSettingsPage(embedded: true);
                   break;
                 default:
                   return;
               }
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => page),
-              );
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
             },
           ),
-          Expanded(
-            child: Column(
-              children: [
-                _buildTopBar(),
-                const SizedBox(height: 24),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatsCards(),
-                        const SizedBox(height: 24),
-                        _buildRevenueAnalytics(),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(child: _buildMonthlyTarget()),
-                            const SizedBox(width: 16),
-                            Expanded(child: _buildConversionRate()),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _buildDashboardContent()),
         ],
       ),
     );
@@ -196,6 +216,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   onTap: () async {
                     Navigator.pop(context);
+                    await ApiService.clearToken();
                     await AuthSession.clear();
                     if (!context.mounted) return;
                     await context.read<CartProvider>().switchToGuest();
@@ -248,14 +269,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildStatsCards() {
+    if (_statsLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final totalRevenue = (_dashboardStats?['totalRevenue'] as num?)?.toDouble() ?? 0;
+    final totalOrders = (_dashboardStats?['totalOrders'] as int?) ?? 0;
+    final totalCustomers = (_dashboardStats?['totalCustomers'] as int?) ?? 0;
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             'Total Sales',
-            '৳5000',
-            '+3.46%',
-            'vs last week',
+            '৳${totalRevenue.toStringAsFixed(0)}',
+            '',
+            'from DB',
             Colors.orange,
             Icons.attach_money,
             true,
@@ -265,23 +295,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         Expanded(
           child: _buildStatCard(
             'Total Orders',
-            '3',
-            '-2.89%',
-            'vs last week',
+            '$totalOrders',
+            '',
+            'from DB',
             Colors.green,
             Icons.shopping_cart,
-            false,
+            true,
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildStatCard(
-            'Total Visitors',
-            '5',
-            '+8.02%',
-            'vs last week',
+            'Total Customers',
+            '$totalCustomers',
+            '',
+            'from DB',
             Colors.purple,
-            Icons.visibility,
+            Icons.people,
             true,
           ),
         ),

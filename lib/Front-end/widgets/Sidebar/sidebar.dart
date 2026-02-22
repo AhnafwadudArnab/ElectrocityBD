@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../Admin Panel/admin_dashboard_page.dart';
+import '../../Admin Panel/A_customers.dart';
 import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
@@ -106,7 +106,7 @@ class _SidebarState extends State<Sidebar> {
                 return InkWell(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const AdminDashboardPage(),
+                      builder: (_) => const AdminLayoutPage(),
                     ),
                   ),
                   child: Padding(

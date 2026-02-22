@@ -206,14 +206,16 @@ async function initDatabase() {
   }
   console.log('All tables created successfully.');
 
-  // Seed admin user
+  // Seed admin user (upsert so password is always correct)
   const adminPassword = await bcrypt.hash('1234@', 10);
+  const adminEmail = 'ahnaf@electrocitybd.com';
   await connection.query(
-    `INSERT IGNORE INTO users (full_name, last_name, email, password, phone_number, role)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    ['Ahnaf', 'Admin', 'ahnaf@electrocitybd.com', adminPassword, '+880 1700-000000', 'admin']
+    `INSERT INTO users (full_name, last_name, email, password, phone_number, role)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'admin', full_name = VALUES(full_name), last_name = VALUES(last_name)`,
+    ['Ahnaf', 'Admin', adminEmail, adminPassword, '+880 1700-000000', 'admin']
   );
-  console.log('Admin user seeded (email: ahnaf@electrocitybd.com, password: 1234@)');
+  console.log('Admin user ready: email = ahnaf@electrocitybd.com, password = 1234@');
 
   // Seed sample categories
   const categories = [

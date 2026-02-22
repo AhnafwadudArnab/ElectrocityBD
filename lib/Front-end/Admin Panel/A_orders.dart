@@ -17,7 +17,9 @@ import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
 class AdminOrdersPage extends StatefulWidget {
-  const AdminOrdersPage({super.key});
+  final bool embedded;
+
+  const AdminOrdersPage({super.key, this.embedded = false});
 
   @override
   State<AdminOrdersPage> createState() => _AdminOrdersPageState();
@@ -35,13 +37,24 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     });
   }
 
+  Widget _buildOrdersContent() {
+    return Consumer<OrdersProvider>(
+      builder: (context, ordersProvider, _) => Column(
+        children: [_buildTopBar(), _buildOrderTable(ordersProvider)],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return Container(color: const Color(0xFFF7F8FD), child: _buildOrdersContent());
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FD),
       body: Row(
         children: [
-            AdminSidebar(
+          AdminSidebar(
             selected: AdminSidebarItem.orders,
             onItemSelected: (item) {
               if (item == AdminSidebarItem.orders) return;
@@ -56,44 +69,35 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               Widget? page;
               switch (item) {
                 case AdminSidebarItem.dashboard:
-                  page = const AdminDashboardPage();
+                  page = const AdminDashboardPage(embedded: true);
                   break;
                 case AdminSidebarItem.products:
-                  page = const AdminProductUploadPage();
+                  page = const AdminProductUploadPage(embedded: true);
                   break;
                 case AdminSidebarItem.carts:
-                  page = const AdminCartsPage();
+                  page = const AdminCartsPage(embedded: true);
                   break;
                 case AdminSidebarItem.reports:
-                  page = const AdminReportsPage();
+                  page = const AdminReportsPage(embedded: true);
                   break;
                 case AdminSidebarItem.discounts:
-                  page = const AdminDiscountPage();
+                  page = const AdminDiscountPage(embedded: true);
                   break;
                 case AdminSidebarItem.help:
-                  page = const AdminHelpPage();
+                  page = const AdminHelpPage(embedded: true);
                   break;
                 case AdminSidebarItem.settings:
-                  page = const AdminSettingsPage();
+                  page = const AdminSettingsPage(embedded: true);
                   break;
                 default:
                   page = null;
               }
               if (page != null) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => page!),
-                );
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page!));
               }
             },
-            ),
-            Expanded(
-            child: Consumer<OrdersProvider>(
-              builder: (context, ordersProvider, _) => Column(
-                children: [_buildTopBar(), _buildOrderTable(ordersProvider)],
-              ),
-            ),
           ),
+          Expanded(child: _buildOrdersContent()),
         ],
       ),
     );

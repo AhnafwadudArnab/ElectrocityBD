@@ -12,9 +12,12 @@ import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
+import 'admin_update_product.dart';
 
 class AdminProductUploadPage extends StatelessWidget {
-  const AdminProductUploadPage({super.key});
+  final bool embedded;
+
+  const AdminProductUploadPage({super.key, this.embedded = false});
 
   static void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
     if (item == AdminSidebarItem.products) return;
@@ -29,25 +32,25 @@ class AdminProductUploadPage extends StatelessWidget {
     Widget page;
     switch (item) {
       case AdminSidebarItem.dashboard:
-        page = const AdminDashboardPage();
+        page = const AdminDashboardPage(embedded: true);
         break;
       case AdminSidebarItem.orders:
-        page = const AdminOrdersPage();
+        page = const AdminOrdersPage(embedded: true);
         break;
       case AdminSidebarItem.carts:
-        page = const AdminCartsPage();
+        page = const AdminCartsPage(embedded: true);
         break;
       case AdminSidebarItem.reports:
-        page = const AdminReportsPage();
+        page = const AdminReportsPage(embedded: true);
         break;
       case AdminSidebarItem.discounts:
-        page = const AdminDiscountPage();
+        page = const AdminDiscountPage(embedded: true);
         break;
       case AdminSidebarItem.help:
-        page = const AdminHelpPage();
+        page = const AdminHelpPage(embedded: true);
         break;
       case AdminSidebarItem.settings:
-        page = const AdminSettingsPage();
+        page = const AdminSettingsPage(embedded: true);
         break;
       default:
         return;
@@ -58,19 +61,94 @@ class AdminProductUploadPage extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    const Color darkBg = Color(0xFF0B121E);
+  Widget _buildProductsContent(BuildContext context) {
     const Color cardBg = Color(0xFF151C2C);
-
-    final List<String> sectionTitles = [
+    const List<String> sectionTitles = [
       "Best Sellings",
       "Flash Sale",
       "Trending Items",
       "Deals of the Day",
       "Tech Part",
     ];
+    return Column(
+      children: [
+        Container(
+          height: 70,
+          color: cardBg,
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Inventory Control & Upload",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminUpdateProductPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.delete_sweep, color: Color(0xFFF59E0B), size: 20),
+                    label: const Text(
+                      "Delete Products",
+                      style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HomePage()),
+                        (route) => false,
+                      );
+                    },
+                    icon: const Icon(Icons.store, color: Color(0xFFF59E0B), size: 20),
+                    label: const Text(
+                      "Back to Store",
+                      style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              children: sectionTitles
+                  .map(
+                    (title) => Padding(
+                      padding: const EdgeInsets.only(bottom: 32),
+                      child: _SectionUploadCard(sectionTitle: title),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    const Color darkBg = Color(0xFF0B121E);
+
+    if (embedded) {
+      return Container(color: darkBg, child: _buildProductsContent(context));
+    }
     return Scaffold(
       backgroundColor: darkBg,
       body: Row(
@@ -80,62 +158,13 @@ class AdminProductUploadPage extends StatelessWidget {
             onItemSelected: (item) => _navigateFromSidebar(context, item),
           ),
           Expanded(
-            child: Column(
-              children: [
-                Container(
-                  height: 70,
-                  color: cardBg,
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Inventory Control & Upload",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (_) => const HomePage()),
-                            (route) => false,
-                          );
-                        },
-                        icon: const Icon(Icons.store, color: Color(0xFFF59E0B), size: 20),
-                        label: const Text(
-                          "Back to Store",
-                          style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: sectionTitles
-                          .map(
-                            (title) => Padding(
-                              padding: const EdgeInsets.only(bottom: 32),
-                              child: _SectionUploadCard(sectionTitle: title),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: _buildProductsContent(context),
           ),
         ],
       ),
     );
   }
+
 }
 
 class _SectionUploadCard extends StatefulWidget {

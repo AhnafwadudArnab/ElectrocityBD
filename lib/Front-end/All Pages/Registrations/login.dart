@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../Admin Panel/admin_dashboard_page.dart';
+import '../../Admin Panel/A_customers.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
+import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
 import '../CART/Cart_provider.dart';
 import 'signup.dart';
@@ -36,74 +37,128 @@ class _LogInState extends State<LogIn> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 900));
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final result = await ApiService.login(email: email, password: password);
+      if (!mounted) return;
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      final userMap = result['user'] as Map<String, dynamic>?;
+      final role = (userMap?['role'] ?? '').toString();
+      final userData = userMap != null
+          ? UserData.fromApiResponse(userMap)
+          : UserData(
+              firstName: email.split('@').first,
+              lastName: '',
+              email: email,
+              phone: '',
+              gender: 'Male',
+            );
+      await AuthSession.saveUserData(userData);
+      await AuthSession.setAdmin(role == 'admin');
 
-    // Extract name from email (before @)
-    final email = _emailController.text;
-    final nameParts = email.split('@')[0].split('.');
-    final firstName = nameParts.isNotEmpty ? nameParts[0] : 'User';
-    final lastName = nameParts.length > 1 ? nameParts[1] : '';
-
-    // Save user data
-    final userData = UserData(
-      firstName: firstName.replaceFirst(
-        firstName[0],
-        firstName[0].toUpperCase(),
-      ),
-      lastName: lastName.replaceFirst(
-        lastName.isNotEmpty ? lastName[0] : '',
-        lastName.isNotEmpty ? lastName[0].toUpperCase() : '',
-      ),
-      email: email,
-      phone: '+880 1700-000000', // Default phone
-      gender: 'Male', // Default gender
-    );
-
-    await AuthSession.saveUserData(userData);
-    await AuthSession.setAdmin(false);
-
-    if (mounted) {
       await context.read<CartProvider>().setCurrentUserId(
-        userData.email,
-        mergeFromGuest: true,
+            userData.email,
+            mergeFromGuest: true,
+          );
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(role == 'admin' ? 'Admin login successful!' : 'Login successful!'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+        ),
       );
+      if (role == 'admin') {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomePage()),
+          (route) => false,
+        );
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Server connection failed. Start backend (npm run dev).'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful!'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.white,
-      ),
-    );
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const HomePage()),
-      (route) => false,
-    );
   }
 
   Future<void> _onAdminLogin() async {
-    if (_emailController.text.trim() == 'ahnaf' &&
-        _passwordController.text == '1234@') {
+    final username = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter admin username and password'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final result = await ApiService.adminLogin(
+        username: username,
+        password: password,
+      );
+      if (!mounted) return;
+      final userMap = result['user'] as Map<String, dynamic>?;
+      if (userMap != null) {
+        await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
+      }
       await AuthSession.setAdmin(true);
       await AuthSession.setLoggedIn(true);
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+        MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
         (route) => false,
       );
-    } else {
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      final msg = e.message.contains('Invalid admin')
+          ? 'Invalid admin credentials. Use email: ahnaf@electrocitybd.com, password: 1234@ — and run in backend folder: npm run db:init'
+          : e.message;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid admin credentials!'),
+        SnackBar(
+          content: Text(msg),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Server connection failed. Start backend: cd backend && npm run dev'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

@@ -26,13 +26,22 @@ class UserData {
     'gender': gender,
   };
 
-  // Create from JSON
+  // Create from JSON (local storage)
   factory UserData.fromJson(Map<String, dynamic> json) => UserData(
     firstName: json['firstName'] ?? '',
     lastName: json['lastName'] ?? '',
     email: json['email'] ?? '',
     phone: json['phone'] ?? '',
     gender: json['gender'] ?? 'Male',
+  );
+
+  // Create from API response (backend login/register)
+  factory UserData.fromApiResponse(Map<String, dynamic> user) => UserData(
+    firstName: (user['firstName'] ?? user['full_name'] ?? '').toString(),
+    lastName: (user['lastName'] ?? '').toString(),
+    email: (user['email'] ?? '').toString(),
+    phone: (user['phone'] ?? user['phone_number'] ?? '').toString(),
+    gender: (user['gender'] ?? 'Male').toString(),
   );
 
   // Get full name

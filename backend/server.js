@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
+const pool = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -45,7 +46,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`ElectrocityBD Backend running on http://localhost:${PORT}`);
-  console.log(`API docs: http://localhost:${PORT}/api/health`);
-});
+pool.getConnection()
+  .then((conn) => {
+    conn.release();
+    console.log('Database connected (electrocity_db)');
+    app.listen(PORT, () => {
+      console.log(`ElectrocityBD Backend: http://localhost:${PORT}`);
+      console.log('Admin login: ahnaf@electrocitybd.com / 1234@ (after npm run db:init)');
+    });
+  })
+  .catch((err) => {
+    console.error('Database connection failed:', err.message);
+    console.error('Fix: 1) Start MySQL  2) Set DB_PASSWORD in .env if needed  3) Run: npm run db:init');
+    process.exit(1);
+  });

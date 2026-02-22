@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants.dart';
 
+String get _baseUrl => AppConstants.baseUrl;
+
 class ApiService {
   static const String _tokenKey = 'electrocity_jwt_token';
   static String? _cachedToken;
@@ -49,7 +51,7 @@ class ApiService {
 
   static Future<dynamic> get(String endpoint, {bool withAuth = true}) async {
     final res = await http.get(
-      Uri.parse('${AppConstants.baseUrl}$endpoint'),
+      Uri.parse('$_baseUrl$endpoint'),
       headers: await _headers(withAuth: withAuth),
     );
     final body = jsonDecode(res.body);
@@ -59,7 +61,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data, {bool withAuth = true}) async {
     final res = await http.post(
-      Uri.parse('${AppConstants.baseUrl}$endpoint'),
+      Uri.parse('$_baseUrl$endpoint'),
       headers: await _headers(withAuth: withAuth),
       body: jsonEncode(data),
     );
@@ -68,7 +70,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> data) async {
     final res = await http.put(
-      Uri.parse('${AppConstants.baseUrl}$endpoint'),
+      Uri.parse('$_baseUrl$endpoint'),
       headers: await _headers(),
       body: jsonEncode(data),
     );
@@ -77,7 +79,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> delete(String endpoint) async {
     final res = await http.delete(
-      Uri.parse('${AppConstants.baseUrl}$endpoint'),
+      Uri.parse('$_baseUrl$endpoint'),
       headers: await _headers(),
     );
     return _handleResponse(res);

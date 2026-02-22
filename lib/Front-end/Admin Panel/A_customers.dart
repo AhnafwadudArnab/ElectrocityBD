@@ -24,7 +24,7 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFF0B121E),
       body: Row(
         children: [
           AdminSidebar(
@@ -52,21 +52,21 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
   Widget _buildSelectedPage() {
     switch (selected) {
       case AdminSidebarItem.dashboard:
-        return const AdminDashboardPage();
+        return const AdminDashboardPage(embedded: true);
       case AdminSidebarItem.orders:
-        return const AdminOrdersPage();
+        return const AdminOrdersPage(embedded: true);
       case AdminSidebarItem.products:
-        return const AdminProductUploadPage();
+        return const AdminProductUploadPage(embedded: true);
       case AdminSidebarItem.reports:
-        return const AdminReportsPage();
+        return const AdminReportsPage(embedded: true);
       case AdminSidebarItem.discounts:
-        return const AdminDiscountPage();
+        return const AdminDiscountPage(embedded: true);
       case AdminSidebarItem.help:
-        return const AdminHelpPage();
+        return const AdminHelpPage(embedded: true);
       case AdminSidebarItem.carts:
-        return const AdminCartsPage();
+        return const AdminCartsPage(embedded: true);
       case AdminSidebarItem.settings:
-        return const AdminSettingsPage();
+        return const AdminSettingsPage(embedded: true);
       default:
         return const Center(child: Text("Coming Soon"));
     }

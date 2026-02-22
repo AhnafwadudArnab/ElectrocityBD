@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../Provider/Orders_provider.dart';
+import '../../utils/api_service.dart';
 import '../../widgets/header.dart';
 import 'Cart_provider.dart';
 import 'Complete_orders.dart';
@@ -84,8 +85,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     );
   }
 
-  void _completePayment(PaymentMethod method, String transactionId) {
-    final orderId = 'EC-${DateTime.now().millisecondsSinceEpoch}';
+  void _completePayment(PaymentMethod method, String transactionId) async {
     final now = DateTime.now();
     final deliveryDate = now.add(const Duration(days: 5));
     const months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -105,11 +105,38 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
       'category': item.category,
     }).toList();
     final total = cartProvider.getCartTotal();
+    final methodName = method == PaymentMethod.bkash ? 'bKash' : 'Nagad';
 
+    try {
+      final token = await ApiService.getToken();
+      if (token != null) {
+        final body = {
+          'total_amount': total,
+          'payment_method': methodName,
+          'delivery_address': '',
+          'transaction_id': transactionId,
+          'estimated_delivery': estimatedDelivery,
+          'items': cartProvider.items.map((item) => {
+            'product_id': int.tryParse(item.productId),
+            'product_name': item.name,
+            'quantity': item.quantity,
+            'price': item.price,
+            'image_url': item.imageUrl,
+            'color': '',
+          }).toList(),
+        };
+        await ApiService.placeOrder(body);
+        await ordersProvider.refreshFromApi();
+        await cartProvider.clearCart();
+        if (!context.mounted) return;
+      }
+    } catch (_) {}
+
+    final orderId = 'EC-${DateTime.now().millisecondsSinceEpoch}';
     ordersProvider.addOrder(PlacedOrder(
       orderId: orderId,
       transactionId: transactionId,
-      paymentMethod: method == PaymentMethod.bkash ? 'bKash' : 'Nagad',
+      paymentMethod: methodName,
       total: total,
       createdAt: createdAt,
       status: 'New Order',
