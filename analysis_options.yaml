@@ -22,6 +22,7 @@ analyzer:
     prefer_final_fields: ignore
     library_private_types_in_public_api: ignore
     unnecessary_type_check: ignore
+    unnecessary_cast: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

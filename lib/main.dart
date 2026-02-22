@@ -4,22 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'Front-end/All Pages/CART/Cart_provider.dart';
+import 'Front-end/Provider/Admin_product_provider.dart';
 import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final cartProvider = CartProvider();
-  await cartProvider.init();
-  final wishlistProvider = WishlistProvider();
-  await wishlistProvider.init();
-
+void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<CartProvider>.value(value: cartProvider),
-        ChangeNotifierProvider<WishlistProvider>.value(value: wishlistProvider),
+        ChangeNotifierProvider(create: (_) => AdminProductProvider()),
+        ChangeNotifierProvider<CartProvider>.value(value: CartProvider()),
+        ChangeNotifierProvider<WishlistProvider>.value(
+          value: WishlistProvider(),
+        ),
       ],
-      child: const MyApp(),
+      child: MyApp(),
     ),
   );
 }

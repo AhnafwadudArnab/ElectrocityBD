@@ -3,8 +3,10 @@ import 'package:electrocitybd1/Front-end/widgets/Sections/Trendings/TrendingItem
 import 'package:electrocitybd1/Front-end/widgets/footer.dart';
 import 'package:electrocitybd1/Front-end/widgets/Sidebar/sidebar.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
+import '../Provider/Admin_product_provider.dart';
 import '../widgets/Sections/BestSellings/best_selling.dart';
 import '../widgets/Sections/Collections/collections_pages.dart';
 import '../widgets/Sections/Deals_of_the_day.dart';
@@ -306,19 +308,21 @@ class _MainContentState extends State<_MainContent> {
     final r = AppResponsive.of(context);
     final slide = _slides[_currentIndex];
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        vertical: r.value(
-          smallMobile: 8.0,
-          mobile: 12.0,
-          tablet: 16.0,
-          smallDesktop: 16.0,
-          desktop: 16.0,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Consumer<AdminProductProvider>(
+      builder: (context, adminProductProvider, _) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            vertical: r.value(
+              smallMobile: 8.0,
+              mobile: 12.0,
+              tablet: 16.0,
+              smallDesktop: 16.0,
+              desktop: 16.0,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
           /// HERO + BEST SELLING
           r.isSmallMobile || r.isMobile
               ? Column(
@@ -442,7 +446,7 @@ class _MainContentState extends State<_MainContent> {
                 desktop: 12.0,
               ),
             ),
-            child: const FlashSaleCarousel(),
+            child:  FlashSaleCarousel(),
           ),
           SizedBox(
             height: r.value(
@@ -486,8 +490,10 @@ class _MainContentState extends State<_MainContent> {
             ),
           ),
           const FooterSection(),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

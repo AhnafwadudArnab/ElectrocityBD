@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
+import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../footer.dart';
@@ -30,8 +31,8 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
 
-  // UPDATED: Standardized Data with BD Market Prices
-  static const List<Map<String, Object>> _flashSaleprod = [
+  // স্যাম্পল প্রোডাক্ট (ডিফল্ট)
+  static const List<Map<String, Object>> _sampleProducts = [
     {
       'title': 'Circular Saw',
       'price': 7200.0,
@@ -48,102 +49,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
       'image': "$imgPath/Orbital Sander.jpg",
     },
-    {
-      'title': 'Rotary Hammer Drill',
-      'price': 6500.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/Rotary Hammer Drill.jpg",
-    },
-    {
-      'title': 'Electric Screwdriver',
-      'price': 2200.0,
-      'category': 'Hand Tools',
-      'brand': 'Brand C',
-      'specs': ['Cordless', 'LED Light'],
-      'image': "$imgPath/Screwdriver.jpg",
-    },
-    {
-      'title': 'Nail Gun',
-      'price': 4800.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Pneumatic', 'Ergonomic Grip'],
-      'image': "$imgPath/Nail Gun.jpg",
-    },
-    {
-      'title': 'Brad Nailer',
-      'price': 3500.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Pneumatic', 'Compact'],
-      'image': "$imgPath/Brad Nailer.jpg",
-    },
-    {
-      'title': 'Staple Gun',
-      'price': 1250.0,
-      'category': 'Hand Tools',
-      'brand': 'Brand C',
-      'specs': ['Manual', 'Ergonomic Grip'],
-      'image': "$imgPath/Staple.jpg",
-    },
-    {
-      'title': 'Air Compressor',
-      'price': 13500.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Corded', 'Variable Speed'],
-      'image': "$imgPath/Air Compressor.jpg",
-    },
-    {
-      'title': 'Wet & Dry Vacuum',
-      'price': 11000.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Corded', 'LED Light'],
-      'image': "$imgPath/Wet & Dry Vacuum.jpg",
-    },
-    {
-      'title': 'Angle Grinder',
-      'price': 3200.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-      'image': "$imgPath/Angle Grinder.jpg",
-    },
-    {
-      'title': 'Jigsaw',
-      'price': 5500.0,
-      'category': 'Power Tools',
-      'brand': 'Brand C',
-      'specs': ['Cordless', 'Variable Speed'],
-      'image': "$imgPath/Jigsaw.jpg",
-    },
-    {
-      'title': 'Circular Saw',
-      'price': 7200.0,
-      'category': 'Power Tools',
-      'brand': 'Brand A',
-      'specs': ['Corded', 'Laser Guide'],
-      'image': "$imgPath/Circular Saw.jpg",
-    },
-    {
-      'title': 'Orbital Sander',
-      'price': 3800.0,
-      'category': 'Power Tools',
-      'brand': 'Brand B',
-      'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-      'image': "$imgPath/Orbital Sander.jpg",
-    },
-    {
-      'title': 'Power Drill',
-      'price': 4200.0,
-      'category': 'Power Tools',
-      'brand': 'Brand C',
-      'specs': ['Cordless', 'Variable Speed', 'LED Light'],
-      'image': "$imgPath/Power Drill.jpg",
-    },
+    // ... অন্যান্য স্যাম্পল প্রোডাক্ট
   ];
 
   late RangeValues _priceRange;
@@ -154,8 +60,80 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     _priceRange = const RangeValues(_priceMin, _priceMax);
   }
 
-  List<Map<String, Object>> _filteredProducts() {
-    return _flashSaleprod.where((p) {
+  // অ্যাডমিন প্রোডাক্টকে স্ট্যান্ডার্ড ফরম্যাটে কনভার্ট করা
+  List<Map<String, dynamic>> _convertAdminProducts(
+    List<Map<String, dynamic>> adminProducts,
+  ) {
+    return adminProducts.map((p) {
+      final price =
+          double.tryParse(
+            p['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
+          ) ??
+          0;
+      final imageUrl = p['imageUrl'] != null &&
+              (p['imageUrl'] as String).isNotEmpty
+          ? p['imageUrl'] as String
+          : '';
+
+      return {
+        'title': p['name'] ?? '',
+        'price': price,
+        'category': p['category'] ?? 'Uncategorized',
+        'brand': 'Admin Product',
+        'specs': <String>[],
+        'image': imageUrl,
+        'isAdmin': true,
+        'adminRaw': p,
+      };
+    }).toList();
+  }
+
+  Widget _buildAdminImage(Map<String, Object> item) {
+    final raw = item['adminRaw'];
+    if (raw == null || raw is! Map<String, dynamic>) {
+      return Container(
+        color: Colors.grey[300],
+        child: const Icon(Icons.image, size: 50),
+      );
+    }
+    if (raw['image']?.bytes != null) {
+      return Image.memory(
+        raw['image'].bytes!,
+        fit: BoxFit.contain,
+      );
+    }
+    final url = raw['imageUrl'] as String?;
+    if (url != null && url.isNotEmpty) {
+      return Image.network(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey[300],
+          child: const Icon(Icons.image_not_supported),
+        ),
+      );
+    }
+    return Container(
+      color: Colors.grey[300],
+      child: const Icon(Icons.image, size: 50),
+    );
+  }
+
+  // সব প্রোডাক্ট (অ্যাডমিন + স্যাম্পল)
+  List<Map<String, Object>> _allProducts(BuildContext context) {
+    final adminProducts = Provider.of<AdminProductProvider>(context)
+        .getProductsBySection("Flash Sale");
+
+    final adminConverted = _convertAdminProducts(
+      adminProducts,
+    ).map((e) => Map<String, Object>.from(e)).toList();
+    return [...adminConverted, ..._sampleProducts];
+  }
+
+  List<Map<String, Object>> _filteredProducts(BuildContext context) {
+    final allProducts = _allProducts(context);
+
+    return allProducts.where((p) {
       final price = p['price'] as double;
       final category = p['category'] as String;
       final brand = p['brand'] as String;
@@ -175,8 +153,10 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     }).toList();
   }
 
-  List<Map<String, Object>> _sortedProducts(List<Map<String, Object>> items) {
-    final sorted = List<Map<String, Object>>.from(items);
+  List<Map<String, Object>> _sortedProducts(BuildContext context) {
+    final filtered = _filteredProducts(context);
+    final sorted = List<Map<String, Object>>.from(filtered);
+
     if (_selectedSort == 'price_low') {
       sorted.sort(
         (a, b) => (a['price'] as double).compareTo(b['price'] as double),
@@ -205,19 +185,24 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   }
 
   void _openDetails(Map<String, Object> item, int index) {
+    final isAdmin = item.containsKey('isAdmin');
+    final imageStr = item['image'] as String;
+    final images = imageStr.isNotEmpty ? [imageStr] : <String>[];
+
     final product = ProductData(
-      id: '${item['title']}_${item['price']}',
+      id: isAdmin ? 'admin_flash_$index' : '${item['title']}_${item['price']}',
       name: item['title'] as String,
       category: item['category'] as String,
       priceBDT: item['price'] as double,
-      images: [item['image'] as String],
-      description:
-          'High quality industrial ${item['title']} for professional use.',
+      images: images,
+      description: isAdmin
+          ? 'Admin uploaded product'
+          : 'High quality industrial ${item['title']} for professional use.',
       additionalInfo: {
         'Category': item['category'] as String,
         'Brand': item['brand'] as String,
         'Price': 'Tk ${(item['price'] as double).toStringAsFixed(0)}',
-        'Specifications': (item['specs'] as List<String>).join(', '),
+        if (isAdmin) 'Source': 'Admin Upload',
       },
     );
 
@@ -271,7 +256,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                       children: [
                         _buildFilterPanel(r, context),
                         const SizedBox(height: 16),
-                        _buildProductsSection(r, gridCount),
+                        _buildProductsSection(r, gridCount, context),
                       ],
                     )
                   : Row(
@@ -282,7 +267,9 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                           child: _buildFilterPanel(r, context),
                         ),
                         const SizedBox(width: 24),
-                        Expanded(child: _buildProductsSection(r, gridCount)),
+                        Expanded(
+                          child: _buildProductsSection(r, gridCount, context),
+                        ),
                       ],
                     ),
             ),
@@ -293,7 +280,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  // --- UI Components ---
+  // --- UI Components (আগের মতোই থাকবে, শুধু _buildProductsSection আপডেট হবে) ---
 
   Widget _buildBanner(AppResponsive r, BuildContext context) {
     return Container(
@@ -367,12 +354,12 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
           const SizedBox(height: 20),
           _filterSection(
             title: 'Categories',
-            options: ['Power Tools', 'Hand Tools'],
+            options: ['Power Tools', 'Hand Tools', 'Uncategorized'],
             selectedList: _selectedCategories,
           ),
           _filterSection(
             title: 'Brands',
-            options: ['Brand A', 'Brand B', 'Brand C'],
+            options: ['Brand A', 'Brand B', 'Brand C', 'Admin Product'],
             selectedList: _selectedBrands,
           ),
           _filterSection(
@@ -412,8 +399,12 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  Widget _buildProductsSection(AppResponsive r, int gridCount) {
-    final items = _sortedProducts(_filteredProducts());
+  Widget _buildProductsSection(
+    AppResponsive r,
+    int gridCount,
+    BuildContext context,
+  ) {
+    final items = _sortedProducts(context);
     final perPage = gridCount * _rowsPerPage;
     final totalPages = (items.length / perPage).ceil().clamp(1, 99).toInt();
     final pageItems = items
@@ -465,10 +456,8 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                   mainAxisSpacing: 15,
                 ),
                 itemBuilder: (context, index) => _productCard(
-                  title: pageItems[index]['title'] as String,
-                  price: pageItems[index]['price'] as double,
-                  category: pageItems[index]['category'] as String,
-                  image: pageItems[index]['image'] as String,
+                  item: pageItems[index],
+                  index: index,
                   onTap: () => _openDetails(pageItems[index], index),
                 ),
               ),
@@ -479,12 +468,12 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   }
 
   Widget _productCard({
-    required String title,
-    required double price,
-    required String category,
-    required String image,
+    required Map<String, Object> item,
+    required int index,
     required VoidCallback onTap,
   }) {
+    final isAdmin = item.containsKey('isAdmin');
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -496,10 +485,48 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                width: double.infinity,
-                child: Image.asset(image, fit: BoxFit.contain),
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    width: double.infinity,
+                    child: isAdmin
+                        ? _buildAdminImage(item)
+                        : Image.asset(
+                            item['image'] as String,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image_not_supported),
+                              );
+                            },
+                          ),
+                  ),
+                  if (isAdmin)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'NEW',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Padding(
@@ -508,7 +535,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    item['title'] as String,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -518,7 +545,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    '৳ ${price.toStringAsFixed(0)}',
+                    '৳ ${(item['price'] as double).toStringAsFixed(0)}',
                     style: TextStyle(
                       color: Colors.amber[900],
                       fontWeight: FontWeight.bold,
@@ -530,23 +557,23 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        final id = title
+                        final id = (item['title'] as String)
                             .toLowerCase()
                             .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
                             .replaceAll(RegExp(r'^-|-$'), '');
 
                         await context.read<CartProvider>().addToCart(
                           productId: 'flash-$id',
-                          name: title,
-                          price: price,
-                          imageUrl: image,
-                          category: category,
+                          name: item['title'] as String,
+                          price: item['price'] as double,
+                          imageUrl: (item['image'] as String? ?? '').toString(),
+                          category: item['category'] as String,
                         );
 
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('$title added to cart'),
+                            content: Text('${item['title']} added to cart'),
                             duration: const Duration(milliseconds: 900),
                           ),
                         );

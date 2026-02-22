@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +6,7 @@ import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
+import '../../../Provider/Admin_product_provider.dart';
 import 'trending_all_products.dart';
 
 class TrendingItem {
@@ -26,28 +26,7 @@ class TrendingItem {
 class TrendingItems extends StatelessWidget {
   const TrendingItems({super.key});
 
-  ProductData _buildProductData(TrendingItem product, int index) {
-    return ProductData(
-      id: 'trend_$index',
-      name: product.title,
-      category: 'Trending Items',
-      priceBDT: product.discountedPrice.toDouble(),
-      images: [product.image],
-      description: 'Trending product picked for you.',
-      additionalInfo: {'Original Price': 'Tk ${product.originalPrice}'},
-    );
-  }
-
-  void _openDetails(BuildContext context, TrendingItem product, int index) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            UniversalProductDetails(product: _buildProductData(product, index)),
-      ),
-    );
-  }
-
+  // স্যাম্পল প্রোডাক্ট
   static const List<TrendingItem> _sampleProducts = [
     TrendingItem(
       image: 'assets/Products/7.png',
@@ -57,7 +36,7 @@ class TrendingItems extends StatelessWidget {
     ),
     TrendingItem(
       image: 'assets/Products/2.jpg',
-      title: 'Water Heater', // Geyser (15-30L) or Instant
+      title: 'Water Heater',
       originalPrice: 8500,
       discountedPrice: 6990,
     ),
@@ -85,16 +64,93 @@ class TrendingItems extends StatelessWidget {
       originalPrice: 18500,
       discountedPrice: 15900,
     ),
-    TrendingItem(
-      image: 'assets/Products/3.jpg',
-      title: 'Juice Extractor Premium',
-      originalPrice: 5500,
-      discountedPrice: 4350,
-    ),
   ];
+
+  // অ্যাডমিন প্রোডাক্টকে TrendingItem-এ কনভার্ট করা
+  List<TrendingItem> _convertAdminProducts(
+    List<Map<String, dynamic>> adminProducts,
+  ) {
+    return adminProducts.map((p) {
+      final price =
+          double.tryParse(
+            p['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
+          ) ??
+          0;
+      final discountedPrice = (price * 0.85).toInt(); // 15% ডিসকাউন্ট
+
+      return TrendingItem(
+        image: p['image']?.bytes != null
+            ? 'admin_image_${p['name']}'
+            : 'assets/placeholder.png',
+        title: p['name'] ?? '',
+        originalPrice: price.toInt(),
+        discountedPrice: discountedPrice,
+      );
+    }).toList();
+  }
+
+  ProductData _buildProductData(
+    dynamic product,
+    int index, {
+    bool isFromAdmin = false,
+  }) {
+    if (isFromAdmin) {
+      final price =
+          double.tryParse(
+            product['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
+          ) ??
+          0;
+      final adminImages = product['imageUrl'] != null &&
+              (product['imageUrl'] as String).isNotEmpty
+          ? [product['imageUrl'] as String]
+          : <String>[];
+      return ProductData(
+        id: 'admin_trend_$index',
+        name: product['name'] ?? '',
+        category: 'Trending Items',
+        priceBDT: price,
+        images: adminImages,
+        description: product['desc'] ?? '',
+        additionalInfo: {'Category': product['category'] ?? ''},
+      );
+    } else {
+      return ProductData(
+        id: 'trend_$index',
+        name: product.title,
+        category: 'Trending Items',
+        priceBDT: product.discountedPrice.toDouble(),
+        images: [product.image],
+        description: 'Trending product picked for you.',
+        additionalInfo: {'Original Price': 'Tk ${product.originalPrice}'},
+      );
+    }
+  }
+
+  void _openDetails(
+    BuildContext context,
+    dynamic product,
+    int index, {
+    bool isFromAdmin = false,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UniversalProductDetails(
+          product: _buildProductData(product, index, isFromAdmin: isFromAdmin),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final adminProducts = Provider.of<AdminProductProvider>(
+      context,
+    ).getProductsBySection("Trending Items");
+
+    final adminTrendItems = _convertAdminProducts(adminProducts);
+    final allProducts = [...adminTrendItems, ..._sampleProducts];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -137,20 +193,25 @@ class TrendingItems extends StatelessWidget {
                   border: Border.all(color: Colors.grey.withOpacity(0.3)),
                 ),
                 child: SizedBox(
-                  // Reduced height slightly since the timer row is gone
                   height: 220,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: _sampleProducts.length,
+                    itemCount: allProducts.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
-                      final product = _sampleProducts[index];
+                      final product = allProducts[index];
+                      final isFromAdmin = index < adminTrendItems.length;
 
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: () => _openDetails(context, product, index),
+                          onTap: () => _openDetails(
+                            context,
+                            isFromAdmin ? adminProducts[index] : product,
+                            index,
+                            isFromAdmin: isFromAdmin,
+                          ),
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
@@ -209,13 +270,60 @@ class TrendingItems extends StatelessWidget {
                                             const BorderRadius.vertical(
                                               top: Radius.circular(12),
                                             ),
-                                        child: Image.asset(
-                                          product.image,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                        ),
+                                        child: isFromAdmin
+                                            ? (adminProducts[index]['image']?.bytes != null
+                                                ? Image.memory(
+                                                    adminProducts[index]['image'].bytes!,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : (adminProducts[index]['imageUrl'] != null &&
+                                                        (adminProducts[index]['imageUrl'] as String).isNotEmpty
+                                                    ? Image.network(
+                                                        adminProducts[index]['imageUrl'] as String,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (_, __, ___) => Container(
+                                                          color: Colors.grey[300],
+                                                          child: const Icon(Icons.image),
+                                                        ),
+                                                      )
+                                                    : Container(
+                                                        color: Colors.grey[300],
+                                                        child: const Icon(Icons.image),
+                                                      )))
+                                            : Image.asset(
+                                                product.image,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                              ),
                                       ),
                                     ),
+
+                                    if (isFromAdmin)
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'NEW',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Column(
@@ -223,7 +331,10 @@ class TrendingItems extends StatelessWidget {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            product.title,
+                                            isFromAdmin
+                                                ? adminProducts[index]['name'] ??
+                                                      ''
+                                                : product.title,
                                             style: const TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.w600,
@@ -241,7 +352,9 @@ class TrendingItems extends StatelessWidget {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    'Tk ${product.originalPrice}',
+                                                    isFromAdmin
+                                                        ? 'Tk ${adminProducts[index]['price'] ?? ''}'
+                                                        : 'Tk ${product.originalPrice}',
                                                     style: const TextStyle(
                                                       decoration: TextDecoration
                                                           .lineThrough,
@@ -250,7 +363,9 @@ class TrendingItems extends StatelessWidget {
                                                     ),
                                                   ),
                                                   Text(
-                                                    'Tk ${product.discountedPrice}',
+                                                    isFromAdmin
+                                                        ? 'Tk ${_getDiscountedPrice(adminProducts[index]['price'])}'
+                                                        : 'Tk ${product.discountedPrice}',
                                                     style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -262,19 +377,22 @@ class TrendingItems extends StatelessWidget {
                                               ),
                                               ElevatedButton(
                                                 onPressed: () async {
-                                                  final data =
-                                                      _buildProductData(
-                                                        product,
-                                                        index,
-                                                      );
+                                                  final data = _buildProductData(
+                                                    isFromAdmin
+                                                        ? adminProducts[index]
+                                                        : product,
+                                                    index,
+                                                    isFromAdmin: isFromAdmin,
+                                                  );
                                                   await context
                                                       .read<CartProvider>()
                                                       .addToCart(
                                                         productId: data.id,
                                                         name: data.name,
                                                         price: data.priceBDT,
-                                                        imageUrl:
-                                                            data.images.first,
+                                                        imageUrl: data.images.isNotEmpty
+                                                            ? data.images.first
+                                                            : '',
                                                         category: data.category,
                                                       );
 
@@ -343,5 +461,12 @@ class TrendingItems extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getDiscountedPrice(String? priceStr) {
+    final price =
+        double.tryParse(priceStr?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0') ??
+        0;
+    return (price * 0.85).toStringAsFixed(0);
   }
 }

@@ -1,4 +1,4 @@
-import  'package:electrocitybd1/Front-end/pages/Templates/all_products_template.dart';
+import '../../../pages/Templates/all_products_template.dart';
 
 class SampleProducts {
   static final List<ProductData> bestSellingProducts = [
@@ -6,7 +6,7 @@ class SampleProducts {
       id: '1',
       name: 'Premium Wireless Headphones',
       category: 'Audio',
-      priceBDT: 1250,
+      priceBDT: 3500, // Updated price
       images: [
         'https://via.placeholder.com/500x500?text=Headphones+1',
         'https://via.placeholder.com/500x500?text=Headphones+2',
@@ -25,7 +25,7 @@ class SampleProducts {
       id: '2',
       name: 'Smart LED TV 43 inch',
       category: 'Television',
-      priceBDT: 1850,
+      priceBDT: 35000, // Updated price
       images: [
         'https://via.placeholder.com/500x500?text=TV+1',
         'https://via.placeholder.com/500x500?text=TV+2',
@@ -43,7 +43,7 @@ class SampleProducts {
       id: '3',
       name: 'Gaming Mechanical Keyboard',
       category: 'Peripherals',
-      priceBDT: 850,
+      priceBDT: 3500, // Updated price
       images: [
         'https://via.placeholder.com/500x500?text=Keyboard+1',
         'https://via.placeholder.com/500x500?text=Keyboard+2',
@@ -61,7 +61,7 @@ class SampleProducts {
       id: '4',
       name: 'Wireless Gaming Mouse',
       category: 'Peripherals',
-      priceBDT: 650,
+      priceBDT: 1800, // Updated price
       images: [
         'https://via.placeholder.com/500x500?text=Mouse+1',
         'https://via.placeholder.com/500x500?text=Mouse+2',

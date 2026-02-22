@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/Templates/all_products_template.dart';
+import '../../Provider/Admin_product_provider.dart';
 
 class Techpart extends StatefulWidget {
   const Techpart({super.key});
@@ -29,7 +30,8 @@ class _TechpartState extends State<Techpart> {
     'assets/Products/7.png',
   ];
 
-  final List<Map<String, dynamic>> products = [
+  // স্যাম্পল প্রোডাক্ট
+  final List<Map<String, dynamic>> sampleProducts = [
     {
       'name': 'Acer SB220Q bi 21.5 Inches Full HD',
       'price': '৳9,400',
@@ -42,194 +44,44 @@ class _TechpartState extends State<Techpart> {
       'rating': 5,
       'image': 'assets/Products/1.png',
     },
-    {
-      'name': 'AMD Ryzen 7 5800X',
-      'price': '৳38,500',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'NVIDIA RTX 4070',
-      'price': '৳89,999',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': '16GB DDR4 RAM Kingston',
-      'price': '৳6,999',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': '1TB SSD NVMe M.2',
-      'price': '৳8,500',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': '650W Modular PSU',
-      'price': '৳5,999',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'RGB CPU Cooler Tower',
-      'price': '৳3,500',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Mechanical Gaming Keyboard RGB',
-      'price': '৳4,999',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Gaming Mouse Wireless Pro',
-      'price': '৳2,999',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'USB-C Docking Station',
-      'price': '৳7,999',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'External SSD 2TB Type-C',
-      'price': '৳18,999',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Laptop Stand Aluminum',
-      'price': '৳1,999',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Webcam 1080P Full HD',
-      'price': '৳3,499',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'USB Hub 3.0 7-Port',
-      'price': '৳999',
-      'rating': 3,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Wireless Charger Fast',
-      'price': '৳2,499',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'HDMI 2.1 Cable 2M',
-      'price': '৳599',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Headphone Stand Premium',
-      'price': '৳1,499',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Monitor Arm Mount Dual',
-      'price': '৳4,999',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Cable Management Kit Pro',
-      'price': '৳899',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Samsung 24" Monitor',
-      'price': '৳14,600',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'BenQ 27" Gaming Monitor',
-      'price': '৳29,998',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Dell UltraSharp 32"',
-      'price': '৳49,998',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'LG 4K Monitor 32"',
-      'price': '৳59,998',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'HP 24" LED Monitor',
-      'price': '৳12,998',
-      'rating': 3,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'ASUS VP28UQG 4K',
-      'price': '৳39,998',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Viewsonic 22" Monitor',
-      'price': '৳15,998',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'MSI Optix MAG274R',
-      'price': '৳34,998',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'AOC G2590FX 25"',
-      'price': '৳17,998',
-      'rating': 4,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Corsair Curved Gaming',
-      'price': '৳44,998',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Alienware AW3420DW',
-      'price': '৳79,998',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    // Add more products up to 36 total...
+    // ... অন্যান্য স্যাম্পল প্রোডাক্ট
   ];
 
   @override
   void initState() {
     super.initState();
-
-    for (var i = 0; i < products.length; i++) {
-      products[i]['image'] = _techImages[i % _techImages.length];
+    for (var i = 0; i < sampleProducts.length; i++) {
+      sampleProducts[i]['image'] = _techImages[i % _techImages.length];
     }
   }
 
+  // অ্যাডমিন প্রোডাক্টকে স্ট্যান্ডার্ড ফরম্যাটে কনভার্ট করা
+  List<Map<String, dynamic>> _convertAdminProducts(
+    List<Map<String, dynamic>> adminProducts,
+  ) {
+    return adminProducts.map((p) {
+      return {
+        'name': p['name'] ?? '',
+        'price': '৳${p['price'] ?? '0'}',
+        'rating': 4,
+        'image': 'admin_image',
+        'isAdmin': true,
+        'adminData': p,
+      };
+    }).toList();
+  }
+
+  // সব প্রোডাক্ট
+  List<Map<String, dynamic>> _allProducts(BuildContext context) {
+    final adminProducts = Provider.of<AdminProductProvider>(context)
+        .getProductsBySection("Tech Part");
+
+    final adminConverted = _convertAdminProducts(adminProducts);
+    return [...adminConverted, ...sampleProducts];
+  }
+
   void _loadMore() {
-    final total = _sortedProducts().length;
+    final total = _sortedProducts(context).length;
     setState(() {
       final pageSize = _itemsPerPage > 0 ? _itemsPerPage : total;
       _itemsToShow = (_itemsToShow + pageSize).clamp(0, total);
@@ -241,8 +93,10 @@ class _TechpartState extends State<Techpart> {
     return double.tryParse(cleaned) ?? 0.0;
   }
 
-  List<Map<String, dynamic>> _sortedProducts() {
-    final sorted = List<Map<String, dynamic>>.from(products);
+  List<Map<String, dynamic>> _sortedProducts(BuildContext context) {
+    final allProducts = _allProducts(context);
+    final sorted = List<Map<String, dynamic>>.from(allProducts);
+
     if (_selectedSort == 'price_low') {
       sorted.sort(
         (a, b) => _parsePrice(
@@ -259,17 +113,41 @@ class _TechpartState extends State<Techpart> {
     return sorted;
   }
 
-  //path name
   ProductData _buildProductData(Map<String, dynamic> product, int index) {
-    return ProductData(
-      id: 'tech_$index',
-      name: product['name'] as String,
-      category: 'All Products',
-      priceBDT: _parsePrice(product['price'] as String),
-      images: [_techImages[index % _techImages.length]],
-      description: 'Tech part from our latest collection.',
-      additionalInfo: {'Rating': '${product['rating']}'},
-    );
+    final isAdmin = product.containsKey('isAdmin');
+
+    if (isAdmin) {
+      final adminData = product['adminData'] as Map<String, dynamic>;
+      final price =
+          double.tryParse(
+            adminData['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0',
+          ) ??
+          0;
+      final adminImages = adminData['imageUrl'] != null &&
+              (adminData['imageUrl'] as String).isNotEmpty
+          ? [adminData['imageUrl'] as String]
+          : <String>[];
+
+      return ProductData(
+        id: 'admin_tech_$index',
+        name: adminData['name'] ?? '',
+        category: 'Tech Part',
+        priceBDT: price,
+        images: adminImages,
+        description: adminData['desc'] ?? '',
+        additionalInfo: {'Category': adminData['category'] ?? ''},
+      );
+    } else {
+      return ProductData(
+        id: 'tech_$index',
+        name: product['name'] as String,
+        category: 'Tech Part',
+        priceBDT: _parsePrice(product['price'] as String),
+        images: [product['image'] as String],
+        description: 'Tech part from our latest collection.',
+        additionalInfo: {'Rating': '${product['rating']}'},
+      );
+    }
   }
 
   void _openDetails(
@@ -296,7 +174,7 @@ class _TechpartState extends State<Techpart> {
       smallDesktop: 4,
       desktop: 5,
     );
-    final total = _sortedProducts().length;
+    final total = _sortedProducts(context).length;
     final itemsPerPage = crossAxisCount * _rowsPerPage;
 
     if (_itemsPerPage != itemsPerPage || _itemsToShow == 0) {
@@ -322,7 +200,7 @@ class _TechpartState extends State<Techpart> {
                   _buildTopBar(),
                   Builder(
                     builder: (context) {
-                      final sorted = _sortedProducts();
+                      final sorted = _sortedProducts(context);
                       final visibleCount = _itemsToShow.clamp(0, sorted.length);
                       return GridView.builder(
                         shrinkWrap: true,
@@ -352,7 +230,7 @@ class _TechpartState extends State<Techpart> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  if (_itemsToShow < _sortedProducts().length)
+                  if (_itemsToShow < _sortedProducts(context).length)
                     ElevatedButton(
                       onPressed: _loadMore,
                       style: ElevatedButton.styleFrom(
@@ -380,13 +258,44 @@ class _TechpartState extends State<Techpart> {
     );
   }
 
+  Widget _buildAdminProductImage(Map<String, dynamic> product) {
+    final adminData = product['adminData'] as Map<String, dynamic>?;
+    if (adminData == null) {
+      return Container(
+        color: Colors.grey[300],
+        child: const Icon(Icons.image, size: 50),
+      );
+    }
+    final image = adminData['image'];
+    if (image != null && image.bytes != null) {
+      return Image.memory(image.bytes!, fit: BoxFit.cover);
+    }
+    final imageUrl = adminData['imageUrl'] as String?;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey[300],
+          child: const Icon(Icons.image, size: 50),
+        ),
+      );
+    }
+    return Container(
+      color: Colors.grey[300],
+      child: const Icon(Icons.image, size: 50),
+    );
+  }
+
   Widget _buildProductCard(
     int index,
     List<Map<String, dynamic>> sortedProducts,
   ) {
     final product = sortedProducts[index % sortedProducts.length];
-    final imagePath = _techImages[index % _techImages.length];
+    final isAdmin = product.containsKey('isAdmin');
+    final imagePath = isAdmin ? null : _techImages[index % _techImages.length];
     final productData = _buildProductData(product, index);
+
     return InkWell(
       onTap: () => _openDetails(context, product, index),
       child: Container(
@@ -402,13 +311,45 @@ class _TechpartState extends State<Techpart> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Center(
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Icon(Icons.monitor, size: 100, color: Colors.grey[300]),
-                ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: isAdmin
+                        ? _buildAdminProductImage(product)
+                        : Image.asset(
+                            imagePath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.monitor,
+                              size: 100,
+                              color: Colors.grey[300],
+                            ),
+                          ),
+                  ),
+                  if (isAdmin)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'NEW',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Padding(
@@ -431,7 +372,7 @@ class _TechpartState extends State<Techpart> {
                       (i) => Icon(
                         Icons.star,
                         size: 12,
-                        color: i < product['rating']
+                        color: i < (product['rating'] ?? 4)
                             ? Colors.orange
                             : Colors.grey[300],
                       ),
@@ -455,7 +396,9 @@ class _TechpartState extends State<Techpart> {
                           productId: productData.id,
                           name: productData.name,
                           price: productData.priceBDT,
-                          imageUrl: productData.images.first,
+                          imageUrl: productData.images.isNotEmpty
+                              ? productData.images.first
+                              : '',
                           category: productData.category,
                         );
 
@@ -482,47 +425,14 @@ class _TechpartState extends State<Techpart> {
     );
   }
 
-  Widget _buildFilterSection(String title, List<String> options) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ...options.map(
-          (opt) => Row(
-            children: [
-              Checkbox(value: false, onChanged: (v) {}),
-              Text(opt, style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-        ),
-        const Divider(),
-      ],
-    );
-  }
-
-  Widget _buildPriceSlider() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
-        RangeSlider(
-          values: const RangeValues(80, 200),
-          max: 500,
-          min: 0,
-          onChanged: (RangeValues values) {},
-        ),
-      ],
-    );
-  }
-
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          const Text(
-            '1-12 of 36 results',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
+          Text(
+            '1-12 of ${_allProducts(context).length} results',
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
           const Spacer(),
           DropdownButton<String>(
@@ -548,89 +458,6 @@ class _TechpartState extends State<Techpart> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class TabbedProductGallery extends StatefulWidget {
-  const TabbedProductGallery({super.key});
-
-  @override
-  State<TabbedProductGallery> createState() => _TabbedProductGalleryState();
-}
-
-class _TabbedProductGalleryState extends State<TabbedProductGallery> {
-  String selectedTab = 'Best Seller';
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: ['Best Seller', 'New Arrivals', 'Most Popular']
-              .map(
-                (tab) => TextButton(
-                  onPressed: () => setState(() => selectedTab = tab),
-                  child: Text(
-                    tab,
-                    style: TextStyle(
-                      color: selectedTab == tab ? Colors.black : Colors.grey,
-                      fontWeight: selectedTab == tab
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-        const SizedBox(height: 20),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 5,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 20,
-          ),
-          itemCount: 15,
-          itemBuilder: (context, index) => _buildMinimalCard(),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 40),
-          child: Text(
-            'DISCOVER MORE',
-            style: TextStyle(
-              decoration: TextDecoration.underline,
-              letterSpacing: 2,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMinimalCard() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: Container(color: Colors.grey[100])),
-        const SizedBox(height: 8),
-        const Text('Floral Short Jumpsuit', style: TextStyle(fontSize: 11)),
-        const Row(
-          children: [
-            Icon(Icons.star, size: 10, color: Colors.orange),
-            Icon(Icons.star, size: 10, color: Colors.orange),
-            Icon(Icons.star, size: 10, color: Colors.orange),
-          ],
-        ),
-        const Text(
-          '\$92.99',
-          style: TextStyle(fontSize: 10, color: Colors.grey),
-        ),
-      ],
     );
   }
 }

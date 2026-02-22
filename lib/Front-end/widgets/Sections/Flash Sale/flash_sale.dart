@@ -1,13 +1,13 @@
 import 'dart:ui';
-
-import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.dart';
-import 'package:electrocitybd1/Front-end/widgets/Sections/Flash%20Sale/Flash_sale_all.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
+import '../../../pages/Templates/all_products_template.dart';
+import '../../../Provider/Admin_product_provider.dart';
+import 'Flash_sale_all.dart';
 
 class FlashSaleItem {
   final String image;
@@ -26,25 +26,99 @@ class FlashSaleItem {
 }
 
 class FlashSaleCarousel extends StatelessWidget {
-  const FlashSaleCarousel({super.key});
+   FlashSaleCarousel({super.key});
 
-  ProductData _buildProductData(FlashSaleItem product, int index) {
-    return ProductData(
-      id: 'flash_$index',
-      name: product.title,
-      category: 'Flash Sale',
-      priceBDT: product.discountedPrice.toDouble(),
-      images: [product.image],
-      description: 'Limited time flash sale deal.',
-      additionalInfo: {
-        'Original Price': 'Tk ${product.originalPrice}',
-        'Time Remaining': product.timeRemaining,
-      },
-    );
+  // স্যাম্পল প্রোডাক্ট (ডিফল্ট)
+  final List<FlashSaleItem> sampleProducts = [
+    FlashSaleItem(
+      image: 'assets/Products/1.png',
+      title: 'Product 1',
+      originalPrice: 1500,
+      discountedPrice: 999,
+      timeRemaining: '02:12:34',
+    ),
+    FlashSaleItem(
+      image: 'assets/Products/2.jpg',
+      title: 'Product 2',
+      originalPrice: 2000,
+      discountedPrice: 1299,
+      timeRemaining: '01:45:20',
+    ),
+    FlashSaleItem(
+      image: 'assets/Products/3.jpg',
+      title: 'Product 3',
+      originalPrice: 1200,
+      discountedPrice: 799,
+      timeRemaining: '03:30:15',
+    ),
+    FlashSaleItem(
+      image: 'assets/Products/4.jpg',
+      title: 'Product 4',
+      originalPrice: 1800,
+      discountedPrice: 1199,
+      timeRemaining: '02:00:45',
+    ),
+    FlashSaleItem(
+      image: 'assets/Products/5.jpg',
+      title: 'Product 5',
+      originalPrice: 1600,
+      discountedPrice: 999,
+      timeRemaining: '04:15:30',
+    ),
+  ];
+
+  // অ্যাডমিন প্রোডাক্টকে FlashSaleItem-এ কনভার্ট করা
+  List<FlashSaleItem> _convertAdminProducts(List<Map<String, dynamic>> adminProducts) {
+    return adminProducts.map((p) {
+      final price = double.tryParse(p['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0') ?? 0;
+      final discountedPrice = (price * 0.8).toInt(); // 20% ডিসকাউন্ট (ধরে নিলাম)
+      
+      return FlashSaleItem(
+        image: p['image']?.bytes != null ? 'admin_image_${p['name']}' : 'assets/placeholder.png',
+        title: p['name'] ?? '',
+        originalPrice: price.toInt(),
+        discountedPrice: discountedPrice,
+        timeRemaining: '23:59:59', // ডিফল্ট সময়
+      );
+    }).toList();
   }
 
-  void _openDetails(BuildContext context, FlashSaleItem product, int index) {
-    final details = _buildProductData(product, index);
+  ProductData _buildProductData(dynamic product, int index, {bool isFromAdmin = false}) {
+    if (isFromAdmin) {
+      final price = double.tryParse(product['price']?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0') ?? 0;
+      final adminImages = product['imageUrl'] != null &&
+              (product['imageUrl'] as String).isNotEmpty
+          ? [product['imageUrl'] as String]
+          : <String>[];
+      return ProductData(
+        id: 'admin_flash_$index',
+        name: product['name'] ?? '',
+        category: 'Flash Sale',
+        priceBDT: price,
+        images: adminImages,
+        description: product['desc'] ?? '',
+        additionalInfo: {
+          'Category': product['category'] ?? '',
+        },
+      );
+    } else {
+      return ProductData(
+        id: 'flash_$index',
+        name: product.title,
+        category: 'Flash Sale',
+        priceBDT: product.discountedPrice.toDouble(),
+        images: [product.image],
+        description: 'Limited time flash sale deal.',
+        additionalInfo: {
+          'Original Price': 'Tk ${product.originalPrice}',
+          'Time Remaining': product.timeRemaining,
+        },
+      );
+    }
+  }
+
+  void _openDetails(BuildContext context, dynamic product, int index, {bool isFromAdmin = false}) {
+    final details = _buildProductData(product, index, isFromAdmin: isFromAdmin);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -55,57 +129,16 @@ class FlashSaleCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flashSaleProducts = [
-      FlashSaleItem(
-        image: 'assets/Products/1.png',
-        title: '1',
-        originalPrice: 1500,
-        discountedPrice: 999,
-        timeRemaining: '02:12:34',
-      ),
-      FlashSaleItem(
-        image: 'assets/Products/2.jpg',
-        title: '2',
-        originalPrice: 2000,
-        discountedPrice: 1299,
-        timeRemaining: '01:45:20',
-      ),
-      FlashSaleItem(
-        image: 'assets/Products/3.jpg',
-        title: '3',
-        originalPrice: 1200,
-        discountedPrice: 799,
-        timeRemaining: '03:30:15',
-      ),
-      FlashSaleItem(
-        image: 'assets/Products/4.jpg',
-        title: '4',
-        originalPrice: 1800,
-        discountedPrice: 1199,
-        timeRemaining: '02:00:45',
-      ),
-      FlashSaleItem(
-        image: 'assets/Products/5.jpg',
-        title: '5',
-        originalPrice: 1600,
-        discountedPrice: 999,
-        timeRemaining: '04:15:30',
-      ),
-      FlashSaleItem(
-        image: 'assets/Products/6.jpg',
-        title: '6',
-        originalPrice: 1900,
-        discountedPrice: 1299,
-        timeRemaining: '01:20:10',
-      ),
-      FlashSaleItem(
-        image: 'assets/Products/3.jpg',
-        title: '3',
-        originalPrice: 1200,
-        discountedPrice: 799,
-        timeRemaining: '03:30:15',
-      ),
-    ];
+    // অ্যাডমিন থেকে আপলোড করা প্রোডাক্ট
+    final adminProducts = Provider.of<AdminProductProvider>(
+      context,
+    ).getProductsBySection("Flash Sale");
+    
+    // অ্যাডমিন প্রোডাক্ট কনভার্ট করা
+    final adminFlashItems = _convertAdminProducts(adminProducts);
+    
+    // সব প্রোডাক্ট একসাথে (অ্যাডমিন + স্যাম্পল)
+    final allProducts = [...adminFlashItems, ...sampleProducts];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,16 +189,22 @@ class FlashSaleCarousel extends StatelessWidget {
                   height: 240,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: flashSaleProducts.length,
+                    itemCount: allProducts.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
-                      final product = flashSaleProducts[index];
+                      final product = allProducts[index];
+                      final isFromAdmin = index < adminFlashItems.length;
 
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: () => _openDetails(context, product, index),
+                          onTap: () => _openDetails(
+                            context, 
+                            isFromAdmin ? adminProducts[index] : product, 
+                            index,
+                            isFromAdmin: isFromAdmin,
+                          ),
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
@@ -207,7 +246,7 @@ class FlashSaleCarousel extends StatelessWidget {
                                       98,
                                       169,
                                       216,
-                                    ), // Using red border color
+                                    ),
                                     width: 1.5,
                                   ),
                                   boxShadow: [
@@ -229,16 +268,62 @@ class FlashSaleCarousel extends StatelessWidget {
                                             const BorderRadius.vertical(
                                               top: Radius.circular(12),
                                             ),
-                                        child: Image.asset(
-                                          product.image,
-                                          fit: BoxFit.fill,
-                                          width: double.infinity,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const Icon(Icons.error),
-                                        ),
+                                        child: isFromAdmin
+                                            ? (adminProducts[index]['image']?.bytes != null
+                                                ? Image.memory(
+                                                    adminProducts[index]['image'].bytes!,
+                                                    fit: BoxFit.fill,
+                                                  )
+                                                : (adminProducts[index]['imageUrl'] != null &&
+                                                        (adminProducts[index]['imageUrl'] as String).isNotEmpty
+                                                    ? Image.network(
+                                                        adminProducts[index]['imageUrl'] as String,
+                                                        fit: BoxFit.fill,
+                                                        errorBuilder: (_, __, ___) => Container(
+                                                          color: Colors.grey[300],
+                                                          child: const Icon(Icons.image),
+                                                        ),
+                                                      )
+                                                    : Container(
+                                                        color: Colors.grey[300],
+                                                        child: const Icon(Icons.image),
+                                                      )))
+                                            : Image.asset(
+                                                product.image,
+                                                fit: BoxFit.fill,
+                                                width: double.infinity,
+                                                errorBuilder:
+                                                    (context, error, stackTrace) =>
+                                                        const Icon(Icons.error),
+                                              ),
                                       ),
                                     ),
+                                    
+                                    // অ্যাডমিন প্রোডাক্ট হলে "New" ব্যাজ দেখান
+                                    if (isFromAdmin)
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Text(
+                                            'NEW',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Column(
@@ -247,7 +332,9 @@ class FlashSaleCarousel extends StatelessWidget {
                                         children: [
                                           // Product Title
                                           Text(
-                                            product.title,
+                                            isFromAdmin 
+                                                ? adminProducts[index]['name'] ?? ''
+                                                : product.title,
                                             style: const TextStyle(
                                               fontSize: 13,
                                             ),
@@ -259,7 +346,9 @@ class FlashSaleCarousel extends StatelessWidget {
                                           Row(
                                             children: [
                                               Text(
-                                                'Tk ${product.originalPrice}',
+                                                isFromAdmin
+                                                    ? '৳${adminProducts[index]['price'] ?? ''}'
+                                                    : 'Tk ${product.originalPrice}',
                                                 style: const TextStyle(
                                                   decoration: TextDecoration
                                                       .lineThrough,
@@ -269,7 +358,9 @@ class FlashSaleCarousel extends StatelessWidget {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                'Tk ${product.discountedPrice}',
+                                                isFromAdmin
+                                                    ? '৳${_getDiscountedPrice(adminProducts[index]['price'])}'
+                                                    : 'Tk ${product.discountedPrice}',
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -291,7 +382,9 @@ class FlashSaleCarousel extends StatelessWidget {
                                                     const SizedBox(width: 6),
                                                     Flexible(
                                                       child: Text(
-                                                        product.timeRemaining,
+                                                        isFromAdmin
+                                                            ? '23:59:59'
+                                                            : product.timeRemaining,
                                                         maxLines: 1,
                                                         overflow: TextOverflow
                                                             .ellipsis,
@@ -309,21 +402,21 @@ class FlashSaleCarousel extends StatelessWidget {
                                                 height: 28,
                                                 child: ElevatedButton(
                                                   onPressed: () async {
-                                                    final data =
-                                                        _buildProductData(
-                                                          product,
-                                                          index,
-                                                        );
+                                                    final data = _buildProductData(
+                                                      isFromAdmin ? adminProducts[index] : product,
+                                                      index,
+                                                      isFromAdmin: isFromAdmin,
+                                                    );
                                                     await context
                                                         .read<CartProvider>()
                                                         .addToCart(
                                                           productId: data.id,
                                                           name: data.name,
                                                           price: data.priceBDT,
-                                                          imageUrl:
-                                                              data.images.first,
-                                                          category:
-                                                              data.category,
+                                                          imageUrl: data.images.isNotEmpty
+                                                              ? data.images.first
+                                                              : '',
+                                                          category: data.category,
                                                         );
 
                                                     if (context.mounted) {
@@ -386,5 +479,10 @@ class FlashSaleCarousel extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getDiscountedPrice(String? priceStr) {
+    final price = double.tryParse(priceStr?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0') ?? 0;
+    return (price * 0.8).toStringAsFixed(0);
   }
 }

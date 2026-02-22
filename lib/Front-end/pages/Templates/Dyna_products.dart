@@ -26,6 +26,9 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
   int _activeImageIndex = 0;
   int _quantity = 1;
 
+  String get _firstImage =>
+      widget.product.images.isNotEmpty ? widget.product.images.first : '';
+
   ImageProvider _resolveImageProvider(String path) {
     final lower = path.toLowerCase();
     if (lower.startsWith('http://') || lower.startsWith('https://')) {
@@ -267,13 +270,19 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
           decoration: BoxDecoration(
             color: const Color(0xFFF7F7F7),
             borderRadius: BorderRadius.circular(8),
-            image: DecorationImage(
-              image: _resolveImageProvider(
-                widget.product.images[_activeImageIndex],
-              ),
-              fit: BoxFit.contain,
-            ),
+            image: widget.product.images.isEmpty
+                ? null
+                : DecorationImage(
+                    image: _resolveImageProvider(
+                      widget.product.images[_activeImageIndex.clamp(
+                          0, widget.product.images.length - 1)],
+                    ),
+                    fit: BoxFit.contain,
+                  ),
           ),
+          child: widget.product.images.isEmpty
+              ? const Center(child: Icon(Icons.image, size: 80, color: Colors.grey))
+              : null,
         ),
         SizedBox(
           height: r.value(
@@ -284,64 +293,66 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             desktop: 20,
           ),
         ),
-        SizedBox(
-          height: r.value(
-            smallMobile: 60.0,
-            mobile: 60.0,
-            tablet: 70.0,
-            smallDesktop: 75.0,
-            desktop: 80.0,
-          ),
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: widget.product.images.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () => setState(() => _activeImageIndex = index),
-                child: Container(
-                  margin: EdgeInsets.only(
-                    right: r.value(
-                      smallMobile: 8.0,
-                      mobile: 8.0,
-                      tablet: 10.0,
-                      smallDesktop: 10.0,
-                      desktop: 10.0,
-                    ),
-                  ),
-                  width: r.value(
-                    smallMobile: 60.0,
-                    mobile: 60.0,
-                    tablet: 70.0,
-                    smallDesktop: 75.0,
-                    desktop: 80.0,
-                  ),
-                  height: r.value(
-                    smallMobile: 60.0,
-                    mobile: 60.0,
-                    tablet: 70.0,
-                    smallDesktop: 75.0,
-                    desktop: 80.0,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: _activeImageIndex == index
-                          ? Colors.black
-                          : Colors.grey[300]!,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      image: _resolveImageProvider(
-                        widget.product.images[index],
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+        widget.product.images.isEmpty
+            ? const SizedBox.shrink()
+            : SizedBox(
+                height: r.value(
+                  smallMobile: 60.0,
+                  mobile: 60.0,
+                  tablet: 70.0,
+                  smallDesktop: 75.0,
+                  desktop: 80.0,
                 ),
-              );
-            },
-          ),
-        ),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.product.images.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () => setState(() => _activeImageIndex = index),
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: r.value(
+                            smallMobile: 8.0,
+                            mobile: 8.0,
+                            tablet: 10.0,
+                            smallDesktop: 10.0,
+                            desktop: 10.0,
+                          ),
+                        ),
+                        width: r.value(
+                          smallMobile: 60.0,
+                          mobile: 60.0,
+                          tablet: 70.0,
+                          smallDesktop: 75.0,
+                          desktop: 80.0,
+                        ),
+                        height: r.value(
+                          smallMobile: 60.0,
+                          mobile: 60.0,
+                          tablet: 70.0,
+                          smallDesktop: 75.0,
+                          desktop: 80.0,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _activeImageIndex == index
+                                ? Colors.black
+                                : Colors.grey[300]!,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: _resolveImageProvider(
+                              widget.product.images[index],
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
       ],
     );
   }
@@ -545,7 +556,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                     productId: widget.product.id,
                     name: widget.product.name,
                     price: widget.product.priceBDT,
-                    imageUrl: widget.product.images.first,
+                    imageUrl: _firstImage,
                     category: widget.product.category,
                     quantity: _quantity,
                   );
@@ -611,7 +622,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 productId: widget.product.id,
                 name: widget.product.name,
                 price: widget.product.priceBDT,
-                imageUrl: widget.product.images.first,
+                imageUrl: _firstImage,
                 category: widget.product.category,
               );
               final isAdded = context.read<WishlistProvider>().isInWishlist(
@@ -1039,13 +1050,18 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   top: Radius.circular(12),
                 ),
                 color: Colors.grey[100],
-                image: DecorationImage(
-                  image: _resolveImageProvider(product.images.first),
-                  fit: BoxFit.cover,
-                ),
+                image: product.images.isEmpty
+                    ? null
+                    : DecorationImage(
+                        image: _resolveImageProvider(product.images.first),
+                        fit: BoxFit.cover,
+                      ),
               ),
               child: Stack(
                 children: [
+                  if (product.images.isEmpty)
+                    const Center(
+                        child: Icon(Icons.image, size: 40, color: Colors.grey)),
                   Positioned(
                     top: 8,
                     right: 8,
@@ -1055,7 +1071,9 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                           productId: product.id,
                           name: product.name,
                           price: product.priceBDT,
-                          imageUrl: product.images.first,
+                          imageUrl: product.images.isNotEmpty
+                              ? product.images.first
+                              : '',
                           category: product.category,
                         );
                         final isAdded = context
