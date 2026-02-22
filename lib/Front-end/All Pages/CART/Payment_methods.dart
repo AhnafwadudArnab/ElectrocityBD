@@ -108,45 +108,52 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     final total = cartProvider.getCartTotal();
     final methodName = method == PaymentMethod.bkash ? 'bKash' : 'Nagad';
 
+    String? orderId;
     try {
       final token = await ApiService.getToken();
-      if (token != null) {
-        final userData = await AuthSession.getUserData();
-        final deliveryAddress = userData?.address ?? '';
-        final body = {
-          'total_amount': total,
-          'payment_method': methodName,
-          'delivery_address': deliveryAddress,
-          'transaction_id': transactionId,
-          'estimated_delivery': estimatedDelivery,
-          'items': cartProvider.items.map((item) => {
-            'product_id': int.tryParse(item.productId),
-            'product_name': item.name,
-            'quantity': item.quantity,
-            'price': item.price,
-            'image_url': item.imageUrl,
-            'color': '',
-          }).toList(),
-        };
-        await ApiService.placeOrder(body);
-        await ordersProvider.refreshFromApi();
-        await cartProvider.clearCart();
+      if (token == null) {
         if (!context.mounted) return;
+        _showError('Please log in to place an order.');
+        return;
       }
-    } catch (_) {}
+      final userData = await AuthSession.getUserData();
+      final deliveryAddress = userData?.address ?? '';
+      if (deliveryAddress.trim().isEmpty) {
+        if (!context.mounted) return;
+        _showError('Please add a delivery address in Profile before placing order.');
+        return;
+      }
+      final body = {
+        'total_amount': total,
+        'payment_method': methodName,
+        'delivery_address': deliveryAddress,
+        'transaction_id': transactionId,
+        'estimated_delivery': estimatedDelivery,
+        'items': cartProvider.items.map((item) => {
+          'product_id': int.tryParse(item.productId),
+          'product_name': item.name,
+          'quantity': item.quantity,
+          'price': item.price,
+          'image_url': item.imageUrl,
+          'color': '',
+        }).toList(),
+      };
+      final result = await ApiService.placeOrder(body);
+      orderId = (result['orderId'] ?? result['order_id'])?.toString() ?? 'EC-${DateTime.now().millisecondsSinceEpoch}';
+      await ordersProvider.refreshFromApi();
+      await cartProvider.clearCart();
+      if (!context.mounted) return;
+    } on ApiException catch (e) {
+      if (!context.mounted) return;
+      _showError(e.message);
+      return;
+    } catch (e) {
+      if (!context.mounted) return;
+      _showError('Could not place order. Check connection and try again.');
+      return;
+    }
 
-    final orderId = 'EC-${DateTime.now().millisecondsSinceEpoch}';
-    ordersProvider.addOrder(PlacedOrder(
-      orderId: orderId,
-      transactionId: transactionId,
-      paymentMethod: methodName,
-      total: total,
-      createdAt: createdAt,
-      status: 'New Order',
-      estimatedDelivery: estimatedDelivery,
-      items: orderItems,
-    ));
-
+    if (!context.mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -164,7 +171,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
             Text('Amount: ৳${widget.totalAmount.toStringAsFixed(2)}'),
             const SizedBox(height: 8),
             SelectableText(
-              'Order ID: $orderId',
+              'Order ID: ${orderId ?? 'EC-${DateTime.now().millisecondsSinceEpoch}'}',
               style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
             ),
             const SizedBox(height: 4),
@@ -186,11 +193,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              cartProvider.clearCart();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (_) => OrderCompletedPage(
-                    orderId: orderId,
+                    orderId: orderId ?? '',
                     paymentMethod: method == PaymentMethod.bkash
                         ? 'bKash'
                         : 'Nagad',

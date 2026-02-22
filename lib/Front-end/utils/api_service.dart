@@ -180,6 +180,48 @@ class ApiService {
     return await post('/products', data);
   }
 
+  /// Create product with optional image file (multipart). Pass imageBytes+fileName when image is picked.
+  static Future<Map<String, dynamic>> createProductWithImage({
+    required String product_name,
+    required String description,
+    required double price,
+    int stock_quantity = 0,
+    int? category_id,
+    int? brand_id,
+    String? image_url,
+    List<int>? imageBytes,
+    String? imageFileName,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/products');
+    final request = http.MultipartRequest('POST', uri);
+    final token = await getToken();
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+
+    request.fields['product_name'] = product_name;
+    request.fields['description'] = description;
+    request.fields['price'] = price.toString();
+    request.fields['stock_quantity'] = stock_quantity.toString();
+    if (category_id != null) request.fields['category_id'] = category_id.toString();
+    if (brand_id != null) request.fields['brand_id'] = brand_id.toString();
+    if (image_url != null && image_url.isNotEmpty) request.fields['image_url'] = image_url;
+
+    if (imageBytes != null && imageBytes.isNotEmpty && imageFileName != null && imageFileName.isNotEmpty) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'image',
+        imageBytes,
+        filename: imageFileName,
+      ));
+    }
+
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    final body = jsonDecode(res.body);
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return body is Map<String, dynamic> ? body : {'data': body};
+    }
+    throw ApiException(body is Map ? (body['error'] ?? 'Request failed') : 'Request failed', res.statusCode);
+  }
+
   static Future<void> updateProduct(int id, Map<String, dynamic> data) async {
     await put('/products/$id', data);
   }
@@ -260,6 +302,68 @@ class ApiService {
 
   static Future<void> createDiscount(Map<String, dynamic> data) async {
     await post('/discounts', data);
+  }
+
+  static Future<void> updateDiscount(int id, Map<String, dynamic> data) async {
+    await put('/discounts/$id', data);
+  }
+
+  static Future<void> deleteDiscount(int id) async {
+    await delete('/discounts/$id');
+  }
+
+  // ─── Deals of the Day API ───
+
+  static Future<List<dynamic>> getDeals() async {
+    return await get('/deals', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> createDeal(Map<String, dynamic> data) async {
+    await post('/deals', data);
+  }
+
+  static Future<void> updateDeal(int dealId, Map<String, dynamic> data) async {
+    await put('/deals/$dealId', data);
+  }
+
+  static Future<void> deleteDeal(int dealId) async {
+    await delete('/deals/$dealId');
+  }
+
+  // ─── Flash Sales API ───
+
+  static Future<List<dynamic>> getFlashSales() async {
+    return await get('/flash-sales', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> createFlashSale(Map<String, dynamic> data) async {
+    await post('/flash-sales', data);
+  }
+
+  static Future<void> updateFlashSale(int id, Map<String, dynamic> data) async {
+    await put('/flash-sales/$id', data);
+  }
+
+  static Future<void> deleteFlashSale(int id) async {
+    await delete('/flash-sales/$id');
+  }
+
+  // ─── Promotions API ───
+
+  static Future<List<dynamic>> getPromotions() async {
+    return await get('/promotions', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> createPromotion(Map<String, dynamic> data) async {
+    await post('/promotions', data);
+  }
+
+  static Future<void> updatePromotion(int id, Map<String, dynamic> data) async {
+    await put('/promotions/$id', data);
+  }
+
+  static Future<void> deletePromotion(int id) async {
+    await delete('/promotions/$id');
   }
 
   // ─── Admin Dashboard API ───

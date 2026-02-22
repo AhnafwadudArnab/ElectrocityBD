@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'constants.dart';
+
 /// Resolves product image_url from API: 'asset:...' → load from Flutter assets;
-/// 'http...' or full URL → load from network. New uploads from Admin use network.
+/// 'http...' or full URL → load from network. Relative paths like /uploads/... use baseUrlImages.
 class ImageResolver {
   static const String _assetPrefix = 'asset:';
 
@@ -14,11 +16,18 @@ class ImageResolver {
     return url.substring(_assetPrefix.length);
   }
 
+  /// Resolve to a full network URL if backend returned a relative path (e.g. /uploads/...).
+  static String _resolveNetworkUrl(String imageUrl) {
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    if (imageUrl.startsWith('/')) return AppConstants.baseUrlImages + imageUrl;
+    return AppConstants.baseUrlImages + '/' + imageUrl;
+  }
+
   static ImageProvider imageProvider(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) return const AssetImage('assets/images/placeholder.png');
     if (isAssetUrl(imageUrl)) return AssetImage(assetPath(imageUrl));
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return NetworkImage(imageUrl);
-    return AssetImage(imageUrl);
+    return NetworkImage(_resolveNetworkUrl(imageUrl));
   }
 
   static Widget image({
@@ -49,8 +58,9 @@ class ImageResolver {
         errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
       );
     }
-    return Image.asset(
-      imageUrl,
+    final networkUrl = _resolveNetworkUrl(imageUrl);
+    return Image.network(
+      networkUrl,
       fit: fit,
       width: width,
       height: height,

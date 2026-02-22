@@ -4,6 +4,22 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+function imageFullUrl(req, imageUrl) {
+  if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
+  if (imageUrl.startsWith('asset:')) return imageUrl;
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+  const base = `${req.protocol}://${req.get('host') || 'localhost:3000'}`;
+  return imageUrl.startsWith('/') ? base + imageUrl : base + '/' + imageUrl;
+}
+
+function mapItemsWithFullImageUrl(req, items) {
+  return items.map((it) => ({
+    ...it,
+    image_url: imageFullUrl(req, it.image_url || it.product_image),
+    product_image: imageFullUrl(req, it.product_image || it.image_url),
+  }));
+}
+
 // GET /api/orders - get current user's orders (or all for admin)
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -29,7 +45,7 @@ router.get('/', authenticateToken, async (req, res) => {
          WHERE oi.order_id = ?`,
         [order.order_id]
       );
-      order.items = items;
+      order.items = mapItemsWithFullImageUrl(req, items);
     }
 
     res.json(orders);
@@ -46,6 +62,23 @@ router.post('/', authenticateToken, async (req, res) => {
 
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Order must have at least one item.' });
+    }
+
+    // Stock check: ensure each item has enough stock
+    for (const item of items) {
+      if (item.product_id) {
+        const [[row]] = await pool.query(
+          'SELECT stock_quantity FROM products WHERE product_id = ?',
+          [item.product_id]
+        );
+        const stock = row ? (row.stock_quantity || 0) : 0;
+        const qty = parseInt(item.quantity, 10) || 0;
+        if (qty > stock) {
+          return res.status(400).json({
+            error: `Insufficient stock for product ID ${item.product_id}. Available: ${stock}, requested: ${qty}.`,
+          });
+        }
+      }
     }
 
     const [orderResult] = await pool.query(
@@ -135,7 +168,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
        WHERE oi.order_id = ?`,
       [order.order_id]
     );
-    order.items = items;
+    order.items = mapItemsWithFullImageUrl(req, items);
 
     res.json(order);
   } catch (err) {

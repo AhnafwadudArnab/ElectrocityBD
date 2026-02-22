@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../pages/home_page.dart';
+import '../utils/api_service.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
+import 'A_deals.dart';
+import 'A_flash_sales.dart';
 import 'A_orders.dart';
+import 'A_promotions.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
@@ -25,39 +29,45 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   final Color cardBg = const Color(0xFF151C2C);
   final Color brandOrange = const Color(0xFFF59E0B);
 
-  final TextEditingController _codeController = TextEditingController();
-  final TextEditingController _valueController = TextEditingController();
-
-  String _selectedCategory = 'All Products';
+  final TextEditingController _productIdController = TextEditingController();
+  final TextEditingController _percentController = TextEditingController();
+  final TextEditingController _validFromController = TextEditingController();
+  final TextEditingController _validToController = TextEditingController();
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _formKey = GlobalKey();
 
-  List<Map<String, String>> activeDiscounts = [
-    {
-      "code": "SUMMER20",
-      "type": "Percentage",
-      "value": "20%",
-      "status": "Active",
-    },
-    {
-      "code": "KITCHEN500",
-      "type": "Fixed Amount",
-      "value": "৳500",
-      "status": "Scheduled",
-    },
-    {
-      "code": "WELCOME10",
-      "type": "Percentage",
-      "value": "10%",
-      "status": "Expired",
-    },
-  ];
+  List<Map<String, dynamic>> _discounts = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDiscounts();
+  }
+
+  Future<void> _loadDiscounts() async {
+    setState(() => _loading = true);
+    try {
+      final list = await ApiService.getDiscounts();
+      if (mounted) setState(() {
+        _discounts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _loading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e is ApiException ? e.message : 'Failed to load discounts')),
+      );
+    }
+  }
 
   @override
   void dispose() {
-    _codeController.dispose();
-    _valueController.dispose();
+    _productIdController.dispose();
+    _percentController.dispose();
+    _validFromController.dispose();
+    _validToController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -90,6 +100,15 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         break;
       case AdminSidebarItem.reports:
         page = const AdminReportsPage(embedded: true);
+        break;
+      case AdminSidebarItem.deals:
+        page = const AdminDealsPage(embedded: true);
+        break;
+      case AdminSidebarItem.flashSales:
+        page = const AdminFlashSalesPage(embedded: true);
+        break;
+      case AdminSidebarItem.promotions:
+        page = const AdminPromotionsPage(embedded: true);
         break;
       case AdminSidebarItem.banners:
         page = const AdminBannersPage(embedded: true);
@@ -205,6 +224,19 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     );
   }
 
+  String _discountStatus(Map<String, dynamic> d) {
+    final to = d['valid_to']?.toString();
+    final from = d['valid_from']?.toString();
+    if (to == null || to.isEmpty) return 'Active';
+    final end = DateTime.tryParse(to);
+    if (end != null && end.isBefore(DateTime.now())) return 'Expired';
+    if (from != null && from.isNotEmpty) {
+      final start = DateTime.tryParse(from);
+      if (start != null && start.isAfter(DateTime.now())) return 'Scheduled';
+    }
+    return 'Active';
+  }
+
   Widget _buildDiscountList() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -216,7 +248,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Active Campaigns",
+            "Product Discounts (with validity period)",
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -224,61 +256,61 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             ),
           ),
           const SizedBox(height: 20),
-          Table(
-            columnWidths: const {
-              0: FlexColumnWidth(2),
-              1: FlexColumnWidth(2),
-              2: FlexColumnWidth(2),
-              3: FlexColumnWidth(1.2),
-              4: FlexColumnWidth(0.8),
-            },
-            children: [
-              _tableHeader(),
-              ...activeDiscounts.map((d) => _tableRow(d)),
-            ],
-          ),
+          if (_loading)
+            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(color: Color(0xFFF59E0B))))
+          else
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2),
+                1: FlexColumnWidth(1),
+                2: FlexColumnWidth(1.5),
+                3: FlexColumnWidth(1.5),
+                4: FlexColumnWidth(1),
+                5: FlexColumnWidth(0.6),
+              },
+              children: [
+                TableRow(
+                  children: [
+                    _tableCell("PRODUCT", isBold: true, color: Colors.grey),
+                    _tableCell("% OFF", isBold: true, color: Colors.grey),
+                    _tableCell("VALID FROM", isBold: true, color: Colors.grey),
+                    _tableCell("VALID TO", isBold: true, color: Colors.grey),
+                    _tableCell("STATUS", isBold: true, color: Colors.grey),
+                    _tableCell("", isBold: true, color: Colors.grey),
+                  ],
+                ),
+                ..._discounts.map((d) => TableRow(
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.white10)),
+                  ),
+                  children: [
+                    _tableCell((d['product_name'] ?? '').toString(), isBold: false),
+                    _tableCell('${d['discount_percent'] ?? ''}%', color: brandOrange),
+                    _tableCell((d['valid_from'] ?? '').toString()),
+                    _tableCell((d['valid_to'] ?? '').toString()),
+                    _statusBadge(_discountStatus(d)),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                      onPressed: () => _deleteDiscount(d['discount_id'] as int),
+                    ),
+                  ],
+                )),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  TableRow _tableHeader() => TableRow(
-    children: [
-      _tableCell("CODE", isBold: true, color: Colors.grey),
-      _tableCell("TYPE", isBold: true, color: Colors.grey),
-      _tableCell("VALUE", isBold: true, color: Colors.grey),
-      _tableCell("STATUS", isBold: true, color: Colors.grey),
-      _tableCell("ACTION", isBold: true, color: Colors.grey),
-    ],
-  );
-
-  TableRow _tableRow(Map<String, String> d) => TableRow(
-    decoration: const BoxDecoration(
-      border: Border(top: BorderSide(color: Colors.white10)),
-    ),
-    children: [
-      _tableCell(d['code']!, isBold: true),
-      _tableCell(d['type']!),
-      _tableCell(d['value']!, color: brandOrange),
-      _statusBadge(d['status']!),
-      IconButton(
-        icon: const Icon(
-          Icons.delete_outline,
-          color: Colors.redAccent,
-          size: 20,
-        ),
-        onPressed: () {
-          setState(() => activeDiscounts.remove(d));
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Coupon '${d['code']}' deleted!"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
-      ),
-    ],
-  );
+  Future<void> _deleteDiscount(int id) async {
+    try {
+      await ApiService.deleteDiscount(id);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.orange, content: Text('Discount removed')));
+      _loadDiscounts();
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e is ApiException ? e.message : 'Failed')));
+    }
+  }
 
   Widget _buildCreateDiscountForm() {
     return Container(
@@ -292,7 +324,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Quick Create",
+            "Add product discount",
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -300,20 +332,20 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             ),
           ),
           const SizedBox(height: 24),
-          _inputLabel("Coupon Code"),
-          _darkField("e.g. SAVE100", controller: _codeController),
+          _inputLabel("Product ID"),
+          _darkField("e.g. 1", controller: _productIdController),
           const SizedBox(height: 20),
-          _inputLabel("Discount Value (৳ or %)"),
-          _darkField(
-            "Enter amount (e.g. 10% or 500)",
-            controller: _valueController,
-          ),
+          _inputLabel("Discount %"),
+          _darkField("e.g. 10", controller: _percentController),
           const SizedBox(height: 20),
-          _inputLabel("Category Apply"),
-          _darkDropdown(),
+          _inputLabel("Valid from (YYYY-MM-DD)"),
+          _darkField("Optional", controller: _validFromController),
+          const SizedBox(height: 20),
+          _inputLabel("Valid to (YYYY-MM-DD)"),
+          _darkField("Optional", controller: _validToController),
           const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: _createCoupon,
+            onPressed: _createDiscount,
             style: ElevatedButton.styleFrom(
               backgroundColor: brandOrange.withOpacity(0.15),
               side: BorderSide(color: brandOrange),
@@ -323,7 +355,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
               ),
             ),
             child: Text(
-              "Generate Coupon",
+              "Create discount",
               style: TextStyle(color: brandOrange, fontWeight: FontWeight.bold),
             ),
           ),
@@ -332,42 +364,43 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     );
   }
 
-  void _createCoupon() {
-    if (_codeController.text.isEmpty || _valueController.text.isEmpty) {
+  Future<void> _createDiscount() async {
+    final productId = int.tryParse(_productIdController.text.trim());
+    if (productId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please fill all fields"),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text("Enter a valid product ID"), backgroundColor: Colors.red),
       );
       return;
     }
-
-    setState(() {
-      activeDiscounts.insert(0, {
-        "code": _codeController.text.toUpperCase(),
-        "type": _valueController.text.contains('%')
-            ? "Percentage"
-            : "Fixed Amount",
-        "value":
-            _valueController.text.contains('%') ||
-                _valueController.text.contains('৳')
-            ? _valueController.text
-            : "৳${_valueController.text}",
-        "status": "Active",
+    final percent = double.tryParse(_percentController.text.trim());
+    if (percent == null || percent <= 0 || percent > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter discount % between 1 and 100"), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    try {
+      await ApiService.createDiscount({
+        'product_id': productId,
+        'discount_percent': percent,
+        'valid_from': _validFromController.text.trim().isEmpty ? null : _validFromController.text.trim(),
+        'valid_to': _validToController.text.trim().isEmpty ? null : _validToController.text.trim(),
       });
-
-      _codeController.clear();
-      _valueController.clear();
-      _selectedCategory = 'All Products';
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("New coupon generated successfully!"),
-        backgroundColor: Colors.green,
-      ),
-    );
+      _productIdController.clear();
+      _percentController.clear();
+      _validFromController.clear();
+      _validToController.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Discount created"), backgroundColor: Colors.green),
+        );
+        _loadDiscounts();
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e is ApiException ? e.message : 'Failed'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Widget _tableCell(
@@ -451,36 +484,4 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         ),
       );
 
-  Widget _darkDropdown() {
-    final items = ['All Products', 'Kitchen', 'Personal Care', 'Utility'];
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: darkBg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedCategory,
-          isExpanded: true,
-          dropdownColor: cardBg,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white24),
-          items: items
-              .map(
-                (i) => DropdownMenuItem(
-                  value: i,
-                  child: Text(
-                    i,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (v) => setState(() => _selectedCategory = v!),
-        ),
-      ),
-    );
-  }
 }

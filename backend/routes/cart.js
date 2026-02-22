@@ -4,7 +4,15 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/cart - get current user's cart
+function imageFullUrl(req, imageUrl) {
+  if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
+  if (imageUrl.startsWith('asset:')) return imageUrl;
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+  const base = `${req.protocol}://${req.get('host') || 'localhost:3000'}`;
+  return imageUrl.startsWith('/') ? base + imageUrl : base + '/' + imageUrl;
+}
+
+// GET /api/cart - get current user's cart (image_url as full URL for Flutter)
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -18,8 +26,12 @@ router.get('/', authenticateToken, async (req, res) => {
        ORDER BY c.added_at DESC`,
       [req.user.userId]
     );
-    const total = rows.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    res.json({ items: rows, total, itemCount: rows.reduce((s, i) => s + i.quantity, 0) });
+    const items = rows.map((r) => ({
+      ...r,
+      image_url: imageFullUrl(req, r.image_url),
+    }));
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    res.json({ items, total, itemCount: items.reduce((s, i) => s + i.quantity, 0) });
   } catch (err) {
     console.error('Cart get error:', err);
     res.status(500).json({ error: 'Server error.' });
@@ -59,8 +71,15 @@ router.post('/', authenticateToken, async (req, res) => {
 // PUT /api/cart/:cartId - update quantity
 router.put('/:cartId', authenticateToken, async (req, res) => {
   try {
-    const { quantity } = req.body;
-    if (quantity <= 0) {
+    let quantity = req.body?.quantity;
+    if (quantity === undefined || quantity === null) {
+      return res.status(400).json({ error: 'quantity is required.' });
+    }
+    quantity = parseInt(quantity, 10);
+    if (isNaN(quantity) || quantity < 0) {
+      return res.status(400).json({ error: 'quantity must be a non-negative number.' });
+    }
+    if (quantity === 0) {
       await pool.query('DELETE FROM cart WHERE cart_id = ? AND user_id = ?',
         [req.params.cartId, req.user.userId]);
     } else {

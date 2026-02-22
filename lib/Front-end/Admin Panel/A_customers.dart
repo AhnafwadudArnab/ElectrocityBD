@@ -5,7 +5,10 @@ import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
+import 'A_deals.dart';
 import 'A_discounts.dart';
+import 'A_flash_sales.dart';
+import 'A_promotions.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
@@ -62,6 +65,12 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
         return const AdminReportsPage(embedded: true);
       case AdminSidebarItem.discounts:
         return const AdminDiscountPage(embedded: true);
+      case AdminSidebarItem.deals:
+        return const AdminDealsPage(embedded: true);
+      case AdminSidebarItem.flashSales:
+        return const AdminFlashSalesPage(embedded: true);
+      case AdminSidebarItem.promotions:
+        return const AdminPromotionsPage(embedded: true);
       case AdminSidebarItem.banners:
         return const AdminBannersPage(embedded: true);
       case AdminSidebarItem.help:

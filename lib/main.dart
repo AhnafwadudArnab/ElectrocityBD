@@ -12,8 +12,8 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AdminProductProvider()),
         ChangeNotifierProvider(create: (_) => BannerProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProductProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
         ChangeNotifierProvider<CartProvider>.value(value: CartProvider()),
         ChangeNotifierProvider<WishlistProvider>.value(
@@ -45,6 +45,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final bp = context.watch<BannerProvider>();
     return MaterialApp(
       title: 'ElectrocityBD',
       debugShowCheckedModeBanner: false,

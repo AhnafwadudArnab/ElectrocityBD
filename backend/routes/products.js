@@ -119,12 +119,23 @@ router.get('/:id', async (req, res) => {
 router.post('/', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const { product_name, description, price, stock_quantity, category_id, brand_id, image_url } = req.body;
+    if (!product_name || String(product_name).trim() === '') {
+      return res.status(400).json({ error: 'Product name is required.' });
+    }
+    const numPrice = parseFloat(price);
+    const numStock = parseInt(stock_quantity, 10) || 0;
+    if (isNaN(numPrice) || numPrice < 0) {
+      return res.status(400).json({ error: 'Price must be a non-negative number.' });
+    }
+    if (numStock < 0) {
+      return res.status(400).json({ error: 'Stock quantity cannot be negative.' });
+    }
     const finalImageUrl = req.file ? `/uploads/${req.file.filename}` : (image_url || '');
 
     const [result] = await pool.query(
       `INSERT INTO products (product_name, description, price, stock_quantity, category_id, brand_id, image_url)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [product_name, description || '', parseFloat(price) || 0, parseInt(stock_quantity) || 0,
+      [String(product_name).trim(), description || '', numPrice, numStock,
        category_id || null, brand_id || null, finalImageUrl]
     );
 

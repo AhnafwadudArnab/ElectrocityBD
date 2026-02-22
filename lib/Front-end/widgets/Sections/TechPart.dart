@@ -131,7 +131,7 @@ class _TechpartState extends State<Techpart> {
 
   // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
   List<Map<String, dynamic>> _allProducts(BuildContext context) {
-    final adminProducts = Provider.of<AdminProductProvider>(context).getProductsBySection("Tech Part");
+    final adminProducts = context.read<AdminProductProvider>().getProductsBySection("Tech Part");
     final adminConverted = _convertAdminProducts(adminProducts);
     final dbConverted = _convertDbProducts(_dbProducts);
     return [...dbConverted, ...adminConverted, ...sampleProducts];

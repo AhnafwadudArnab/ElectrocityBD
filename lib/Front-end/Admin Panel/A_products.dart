@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../Provider/Admin_product_provider.dart';
+import '../utils/api_service.dart';
 import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
+import 'A_deals.dart';
 import 'A_discounts.dart';
+import 'A_flash_sales.dart';
 import 'A_orders.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 import 'admin_update_product.dart';
@@ -46,6 +50,15 @@ class AdminProductUploadPage extends StatelessWidget {
         break;
       case AdminSidebarItem.discounts:
         page = const AdminDiscountPage(embedded: true);
+        break;
+      case AdminSidebarItem.deals:
+        page = const AdminDealsPage(embedded: true);
+        break;
+      case AdminSidebarItem.flashSales:
+        page = const AdminFlashSalesPage(embedded: true);
+        break;
+      case AdminSidebarItem.promotions:
+        page = const AdminPromotionsPage(embedded: true);
         break;
       case AdminSidebarItem.banners:
         page = const AdminBannersPage(embedded: true);
@@ -184,8 +197,42 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
-  String _selectedCategory = 'Home Utility';
+  List<Map<String, dynamic>> _categories = [];
+  int? _selectedCategoryId;
   PlatformFile? _selectedFile;
+  bool _loadingCategories = true;
+  bool _publishing = false;
+
+  static const Map<String, String> _sectionToApiKey = {
+    'Best Sellings': 'best_sellers',
+    'Flash Sale': 'flash_sale',
+    'Trending Items': 'trending',
+    'Deals of the Day': 'deals',
+    'Tech Part': 'tech_part',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final list = await ApiService.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          _loadingCategories = false;
+          if (_categories.isNotEmpty && _selectedCategoryId == null) {
+            _selectedCategoryId = _categories.first['category_id'] as int?;
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingCategories = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -279,8 +326,8 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      value: _selectedCategory,
+                    DropdownButtonFormField<int>(
+                      value: _selectedCategoryId,
                       dropdownColor: fieldBg,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
@@ -288,19 +335,15 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         fillColor: fieldBg,
                         border: InputBorder.none,
                       ),
-                      items:
-                          [
-                                'Home Utility',
-                                'Personal Care',
-                                'Kitchen',
-                                'Cooling',
-                              ]
-                              .map(
-                                (c) =>
-                                    DropdownMenuItem(value: c, child: Text(c)),
-                              )
+                      items: _loadingCategories
+                          ? []
+                          : _categories
+                              .map((c) => DropdownMenuItem<int>(
+                                    value: c['category_id'] as int?,
+                                    child: Text((c['category_name'] ?? '').toString()),
+                                  ))
                               .toList(),
-                      onChanged: (v) => setState(() => _selectedCategory = v!),
+                      onChanged: (v) => setState(() => _selectedCategoryId = v),
                     ),
                   ],
                 ),
@@ -309,18 +352,24 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => _handlePublish(productProvider),
+            onPressed: _publishing ? null : () => _handlePublish(productProvider),
             style: ElevatedButton.styleFrom(
               backgroundColor: brandOrange,
               minimumSize: const Size(double.infinity, 50),
             ),
-            child: const Text(
-              "Publish Now",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: _publishing
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text(
+                    "Publish Now",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
 
           // লাইভ প্রিভিউ সেকশন (নিচে দেখাবে কি কি আপলোড হয়েছে)
@@ -556,45 +605,96 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     if (result != null) setState(() => _selectedFile = result.files.first);
   }
 
-  // পাবলিশ করার ফাংশন
-  void _handlePublish(AdminProductProvider provider) {
+  // পাবলিশ করার ফাংশন - API তে সেভ করে তারপর সেকশনে অ্যাসাইন করে
+  Future<void> _handlePublish(AdminProductProvider provider) async {
     if (_nameController.text.isEmpty || _priceController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Product name and price required!")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Product name and price required!")),
+      );
       return;
     }
-    if (_selectedFile == null && (_imageUrlController.text.trim().isEmpty)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Add an image (file or URL)!")));
+    if (_selectedFile == null && _imageUrlController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Add an image (file or URL)!")),
+      );
+      return;
+    }
+    final price = double.tryParse(_priceController.text.trim()) ?? 0;
+    if (price <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter a valid price.")),
+      );
       return;
     }
 
-    final productData = {
-      "name": _nameController.text.trim(),
-      "price": _priceController.text.trim(),
-      "desc": _descController.text.trim(),
-      "category": _selectedCategory,
-      "image": _selectedFile,
-      "imageUrl": _imageUrlController.text.trim().isEmpty ? null : _imageUrlController.text.trim(),
-    };
+    setState(() => _publishing = true);
+    try {
+      final imageUrl = _imageUrlController.text.trim().isEmpty ? null : _imageUrlController.text.trim();
+      final res = await ApiService.createProductWithImage(
+        product_name: _nameController.text.trim(),
+        description: _descController.text.trim(),
+        price: price,
+        stock_quantity: 0,
+        category_id: _selectedCategoryId,
+        image_url: imageUrl,
+        imageBytes: _selectedFile?.bytes,
+        imageFileName: _selectedFile?.name,
+      );
+      final productId = res['productId'] as int?;
+      if (productId == null) throw Exception('No product ID returned');
 
-    provider.addProduct(widget.sectionTitle, productData);
+      final sectionKey = _sectionToApiKey[widget.sectionTitle];
+      if (sectionKey != null) {
+        await ApiService.updateProductSections(productId, {sectionKey: true});
+      }
 
-    // ফর্ম ক্লিয়ার করা
-    _nameController.clear();
-    _priceController.clear();
-    _descController.clear();
-    _imageUrlController.clear();
-    setState(() => _selectedFile = null);
+      final productData = {
+        "name": _nameController.text.trim(),
+        "price": _priceController.text.trim(),
+        "desc": _descController.text.trim(),
+        "category": () {
+          for (final c in _categories) {
+            if (c['category_id'] == _selectedCategoryId) return (c['category_name'] ?? '').toString();
+          }
+          return '';
+        }(),
+        "image": _selectedFile,
+        "imageUrl": imageUrl ?? (res['image_url']?.toString()),
+      };
+      provider.addProduct(widget.sectionTitle, productData);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.green,
-        content: Text("${widget.sectionTitle}-এ আপলোড সফল হয়েছে!"),
-      ),
-    );
+      _nameController.clear();
+      _priceController.clear();
+      _descController.clear();
+      _imageUrlController.clear();
+      setState(() => _selectedFile = null);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("${widget.sectionTitle}-এ আপলোড সফল হয়েছে!"),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: Colors.red, content: Text(e.message)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text('Upload failed: ${e.toString()}'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
   }
 
   Widget _customTextField(

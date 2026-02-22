@@ -1,41 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Orders.dart';
 import '../../All Pages/CART/Track_ur_orders.dart';
+import '../../Provider/Orders_provider.dart';
+import '../../utils/api_service.dart';
+import '../../utils/image_resolver.dart';
 
 class MyOrdersPage extends StatefulWidget {
   final List<OrderModel> orders;
 
-  const MyOrdersPage({super.key, required this.orders});
+  const MyOrdersPage({super.key, this.orders = const []});
 
   @override
   State<MyOrdersPage> createState() => _MyOrdersPageState();
 }
 
 class _MyOrdersPageState extends State<MyOrdersPage> {
-  late List<OrderModel> orders;
-  String selectedSort = 'All';
+  List<OrderModel> orders = [];
+  bool _loading = true;
+  String? _error;
+  String selectedFilter = 'All'; // All | Pending | Delivered
 
   @override
   void initState() {
     super.initState();
     orders = List.from(widget.orders);
+    _loadOrders();
   }
 
-  bool _isCompleted(OrderModel order) {
-    final s = order.status.toLowerCase();
-    return order.isDelivered ||
-        s == 'completed' ||
-        s == 'complete' ||
-        s == 'delivered';
+  Future<void> _loadOrders() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final token = await ApiService.getToken();
+      if (token == null) {
+        setState(() { _loading = false; orders = List.from(widget.orders); });
+        return;
+      }
+      final list = await ApiService.getOrders() as List<dynamic>;
+      final parsed = list.map((o) => OrderModel.fromApiMap(Map<String, dynamic>.from(o as Map))).toList();
+      if (mounted) {
+        setState(() { orders = parsed; _loading = false; });
+        context.read<OrdersProvider>().refreshFromApi();
+      }
+    } catch (e) {
+      if (mounted) setState(() {
+        _loading = false;
+        _error = e.toString().replaceFirst('ApiException(', '').replaceFirst(')', '');
+        if (orders.isEmpty) orders = List.from(widget.orders);
+      });
+    }
+  }
+
+  List<OrderModel> _getFilteredOrders() {
+    if (selectedFilter == 'All') return orders;
+    if (selectedFilter == 'Delivered') return orders.where((o) => o.isDelivered).toList();
+    return orders.where((o) => !o.isDelivered).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final visibleOrders = _getSortedOrders();
+    final visibleOrders = _getFilteredOrders();
+
+    if (_loading && orders.isEmpty) {
+      return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
+    }
+
+    if (_error != null && orders.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, style: TextStyle(color: Colors.red[700]), textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(onPressed: _loadOrders, icon: const Icon(Icons.refresh), label: const Text('Retry')),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (visibleOrders.isEmpty) {
-      return _buildEmptyState();
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              selectedFilter == 'All' ? 'You have no orders yet' : 'No $selectedFilter orders',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(onPressed: _loadOrders, icon: const Icon(Icons.refresh, size: 18), label: const Text('Refresh')),
+          ],
+        ),
+      );
     }
 
     return SingleChildScrollView(
@@ -44,18 +106,14 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(visibleOrders.length),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          if (_loading) const LinearProgressIndicator(),
+          const SizedBox(height: 12),
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: visibleOrders.length,
-            itemBuilder: (context, orderIndex) {
-              return _buildOrderCard(
-                context,
-                visibleOrders[orderIndex],
-                orderIndex,
-              );
-            },
+            itemBuilder: (context, i) => _buildOrderCard(context, visibleOrders[i]),
           ),
         ],
       ),
@@ -66,164 +124,152 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'Completed Orders ($count)',
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
+        Text('My Orders ($count)', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         PopupMenuButton<String>(
-          onSelected: (value) {
-            setState(() {
-              selectedSort = value;
-            });
-          },
-          itemBuilder: (BuildContext context) => const [
-            PopupMenuItem(value: 'All', child: Text('All')),
-            PopupMenuItem(value: 'Completed', child: Text('Completed')),
-          ],
-          child: Text(
-            'Sort by: $selectedSort ⌄',
-            style: const TextStyle(color: Colors.grey),
+          onSelected: (v) => setState(() => selectedFilter = v),
+          itemBuilder: (_) => ['All', 'Pending', 'Delivered'].map((e) => PopupMenuItem(value: e, child: Text(e))).toList(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(selectedFilter, style: const TextStyle(fontWeight: FontWeight.w600)),
+              const Icon(Icons.arrow_drop_down),
+            ],
           ),
         ),
       ],
     );
   }
 
-  List<OrderModel> _getSortedOrders() {
-    // শুধু completed order
-    return orders.where(_isCompleted).toList();
-  }
-
-  Widget _buildEmptyState() => const Center(
-    child: Text(
-      'Completed order nai',
-      style: TextStyle(fontSize: 16, color: Colors.grey),
-    ),
-  );
-
-  Widget _buildOrderCard(
-    BuildContext context,
-    OrderModel order,
-    int orderIndex,
-  ) {
+  Widget _buildOrderCard(BuildContext context, OrderModel order) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 2))],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Orange Summary Bar
+          // Top bar: Order ID, Date, Status, Total
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFDB933),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E8),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _summaryCol('Order ID', order.id),
-                _summaryCol('Total Payment', '৳${order.total}'),
-                _summaryCol(
-                  'Payment Method',
-                  _formatPaymentMethod(order.paymentMethod),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Order #${order.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 2),
+                      Text(order.date, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                    ],
+                  ),
                 ),
-                _summaryCol(
-                  order.isDelivered ? 'Delivered Date' : 'Estimated Delivery',
-                  order.date,
+                _statusChip(order.status, order.isDelivered),
+                const SizedBox(width: 12),
+                Text(order.total, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+          ),
+          // Payment & Transaction
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _detailRow('Payment', order.paymentMethod),
+                if (order.transactionId != null && order.transactionId!.isNotEmpty)
+                  _detailRow('Transaction ID', order.transactionId!),
+                if (order.paymentStatus != null && order.paymentStatus!.isNotEmpty)
+                  _detailRow('Payment Status', order.paymentStatus!),
+                if (order.estimatedDelivery != null && order.estimatedDelivery!.isNotEmpty)
+                  _detailRow('Estimated Delivery', order.estimatedDelivery!),
+                if (order.deliveryAddress != null && order.deliveryAddress!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Delivery Address', style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  Text(order.deliveryAddress!, style: const TextStyle(fontSize: 13)),
+                ],
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          // Product items
+          ...order.items.map((item) => _buildProductRow(context, item)),
+          const Divider(height: 1),
+          // Footer: Track order
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TrackOrderFormPage())),
+                  icon: const Icon(Icons.local_shipping_outlined, size: 18),
+                  label: Text(order.isDelivered ? 'View Details' : 'Track Order'),
                 ),
               ],
             ),
           ),
-          // Product Items List
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: order.items.length,
-            separatorBuilder: (context, index) =>
-                Divider(height: 1, color: Colors.grey.shade100),
-            itemBuilder: (context, itemIndex) {
-              final item = order.items[itemIndex];
-              return _buildProductRow(context, item, orderIndex, itemIndex);
-            },
-          ),
-          const Divider(height: 1),
-          _buildCardFooter(order, orderIndex),
         ],
       ),
     );
   }
 
-  String _formatPaymentMethod(String method) {
-    switch (method.toLowerCase()) {
-      case 'bkash':
-        return 'bKash';
-      case 'nagad':
-        return 'Nagad';
-      case 'cash':
-        return 'Cash on Delivery';
-      default:
-        return method;
-    }
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 120, child: Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600]))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
+    );
   }
 
-  Widget _getPaymentIcon(String method) {
-    if (method.toLowerCase().contains('bkash')) {
-      return _iconBadge('bKash', const Color(0xFFE2136E));
-    } else if (method.toLowerCase().contains('nagad')) {
-      return _iconBadge('Nagad', const Color(0xFFEF7B0F));
-    }
-    return const Icon(Icons.payment, size: 16);
-  }
-
-  Widget _iconBadge(String text, Color color) {
+  Widget _statusChip(String text, bool delivered) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
+        color: delivered ? Colors.green.shade50 : Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: delivered ? Colors.green : Colors.orange, width: 1),
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
+        style: TextStyle(
+          color: delivered ? Colors.green.shade800 : Colors.orange.shade800,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  Widget _buildProductRow(
-    BuildContext context,
-    OrderItem item,
-    int orderIndex,
-    int itemIndex,
-  ) {
+  Widget _buildProductRow(BuildContext context, OrderItem item) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 64,
+              height: 64,
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.shopping_bag_outlined,
-              color: Colors.orange,
+              child: item.imagePath != null && item.imagePath!.isNotEmpty
+                  ? ImageResolver.image(imageUrl: item.imagePath!, width: 64, height: 64, fit: BoxFit.cover)
+                  : const Icon(Icons.shopping_bag_outlined, color: Colors.orange, size: 28),
             ),
           ),
           const SizedBox(width: 12),
@@ -231,215 +277,18 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
+                Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 const SizedBox(height: 4),
                 Text(
-                  'Color: ${item.color} | ${item.qty} Qty. | ৳${item.price}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  'Qty: ${item.qty} × ৳${item.price.toStringAsFixed(0)} = ৳${(item.qty * item.price).toStringAsFixed(0)}',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
+                if (item.color.isNotEmpty) Text('Color: ${item.color}', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
               ],
             ),
-          ),
-          _buildActionButtons(context, orderIndex, itemIndex),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(
-    BuildContext context,
-    int orderIndex,
-    int itemIndex,
-  ) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => _showDeleteDialog(context, orderIndex, itemIndex),
-          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-          visualDensity: VisualDensity.compact,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCardFooter(OrderModel order, int orderIndex) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          _statusBadge(order.status, order.isDelivered),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Order is ${order.status}',
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
-          _actionButton(
-            order.isDelivered ? 'Add Review' : 'Track Your Order',
-            true,
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TrackOrderFormPage(),
-                ),
-              );
-            },
-          ),
-          // const SizedBox(width: 8),
-          // if (!order.isDelivered)
-          //   TextButton(
-          //     onPressed: () => _cancelOrder(orderIndex),
-          //     child: const Text(
-          //       'Cancel',
-          //       style: TextStyle(color: Colors.red, fontSize: 13),
-          //     ),
-          //   ),
-        ],
-      ),
-    );
-  }
-
-  // DIALOGS & LOGIC
-  void _showEditDialog(BuildContext context, int orderIndex, int itemIndex) {
-    final item = orders[orderIndex].items[itemIndex];
-    final nameCtrl = TextEditingController(text: item.name);
-    final priceCtrl = TextEditingController(text: item.price.toString());
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Item'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Product Name'),
-            ),
-            TextField(
-              controller: priceCtrl,
-              decoration: const InputDecoration(labelText: 'Price'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                orders[orderIndex].items[itemIndex] = OrderItem(
-                  name: nameCtrl.text,
-                  color: item.color,
-                  qty: item.qty,
-                  price: double.tryParse(priceCtrl.text) ?? item.price,
-                );
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context, int orderIndex, int itemIndex) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Item?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              setState(() {
-                orders[orderIndex].items.removeAt(itemIndex);
-                if (orders[orderIndex].items.isEmpty) {
-                  orders.removeAt(orderIndex);
-                }
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // void _cancelOrder(int index) {
-  //   setState(() => orders.removeAt(index));
-  // }
-
-  Widget _statusBadge(String text, bool delivered) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: delivered ? Colors.green.shade50 : Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: delivered ? Colors.green : Colors.orange,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _actionButton(String label, bool primary, VoidCallback onTap) {
-    return SizedBox(
-      height: 36,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primary
-              ? const Color.fromARGB(255, 221, 153, 76)
-              : const Color.fromARGB(255, 37, 32, 32),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-        ),
-        child: Text(label, style: const TextStyle(fontSize: 12)),
-      ),
-    );
-  }
-
-  Widget _summaryCol(String label, String value) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: Colors.black54),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 }
-

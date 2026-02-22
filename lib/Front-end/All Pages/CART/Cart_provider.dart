@@ -191,9 +191,24 @@ class CartProvider extends ChangeNotifier {
     final cart = _carts[_currentUserId];
     if (cart == null || !cart.containsKey(productId)) return;
     if (quantity <= 0) {
+      final cartId = _serverCartIds[productId];
+      if (!_currentUserId.startsWith('guest_') && cartId != null) {
+        try {
+          await ApiService.removeCartItem(cartId);
+        } catch (_) {}
+        _serverCartIds.remove(productId);
+      }
       cart.remove(productId);
     } else {
       cart[productId] = cart[productId]!.copyWith(quantity: quantity);
+      if (!_currentUserId.startsWith('guest_')) {
+        final cartId = _serverCartIds[productId];
+        if (cartId != null) {
+          try {
+            await ApiService.updateCartItem(cartId, quantity);
+          } catch (_) {}
+        }
+      }
     }
     notifyListeners();
     await _persist();
@@ -203,7 +218,16 @@ class CartProvider extends ChangeNotifier {
     final cart = _carts[_currentUserId];
     if (cart == null || !cart.containsKey(productId)) return;
     final current = cart[productId]!;
-    cart[productId] = current.copyWith(quantity: current.quantity + 1);
+    final newQty = current.quantity + 1;
+    cart[productId] = current.copyWith(quantity: newQty);
+    if (!_currentUserId.startsWith('guest_')) {
+      final cartId = _serverCartIds[productId];
+      if (cartId != null) {
+        try {
+          await ApiService.updateCartItem(cartId, newQty);
+        } catch (_) {}
+      }
+    }
     notifyListeners();
     await _persist();
   }
@@ -214,9 +238,23 @@ class CartProvider extends ChangeNotifier {
     final current = cart[productId]!;
     final next = current.quantity - 1;
     if (next <= 0) {
+      final cartId = _serverCartIds.remove(productId);
+      if (!_currentUserId.startsWith('guest_') && cartId != null) {
+        try {
+          await ApiService.removeCartItem(cartId);
+        } catch (_) {}
+      }
       cart.remove(productId);
     } else {
       cart[productId] = current.copyWith(quantity: next);
+      if (!_currentUserId.startsWith('guest_')) {
+        final cartId = _serverCartIds[productId];
+        if (cartId != null) {
+          try {
+            await ApiService.updateCartItem(cartId, next);
+          } catch (_) {}
+        }
+      }
     }
     notifyListeners();
     await _persist();

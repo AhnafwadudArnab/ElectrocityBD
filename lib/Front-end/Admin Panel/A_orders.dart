@@ -12,7 +12,10 @@ import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
+import 'A_deals.dart';
 import 'A_discounts.dart';
+import 'A_flash_sales.dart';
+import 'A_promotions.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
@@ -83,6 +86,15 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   break;
                 case AdminSidebarItem.discounts:
                   page = const AdminDiscountPage(embedded: true);
+                  break;
+                case AdminSidebarItem.deals:
+                  page = const AdminDealsPage(embedded: true);
+                  break;
+                case AdminSidebarItem.flashSales:
+                  page = const AdminFlashSalesPage(embedded: true);
+                  break;
+                case AdminSidebarItem.promotions:
+                  page = const AdminPromotionsPage(embedded: true);
                   break;
                 case AdminSidebarItem.banners:
                   page = const AdminBannersPage(embedded: true);

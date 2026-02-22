@@ -70,33 +70,8 @@ class _ProfilePageState extends State<ProfilePage> {
     {"type": "VISA •••• 8047", "status": "Delete"},
   ];
 
-  // Orders data in BDT
-  List<OrderModel> myLiveOrders = [
-    OrderModel(
-      id: "#SDGT1254FD",
-      total: "৳64,000.00", // BDT format
-      paymentMethod: "bKash", // bKash payment
-      date: "24 April 2024",
-      status: "Accepted",
-      isDelivered: false,
-      items: [
-        OrderItem(
-          name: "Wooden Sofa Chair",
-          color: "Grey",
-          qty: 4,
-          imagePath: "",
-          price: 16000.00,
-        ),
-        OrderItem(
-          name: "Red Gaming Chair",
-          color: "Black",
-          qty: 2,
-          imagePath: "",
-          price: 8000.00,
-        ),
-      ],
-    ),
-  ];
+  // Orders loaded from API when user opens My Orders (see MyOrdersPage)
+  List<OrderModel> myLiveOrders = [];
 
   // Responsive helpers
   double _radius(BuildContext context, {double factor = 1}) =>
@@ -451,7 +426,7 @@ class _ProfilePageState extends State<ProfilePage> {
       case "Personal Information":
         return _buildPersonalInfo();
       case "My Orders":
-        return MyOrdersPage(orders: myLiveOrders);
+        return const MyOrdersPage(orders: []);
       case "Manage Address":
         return _buildManageAddress();
       case "Payment Method":
@@ -791,14 +766,14 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                addresses[index]["name"]!,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: AppDimensions.bodyFont(context),
-                                ),
-                              ),
-                              SizedBox(height: padding / 4),
+                              // Text(
+                              //   addresses[index]["name"]!,
+                              //   style: TextStyle(
+                              //     fontWeight: FontWeight.bold,
+                              //     fontSize: AppDimensions.bodyFont(context),
+                              //   ),
+                              // ),
+                              // SizedBox(height: padding / 4),
                               Text(
                                 addresses[index]["address"]!,
                                 style: TextStyle(

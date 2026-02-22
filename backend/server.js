@@ -28,6 +28,9 @@ app.use('/api/cart', require('./routes/cart'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/discounts', require('./routes/discounts'));
+app.use('/api/deals', require('./routes/deals'));
+app.use('/api/flash-sales', require('./routes/flash_sales'));
+app.use('/api/promotions', require('./routes/promotions'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Health check
