@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 enum AdminSidebarItem {
   dashboard,
   orders,
+  carts,
   products,
   reports,
   discounts,
@@ -95,6 +96,15 @@ class AdminSidebar extends StatelessWidget {
                     item: AdminSidebarItem.products,
                     icon: Icons.inventory_2_outlined,
                     label: 'Products',
+                    onItemSelected: onItemSelected,
+                    activeColor: brandOrange,
+                    activeBg: activeBackground,
+                    inactiveColor: inactiveGrey,
+                  ),
+                  _buildSidebarItem(
+                    item: AdminSidebarItem.carts,
+                    icon: Icons.shopping_cart_outlined,
+                    label: 'Customer Carts',
                     onItemSelected: onItemSelected,
                     activeColor: brandOrange,
                     activeBg: activeBackground,

@@ -1,6 +1,8 @@
 import 'package:electrocitybd1/Front-end/All%20Pages/Registrations/signup.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
@@ -1490,6 +1492,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ElevatedButton(
                         onPressed: () async {
                           await AuthSession.clear();
+                          if (mounted) await context.read<CartProvider>().switchToGuest();
                           if (!mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
@@ -1553,6 +1556,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ElevatedButton(
                         onPressed: () async {
                           await AuthSession.clear();
+                          if (mounted) await context.read<CartProvider>().switchToGuest();
                           if (!mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(

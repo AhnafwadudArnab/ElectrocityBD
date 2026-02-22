@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../pages/home_page.dart';
 import 'A_Help.dart';
+import 'A_carts.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
@@ -34,6 +35,9 @@ class AdminReportsPage extends StatelessWidget {
         break;
       case AdminSidebarItem.products:
         page = const AdminProductUploadPage();
+        break;
+      case AdminSidebarItem.carts:
+        page = const AdminCartsPage();
         break;
       case AdminSidebarItem.discounts:
         page = const AdminDiscountPage();

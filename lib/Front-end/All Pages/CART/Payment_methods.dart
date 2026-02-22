@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../Provider/Orders_provider.dart';
 import '../../widgets/header.dart';
+import 'Cart_provider.dart';
 import 'Complete_orders.dart';
 
 enum PaymentMethod { bkash, nagad }
@@ -82,10 +85,42 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   }
 
   void _completePayment(PaymentMethod method, String transactionId) {
+    final orderId = 'EC-${DateTime.now().millisecondsSinceEpoch}';
+    final now = DateTime.now();
+    final deliveryDate = now.add(const Duration(days: 5));
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    final estimatedDelivery = '${deliveryDate.day} ${months[deliveryDate.month - 1]} ${deliveryDate.year}';
+    final createdAt = '${now.day} ${months[now.month - 1]} ${now.year}, '
+        '${now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour)}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+
+    final cartProvider = context.read<CartProvider>();
+    final ordersProvider = context.read<OrdersProvider>();
+    final orderItems = cartProvider.items.map((item) => {
+      'productId': item.productId,
+      'name': item.name,
+      'price': item.price,
+      'quantity': item.quantity,
+      'imageUrl': item.imageUrl,
+      'category': item.category,
+    }).toList();
+    final total = cartProvider.getCartTotal();
+
+    ordersProvider.addOrder(PlacedOrder(
+      orderId: orderId,
+      transactionId: transactionId,
+      paymentMethod: method == PaymentMethod.bkash ? 'bKash' : 'Nagad',
+      total: total,
+      createdAt: createdAt,
+      status: 'New Order',
+      estimatedDelivery: estimatedDelivery,
+      items: orderItems,
+    ));
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('✓ Payment Successful'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -99,7 +134,12 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
             Text('Amount: ৳${widget.totalAmount.toStringAsFixed(2)}'),
             const SizedBox(height: 8),
             SelectableText(
-              'TxnID: $transactionId',
+              'Order ID: $orderId',
+              style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+            ),
+            const SizedBox(height: 4),
+            SelectableText(
+              'Txn ID: $transactionId',
               style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
             ),
             const SizedBox(height: 16),
@@ -115,16 +155,20 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.of(context).push(
+              Navigator.pop(dialogContext);
+              cartProvider.clearCart();
+              Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (_) => OrderCompletedPage(
+                    orderId: orderId,
                     paymentMethod: method == PaymentMethod.bkash
                         ? 'bKash'
                         : 'Nagad',
                     transactionId: transactionId,
+                    estimatedDelivery: estimatedDelivery,
                   ),
                 ),
+                (route) => route.isFirst,
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

@@ -3,12 +3,14 @@ class OrderItem {
   final String color;
   final int qty;
   final String imagePath;
+  final double? price;
 
   OrderItem({
     required this.name,
     required this.color,
     required this.qty,
-    required this.imagePath, required price,
+    required this.imagePath,
+    this.price,
   });
 }
 

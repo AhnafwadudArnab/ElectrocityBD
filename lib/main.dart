@@ -1,10 +1,10 @@
-//import 'package:electrocitybd1/pages/home_page.dart';
 import 'package:electrocitybd1/Front-end/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'Front-end/All Pages/CART/Cart_provider.dart';
 import 'Front-end/Provider/Admin_product_provider.dart';
+import 'Front-end/Provider/Orders_provider.dart';
 import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 
 void main() {
@@ -12,6 +12,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AdminProductProvider()),
+        ChangeNotifierProvider(create: (_) => OrdersProvider()),
         ChangeNotifierProvider<CartProvider>.value(value: CartProvider()),
         ChangeNotifierProvider<WishlistProvider>.value(
           value: WishlistProvider(),
@@ -22,8 +23,21 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartProvider>().init();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

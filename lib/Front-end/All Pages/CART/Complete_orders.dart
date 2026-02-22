@@ -1,15 +1,30 @@
 import 'package:electrocitybd1/Front-end/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
-import '../../Dimensions/responsive_dimensions.dart'; // added
+import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 
+String _defaultDeliveryDate() {
+  final d = DateTime.now().add(const Duration(days: 5));
+  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  return '${d.day} ${months[d.month - 1]} ${d.year}';
+}
+
 class OrderCompletedPage extends StatelessWidget {
+  final String? orderId;
   final String? paymentMethod;
   final String? transactionId;
+  final String? estimatedDelivery;
 
-  OrderCompletedPage({super.key, this.paymentMethod, this.transactionId});
+  OrderCompletedPage({
+    super.key,
+    this.orderId,
+    this.paymentMethod,
+    this.transactionId,
+    this.estimatedDelivery,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +162,10 @@ class OrderCompletedPage extends StatelessWidget {
                             children: [
                               SizedBox(
                                 width: double.infinity,
-                                child: _infoBlock('Order ID', '#SDGT1254FD'),
+                                child: _infoBlock(
+                                  'Order ID',
+                                  orderId ?? '#EC-${DateTime.now().millisecondsSinceEpoch}',
+                                ),
                               ),
                               SizedBox(
                                 width: double.infinity,
@@ -160,14 +178,14 @@ class OrderCompletedPage extends StatelessWidget {
                                 width: double.infinity,
                                 child: _infoBlock(
                                   'Transaction ID',
-                                  transactionId ?? 'TR542SSFE',
+                                  transactionId ?? '—',
                                 ),
                               ),
                               SizedBox(
                                 width: double.infinity,
                                 child: _infoBlock(
                                   'Estimated Delivery Date',
-                                  '26 January 2025',
+                                  estimatedDelivery ?? _defaultDeliveryDate(),
                                 ),
                               ),
                               ElevatedButton(
@@ -197,7 +215,10 @@ class OrderCompletedPage extends StatelessWidget {
                       children: [
                         SizedBox(
                           width: double.infinity,
-                          child: _infoBlock('Order ID', '#SDGT1254FD'),
+                          child: _infoBlock(
+                            'Order ID',
+                            orderId ?? '#EC-${DateTime.now().millisecondsSinceEpoch}',
+                          ),
                         ),
                         SizedBox(
                           width: double.infinity,
@@ -210,14 +231,14 @@ class OrderCompletedPage extends StatelessWidget {
                           width: double.infinity,
                           child: _infoBlock(
                             'Transaction ID',
-                            transactionId ?? 'TR542SSFE',
+                            transactionId ?? '—',
                           ),
                         ),
                         SizedBox(
                           width: double.infinity,
                           child: _infoBlock(
                             'Estimated Delivery Date',
-                            '26 January 2025',
+                            estimatedDelivery ?? _defaultDeliveryDate(),
                           ),
                         ),
                         ElevatedButton(

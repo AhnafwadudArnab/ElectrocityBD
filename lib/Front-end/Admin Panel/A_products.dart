@@ -6,6 +6,7 @@ import '../Provider/Admin_product_provider.dart';
 import '../pages/home_page.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
+import 'A_carts.dart';
 import 'A_orders.dart';
 import 'A_Reports.dart';
 import 'A_discounts.dart';
@@ -31,6 +32,9 @@ class AdminProductUploadPage extends StatelessWidget {
         break;
       case AdminSidebarItem.orders:
         page = const AdminOrdersPage();
+        break;
+      case AdminSidebarItem.carts:
+        page = const AdminCartsPage();
         break;
       case AdminSidebarItem.reports:
         page = const AdminReportsPage();

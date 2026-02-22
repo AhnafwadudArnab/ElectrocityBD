@@ -198,6 +198,13 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   }
 
   Widget _buildCartImage(String path) {
+    if (path.isEmpty || path.trim().isEmpty) {
+      return Container(
+        color: Colors.grey.shade200,
+        child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey, size: 32),
+      );
+    }
+
     final lower = path.toLowerCase();
     final isNetwork =
         lower.startsWith('http://') || lower.startsWith('https://');
@@ -209,14 +216,20 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         loadingBuilder: (_, child, progress) => progress == null
             ? child
             : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey.shade200,
+          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+        ),
       );
     }
 
     return Image.asset(
       path,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.grey.shade200,
+        child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+      ),
     );
   }
 

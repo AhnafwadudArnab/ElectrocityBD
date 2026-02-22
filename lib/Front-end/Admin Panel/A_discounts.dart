@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
+import 'A_carts.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
@@ -79,6 +80,9 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         break;
       case AdminSidebarItem.products:
         page = const AdminProductUploadPage();
+        break;
+      case AdminSidebarItem.carts:
+        page = const AdminCartsPage();
         break;
       case AdminSidebarItem.reports:
         page = const AdminReportsPage();

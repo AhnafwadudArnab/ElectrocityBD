@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../Admin Panel/admin_dashboard_page.dart'; // <-- Add this import
+import '../../Admin Panel/admin_dashboard_page.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
 import '../../utils/auth_session.dart';
+import '../CART/Cart_provider.dart';
 import 'signup.dart';
 
 class LogIn extends StatefulWidget {
@@ -62,6 +64,14 @@ class _LogInState extends State<LogIn> {
 
     await AuthSession.saveUserData(userData);
 
+    if (mounted) {
+      await context.read<CartProvider>().setCurrentUserId(
+        userData.email,
+        mergeFromGuest: true,
+      );
+    }
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Login successful!'),

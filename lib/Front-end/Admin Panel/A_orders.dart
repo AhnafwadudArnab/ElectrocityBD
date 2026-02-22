@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
+import '../Provider/Orders_provider.dart';
 import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
+import 'A_carts.dart';
 import 'A_discounts.dart';
 import 'A_products.dart';
 import 'Admin_sidebar.dart';
@@ -19,75 +22,16 @@ class AdminOrdersPage extends StatefulWidget {
 }
 
 class _AdminOrdersPageState extends State<AdminOrdersPage> {
-  List<Map<String, String>> orders = [
-    {
-      "id": "A1001",
-      "store": "Electrocity BD",
-      "method": "Delivery",
-      "slot": "10:00 AM - 12:00 PM",
-      "created": "05 Jun 2024, 09:15 AM",
-      "status": "New Order",
-    },
-    {
-      "id": "A1002",
-      "store": "Electrocity BD",
-      "method": "Pickup",
-      "slot": "02:00 PM - 04:00 PM",
-      "created": "04 Jun 2024, 02:45 PM",
-      "status": "Accepted by Restaurant",
-    },
-    {
-      "id": "A1003",
-      "store": "Electrocity BD",
-      "method": "Delivery",
-      "slot": "06:00 PM - 08:00 PM",
-      "created": "03 Jun 2024, 06:30 PM",
-      "status": "Prepared",
-    },
-    {
-      "id": "A1004",
-      "store": "Electrocity BD",
-      "method": "Pickup",
-      "slot": "08:00 AM - 10:00 AM",
-      "created": "02 Jun 2024, 08:10 AM",
-      "status": "Rejected by Store",
-    },
-    {
-      "id": "A1005",
-      "store": "Electrocity BD",
-      "method": "Delivery",
-      "slot": "12:00 PM - 02:00 PM",
-      "created": "01 Jun 2024, 12:55 PM",
-      "status": "Accepted by Restaurant",
-    },
-    {
-      "id": "A1006",
-      "store": "Electrocity BD",
-      "method": "Pickup",
-      "slot": "04:00 PM - 06:00 PM",
-      "created": "31 May 2024, 04:20 PM",
-      "status": "Prepared",
-    },
-    {
-      "id": "A1007",
-      "store": "Electrocity BD",
-      "method": "Delivery",
-      "slot": "06:00 PM - 08:00 PM",
-      "created": "30 May 2024, 06:40 PM",
-      "status": "New Order",
-    },
-    {
-      "id": "A1008",
-      "store": "Electrocity BD",
-      "method": "Pickup",
-      "slot": "10:00 AM - 12:00 PM",
-      "created": "29 May 2024, 10:05 AM",
-      "status": "Accepted by Restaurant",
-    },
-  ];
-
   String? filterStatus;
   bool showWeekly = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrdersProvider>().init();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +59,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 case AdminSidebarItem.products:
                   page = const AdminProductUploadPage();
                   break;
+                case AdminSidebarItem.carts:
+                  page = const AdminCartsPage();
+                  break;
                 case AdminSidebarItem.reports:
                   page = const AdminReportsPage();
                   break;
@@ -136,7 +83,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             },
             ),
             Expanded(
-            child: Column(children: [_buildTopBar(), _buildOrderTable()]),
+            child: Consumer<OrdersProvider>(
+              builder: (context, ordersProvider, _) => Column(
+                children: [_buildTopBar(), _buildOrderTable(ordersProvider)],
+              ),
+            ),
           ),
         ],
       ),
@@ -164,7 +115,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     );
   }
 
-  Widget _buildOrderTable() {
+  Widget _buildOrderTable(OrdersProvider ordersProvider) {
+    List<Map<String, String>> orders = ordersProvider.ordersNewestFirst
+        .map((o) => o.toAdminRow())
+        .toList();
+
     List<Map<String, String>> filteredOrders = orders;
     if (filterStatus != null) {
       filteredOrders = filteredOrders
@@ -172,15 +127,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
           .toList();
     }
     if (showWeekly) {
+      final weekAgoMillis = DateTime.now().subtract(const Duration(days: 7)).millisecondsSinceEpoch;
       filteredOrders = filteredOrders.where((o) {
-        // Example: filter by created date (assuming format "11 Jul 2023, 08:37 PM")
-        if (o['created'] == null) return false;
-        final created = o['created']!;
-        final date = DateTime.tryParse(created.split(',')[0]);
-        if (date == null) return false;
-        final now = DateTime.now();
-        final weekAgo = now.subtract(const Duration(days: 7));
-        return date.isAfter(weekAgo);
+        final millis = int.tryParse(o['createdAtMillis'] ?? '');
+        if (millis == null) return true;
+        return millis >= weekAgoMillis;
       }).toList();
     }
 
@@ -198,11 +149,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () async {
-                      // Export orders as CSV
-                      String csv = "ID,Store,Method,Slot,Created,Status\n";
-                      for (var o in orders) {
+                      String csv = "Order ID,Store,Method,Time Slot,Created,Status,Transaction ID,Total\n";
+                      for (var o in filteredOrders) {
                         csv +=
-                            "${o['id'] ?? ''},${o['store'] ?? ''},${o['method'] ?? ''},${o['slot'] ?? ''},${o['created'] ?? ''},${o['status'] ?? ''}\n";
+                            "${o['id'] ?? ''},${o['store'] ?? ''},${o['method'] ?? ''},${o['slot'] ?? ''},${o['created'] ?? ''},${o['status'] ?? ''},${o['transactionId'] ?? ''},${o['total'] ?? ''}\n";
                       }
                       final dir = await getApplicationDocumentsDirectory();
                       final file = File('${dir.path}/orders.csv');
@@ -305,6 +255,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     icon: const Icon(Icons.more_vert, color: Colors.grey),
                     onSelected: (value) {
                       if (value == "Refresh") {
+                        ordersProvider.init();
                         setState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -313,7 +264,6 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                           ),
                         );
                       }
-                      // Add more actions as needed
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(
@@ -342,7 +292,24 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: ListView.separated(
+              child: filteredOrders.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[400]),
+                          const SizedBox(height: 16),
+                          Text(
+                            orders.isEmpty
+                                ? 'No orders yet. Orders will appear here when customers place orders.'
+                                : 'No orders match the current filter.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
                 itemCount: filteredOrders.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {

@@ -44,7 +44,42 @@ class _TechpartState extends State<Techpart> {
       'rating': 5,
       'image': 'assets/Products/1.png',
     },
-    // ... অন্যান্য স্যাম্পল প্রোডাক্ট
+    {
+      'name': 'ASUS ROG Strix G15',
+      'price': '৳1,20,000',
+      'rating': 4,
+      'image': 'assets/Products/2.jpg',
+    },
+    {
+      'name': 'Logitech MX Master 3',
+      'price': '৳8,500',
+      'rating': 4,
+      'image': 'assets/Products/3.jpg',
+    },
+    {
+      'name': 'Samsung T7 Portable SSD 1TB',
+      'price': '৳12,000',
+      'rating': 5,
+      'image': 'assets/Products/4.jpg',
+    },
+    {
+      'name': 'Corsair K95 RGB Platinum Mechanical Gaming Keyboard',
+      'price': '৳18,000',
+      'rating': 4,
+      'image': 'assets/Products/5.jpg',
+    },
+    {
+      'name': 'Razer DeathAdder V2 Pro Wireless Gaming Mouse',
+      'price': '৳10,500',
+      'rating': 4,
+      'image': 'assets/Products/6.jpg',
+    },
+    {
+      'name': 'Dell UltraSharp U2723QE 27 Inch 4K Monitor',
+      'price': '৳35,000',
+      'rating': 5,
+      'image': 'assets/Products/7.png',
+    },
   ];
 
   @override
