@@ -59,17 +59,8 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController cvvController = TextEditingController();
   bool saveCardForFuture = false;
 
-  // Lists for stored data
-  List<Map<String, String>> addresses = [
-    {
-      "name": "Bessie Cooper",
-      "address": "2464 Royal Ln. Mesa, New Jersey 45463",
-    },
-    {
-      "name": "Bessie Cooper",
-      "address": "6201 Eigh St. Celina, Delaware 10299",
-    },
-  ];
+  // Lists for stored data (loaded from DB / profile; name & address used in orders)
+  List<Map<String, String>> addresses = [];
 
   // Updated Payment Methods - bKash/Nagad
   List<Map<String, String>> paymentMethods = [
@@ -143,14 +134,38 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUserData() async {
-    final userData = await AuthSession.getUserData();
-    if (userData != null) {
+    try {
+      final profile = await ApiService.getProfile();
+      if (!mounted) return;
+      final userData = UserData.fromApiResponse(profile);
+      await AuthSession.updateUserData(userData);
       setState(() {
         firstNameController.text = userData.firstName;
         lastNameController.text = userData.lastName;
         emailController.text = userData.email;
         phoneController.text = userData.phone;
         selectedGender = userData.gender;
+        if (userData.address.isNotEmpty) {
+          addresses = [
+            {'name': userData.fullName, 'address': userData.address},
+          ];
+        }
+      });
+      return;
+    } catch (_) {}
+    final userData = await AuthSession.getUserData();
+    if (userData != null && mounted) {
+      setState(() {
+        firstNameController.text = userData.firstName;
+        lastNameController.text = userData.lastName;
+        emailController.text = userData.email;
+        phoneController.text = userData.phone;
+        selectedGender = userData.gender;
+        if (userData.address.isNotEmpty) {
+          addresses = [
+            {'name': userData.fullName, 'address': userData.address},
+          ];
+        }
       });
     }
   }
@@ -1670,12 +1685,14 @@ class _ProfilePageState extends State<ProfilePage> {
       isEditingPersonalInfo = false;
     });
 
+    final primaryAddress = addresses.isNotEmpty ? (addresses.first['address'] ?? '') : '';
     final userData = UserData(
       firstName: firstNameController.text.trim(),
       lastName: lastNameController.text.trim(),
       email: emailController.text.trim(),
       phone: phoneController.text.trim(),
       gender: selectedGender,
+      address: primaryAddress,
     );
     await AuthSession.updateUserData(userData);
 
@@ -1684,7 +1701,7 @@ class _ProfilePageState extends State<ProfilePage> {
         'firstName': userData.firstName,
         'lastName': userData.lastName,
         'phone': userData.phone,
-        'address': addresses.isNotEmpty ? (addresses.first['address'] ?? '') : '',
+        'address': primaryAddress,
         'gender': userData.gender,
       });
       if (!mounted) return;
@@ -1713,7 +1730,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void _addAddress() {
+  Future<void> _addAddress() async {
     if (addressFirstNameController.text.isEmpty ||
         streetAddressController.text.isEmpty ||
         cityController.text.isEmpty) {
@@ -1721,13 +1738,13 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
+    final name =
+        "${addressFirstNameController.text.trim()} ${addressLastNameController.text.trim()}";
+    final addressText =
+        "${streetAddressController.text.trim()}, ${cityController.text.trim()} ${zipCodeController.text.trim()}";
+
     setState(() {
-      addresses.add({
-        "name":
-            "${addressFirstNameController.text} ${addressLastNameController.text}",
-        "address":
-            "${streetAddressController.text}, ${cityController.text} ${zipCodeController.text}",
-      });
+      addresses.add({"name": name, "address": addressText});
     });
 
     addressFirstNameController.clear();
@@ -1736,14 +1753,47 @@ class _ProfilePageState extends State<ProfilePage> {
     cityController.clear();
     zipCodeController.clear();
 
-    _showSnackBar("Address added successfully!", Colors.green);
+    final userData = await AuthSession.getUserData();
+    final updated = userData != null
+        ? UserData(
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            email: userData.email,
+            phone: userData.phone,
+            gender: userData.gender,
+            address: addressText,
+          )
+        : null;
+    if (updated != null) await AuthSession.updateUserData(updated);
+    try {
+      await ApiService.updateProfile({
+        'address': addressText,
+      });
+    } catch (_) {}
+
+    if (mounted) _showSnackBar("Address added and saved to profile!", Colors.green);
   }
 
-  void _deleteAddress(int index) {
-    setState(() {
-      addresses.removeAt(index);
-    });
-    _showSnackBar("Address deleted", Colors.orange);
+  Future<void> _deleteAddress(int index) async {
+    if (index < 0 || index >= addresses.length) return;
+    setState(() => addresses.removeAt(index));
+    final primaryAddress = addresses.isNotEmpty ? (addresses.first['address'] ?? '') : '';
+    final userData = await AuthSession.getUserData();
+    if (userData != null) {
+      final updated = UserData(
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        phone: userData.phone,
+        gender: userData.gender,
+        address: primaryAddress,
+      );
+      await AuthSession.updateUserData(updated);
+    }
+    try {
+      await ApiService.updateProfile({'address': primaryAddress});
+    } catch (_) {}
+    if (mounted) _showSnackBar("Address deleted", Colors.orange);
   }
 
   void _addPaymentMethod() {

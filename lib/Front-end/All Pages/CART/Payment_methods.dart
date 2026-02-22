@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../Provider/Orders_provider.dart';
 import '../../utils/api_service.dart';
+import '../../utils/auth_session.dart';
 import '../../widgets/header.dart';
 import 'Cart_provider.dart';
 import 'Complete_orders.dart';
@@ -110,10 +111,12 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     try {
       final token = await ApiService.getToken();
       if (token != null) {
+        final userData = await AuthSession.getUserData();
+        final deliveryAddress = userData?.address ?? '';
         final body = {
           'total_amount': total,
           'payment_method': methodName,
-          'delivery_address': '',
+          'delivery_address': deliveryAddress,
           'transaction_id': transactionId,
           'estimated_delivery': estimatedDelivery,
           'items': cartProvider.items.map((item) => {

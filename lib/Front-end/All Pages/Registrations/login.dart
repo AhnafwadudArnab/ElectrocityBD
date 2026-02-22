@@ -56,6 +56,11 @@ class _LogInState extends State<LogIn> {
             );
       await AuthSession.saveUserData(userData);
       await AuthSession.setAdmin(role == 'admin');
+      try {
+        final profile = await ApiService.getProfile();
+        final fullUser = UserData.fromApiResponse(profile);
+        await AuthSession.updateUserData(fullUser);
+      } catch (_) {}
 
       await context.read<CartProvider>().setCurrentUserId(
             userData.email,

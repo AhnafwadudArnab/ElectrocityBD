@@ -31,6 +31,17 @@ async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS user_profile (
+      user_id INT PRIMARY KEY,
+      full_name VARCHAR(100) NOT NULL,
+      last_name VARCHAR(50) NOT NULL DEFAULT '',
+      phone_number VARCHAR(20),
+      address TEXT,
+      gender VARCHAR(10) DEFAULT 'Male',
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS brands (
       brand_id INT AUTO_INCREMENT PRIMARY KEY,
       brand_name VARCHAR(100) NOT NULL,

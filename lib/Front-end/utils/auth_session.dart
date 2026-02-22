@@ -8,6 +8,7 @@ class UserData {
   final String email;
   final String phone;
   final String gender;
+  final String address;
 
   UserData({
     required this.firstName,
@@ -15,6 +16,7 @@ class UserData {
     required this.email,
     required this.phone,
     required this.gender,
+    this.address = '',
   });
 
   // Convert to JSON for storage
@@ -24,6 +26,7 @@ class UserData {
     'email': email,
     'phone': phone,
     'gender': gender,
+    'address': address,
   };
 
   // Create from JSON (local storage)
@@ -33,15 +36,17 @@ class UserData {
     email: json['email'] ?? '',
     phone: json['phone'] ?? '',
     gender: json['gender'] ?? 'Male',
+    address: json['address'] ?? '',
   );
 
-  // Create from API response (backend login/register)
+  // Create from API response (backend login/register/profile)
   factory UserData.fromApiResponse(Map<String, dynamic> user) => UserData(
     firstName: (user['firstName'] ?? user['full_name'] ?? '').toString(),
     lastName: (user['lastName'] ?? '').toString(),
     email: (user['email'] ?? '').toString(),
     phone: (user['phone'] ?? user['phone_number'] ?? '').toString(),
     gender: (user['gender'] ?? 'Male').toString(),
+    address: (user['address'] ?? '').toString(),
   );
 
   // Get full name

@@ -25,9 +25,17 @@ router.post('/register', async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, 'customer')`,
       [firstName, lastName || '', email, hashedPassword, phone || '', gender || 'Male']
     );
+    const userId = result.insertId;
+    await pool.query(
+      `INSERT INTO user_profile (user_id, full_name, last_name, phone_number, address, gender)
+       VALUES (?, ?, ?, ?, '', ?)
+       ON DUPLICATE KEY UPDATE full_name = VALUES(full_name), last_name = VALUES(last_name),
+         phone_number = VALUES(phone_number), gender = VALUES(gender)`,
+      [userId, firstName, lastName || '', phone || '', gender || 'Male']
+    );
 
     const token = jwt.sign(
-      { userId: result.insertId, email, role: 'customer' },
+      { userId, email, role: 'customer' },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -36,7 +44,7 @@ router.post('/register', async (req, res) => {
       message: 'Registration successful',
       token,
       user: {
-        userId: result.insertId,
+        userId,
         firstName,
         lastName: lastName || '',
         email,
@@ -172,15 +180,33 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// PUT /api/auth/me - update profile
+// PUT /api/auth/me - update profile (users + user_profile for orders/display)
 router.put('/me', authenticateToken, async (req, res) => {
   try {
     const { firstName, lastName, phone, address, gender } = req.body;
+    const uid = req.user.userId;
+    const [[current]] = await pool.query(
+      'SELECT full_name, last_name, phone_number, address, gender FROM users WHERE user_id = ?',
+      [uid]
+    );
+    const fn = firstName != null ? firstName : (current?.full_name ?? '');
+    const ln = lastName != null ? lastName : (current?.last_name ?? '');
+    const ph = phone != null ? phone : (current?.phone_number ?? '');
+    const adr = address != null ? address : (current?.address ?? '');
+    const g = gender != null ? gender : (current?.gender ?? 'Male');
+
     await pool.query(
-      `UPDATE users SET full_name = COALESCE(?, full_name), last_name = COALESCE(?, last_name),
-       phone_number = COALESCE(?, phone_number), address = COALESCE(?, address),
-       gender = COALESCE(?, gender) WHERE user_id = ?`,
-      [firstName, lastName, phone, address, gender, req.user.userId]
+      `UPDATE users SET full_name = ?, last_name = ?, phone_number = ?, address = ?, gender = ? WHERE user_id = ?`,
+      [fn, ln, ph, adr, g, uid]
+    );
+    await pool.query(
+      `INSERT INTO user_profile (user_id, full_name, last_name, phone_number, address, gender)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         full_name = VALUES(full_name), last_name = VALUES(last_name),
+         phone_number = VALUES(phone_number), address = VALUES(address),
+         gender = VALUES(gender)`,
+      [uid, fn, ln, ph, adr, g]
     );
     res.json({ message: 'Profile updated.' });
   } catch (err) {
