@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../Provider/Orders_provider.dart';
 import '../pages/home_page.dart';
+import '../utils/api_service.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
@@ -15,8 +16,8 @@ import 'A_carts.dart';
 import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
-import 'A_promotions.dart';
 import 'A_products.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
@@ -43,16 +44,18 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Widget _buildOrdersContent() {
     return Consumer<OrdersProvider>(
-      builder: (context, ordersProvider, _) => Column(
-        children: [_buildTopBar(), _buildOrderTable(ordersProvider)],
-      ),
+      builder: (context, ordersProvider, _) =>
+          Column(children: [_buildTopBar(), _buildOrderTable(ordersProvider)]),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.embedded) {
-      return Container(color: const Color(0xFFF7F8FD), child: _buildOrdersContent());
+      return Container(
+        color: const Color(0xFFF7F8FD),
+        child: _buildOrdersContent(),
+      );
     }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FD),
@@ -109,7 +112,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   page = null;
               }
               if (page != null) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page!));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => page!),
+                );
               }
             },
           ),
@@ -152,7 +158,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
           .toList();
     }
     if (showWeekly) {
-      final weekAgoMillis = DateTime.now().subtract(const Duration(days: 7)).millisecondsSinceEpoch;
+      final weekAgoMillis = DateTime.now()
+          .subtract(const Duration(days: 7))
+          .millisecondsSinceEpoch;
       filteredOrders = filteredOrders.where((o) {
         final millis = int.tryParse(o['createdAtMillis'] ?? '');
         if (millis == null) return true;
@@ -174,7 +182,8 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () async {
-                      String csv = "Order ID,Store,Method,Time Slot,Created,Status,Transaction ID,Total\n";
+                      String csv =
+                          "Order ID,Store,Method,Time Slot,Created,Status,Transaction ID,Total\n";
                       for (var o in filteredOrders) {
                         csv +=
                             "${o['id'] ?? ''},${o['store'] ?? ''},${o['method'] ?? ''},${o['slot'] ?? ''},${o['created'] ?? ''},${o['status'] ?? ''},${o['transactionId'] ?? ''},${o['total'] ?? ''}\n";
@@ -217,25 +226,27 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               ListTile(
-                                title: const Text("New Order"),
+                                title: const Text("Pending"),
+                                onTap: () => Navigator.pop(context, "pending"),
+                              ),
+                              ListTile(
+                                title: const Text("Processing"),
                                 onTap: () =>
-                                    Navigator.pop(context, "New Order"),
+                                    Navigator.pop(context, "processing"),
                               ),
                               ListTile(
-                                title: const Text("Accepted by Restaurant"),
-                                onTap: () => Navigator.pop(
-                                  context,
-                                  "Accepted by Restaurant",
-                                ),
+                                title: const Text("Shipped"),
+                                onTap: () => Navigator.pop(context, "shipped"),
                               ),
                               ListTile(
-                                title: const Text("Prepared"),
-                                onTap: () => Navigator.pop(context, "Prepared"),
-                              ),
-                              ListTile(
-                                title: const Text("Rejected by Store"),
+                                title: const Text("Delivered"),
                                 onTap: () =>
-                                    Navigator.pop(context, "Rejected by Store"),
+                                    Navigator.pop(context, "delivered"),
+                              ),
+                              ListTile(
+                                title: const Text("Cancelled"),
+                                onTap: () =>
+                                    Navigator.pop(context, "cancelled"),
                               ),
                               ListTile(
                                 title: const Text("Clear Filter"),
@@ -327,88 +338,173 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[400]),
+                          Icon(
+                            Icons.receipt_long_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             orders.isEmpty
                                 ? 'No orders yet. Orders will appear here when customers place orders.'
                                 : 'No orders match the current filter.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
                     )
                   : ListView.separated(
-                itemCount: filteredOrders.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final order = filteredOrders[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green[50],
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              order["id"]!,
-                              style: const TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                      itemCount: filteredOrders.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final order = filteredOrders[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[50],
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    order["id"]!,
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  order["store"]!,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  order["method"]!,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  order["slot"]!,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  "Date: ${order["created"]}",
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Row(
+                                  children: [
+                                    _statusChip(order["status"]!),
+                                    const SizedBox(width: 8),
+                                    PopupMenuButton<String>(
+                                      tooltip: "Update status",
+                                      onSelected: (value) async {
+                                        final id = int.tryParse(
+                                          order["id"] ?? "",
+                                        );
+                                        if (id == null) return;
+                                        try {
+                                          await ApiService.updateOrderStatus(
+                                            id,
+                                            value,
+                                          );
+                                          await ordersProvider
+                                              .updateOrderStatus(
+                                                order["id"]!,
+                                                value,
+                                              );
+                                          if (!context.mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "Order #${order["id"]} status updated to $value",
+                                              ),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          if (!context.mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "Failed to update status: $e",
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      itemBuilder: (context) => const [
+                                        PopupMenuItem(
+                                          value: "pending",
+                                          child: Text("Mark as Pending"),
+                                        ),
+                                        PopupMenuItem(
+                                          value: "processing",
+                                          child: Text("Mark as Processing"),
+                                        ),
+                                        PopupMenuItem(
+                                          value: "shipped",
+                                          child: Text("Mark as Shipped"),
+                                        ),
+                                        PopupMenuItem(
+                                          value: "delivered",
+                                          child: Text("Mark as Delivered"),
+                                        ),
+                                        PopupMenuItem(
+                                          value: "cancelled",
+                                          child: Text("Mark as Cancelled"),
+                                        ),
+                                      ],
+                                      icon: const Icon(
+                                        Icons.more_vert,
+                                        size: 20,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            order["store"]!,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            order["method"]!,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            order["slot"]!,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            "Date: ${order["created"]}",
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                        Expanded(flex: 3, child: _statusChip(order["status"]!)),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -419,16 +515,19 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   Widget _statusChip(String status) {
     Color color;
     switch (status) {
-      case "New Order":
-        color = Colors.green;
-        break;
-      case "Accepted by Restaurant":
+      case "pending":
         color = Colors.orange;
         break;
-      case "Prepared":
-        color = Colors.brown;
+      case "processing":
+        color = Colors.blue;
         break;
-      case "Rejected by Store":
+      case "shipped":
+        color = Colors.purple;
+        break;
+      case "delivered":
+        color = Colors.green;
+        break;
+      case "cancelled":
         color = Colors.red;
         break;
       default:
