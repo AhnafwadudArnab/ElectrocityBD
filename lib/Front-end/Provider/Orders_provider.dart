@@ -456,7 +456,12 @@ class OrdersProvider extends ChangeNotifier {
       notifyListeners();
       await _persist();
     } catch (e) {
-      _setError('Failed to refresh orders: $e');
+      if (e is ApiException && (e.statusCode == 401 || e.statusCode == 403)) {
+        await _loadFromLocal();
+        _setError('Admin login required to fetch orders from server');
+      } else {
+        _setError('Failed to refresh orders: $e');
+      }
     } finally {
       _setLoading(false);
     }
@@ -523,7 +528,13 @@ class OrdersProvider extends ChangeNotifier {
   double _getNumericValue(Map map, List<String> keys) {
     for (final key in keys) {
       if (map.containsKey(key) && map[key] != null) {
-        return (map[key] as num?)?.toDouble() ?? 0.0;
+        final v = map[key];
+        if (v is num) return v.toDouble();
+        if (v is String) {
+          final p = double.tryParse(v);
+          if (p != null) return p;
+        }
+        return 0.0;
       }
     }
     return 0.0;

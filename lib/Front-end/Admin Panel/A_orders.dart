@@ -44,8 +44,39 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Widget _buildOrdersContent() {
     return Consumer<OrdersProvider>(
-      builder: (context, ordersProvider, _) =>
-          Column(children: [_buildTopBar(), _buildOrderTable(ordersProvider)]),
+      builder: (context, ordersProvider, _) => Column(
+        children: [
+          _buildTopBar(),
+          if (ordersProvider.error != null)
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFFFF4E5),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Color(0xFFB45309),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      ordersProvider.error!,
+                      style: const TextStyle(color: Color(0xFFB45309)),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ordersProvider.refreshFromApi();
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          _buildOrderTable(ordersProvider),
+        ],
+      ),
     );
   }
 
@@ -296,7 +327,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     icon: const Icon(Icons.more_vert, color: Colors.grey),
                     onSelected: (value) {
                       if (value == "Refresh") {
-                        ordersProvider.init();
+                        ordersProvider.refreshFromApi();
                         setState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

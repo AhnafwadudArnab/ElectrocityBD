@@ -54,18 +54,45 @@ router.get('/', async (req, res) => {
     }
 
     sql += ' WHERE 1=1';
+
+    // Load default filters for section (if provided) from site_settings
+    let sectionFilters = {};
+    if (section) {
+      const sectionKeyMap = {
+        best_sellers: 'section_filter_best_sellers',
+        trending: 'section_filter_trending',
+        deals: 'section_filter_deals',
+        flash_sale: 'section_filter_flash_sale',
+        tech_part: 'section_filter_tech_part',
+      };
+      const settingKey = sectionKeyMap[section];
+      if (settingKey) {
+        const [[row]] = await pool.query('SELECT setting_value FROM site_settings WHERE setting_key = ?', [settingKey]);
+        if (row && row.setting_value) {
+          try {
+            sectionFilters = JSON.parse(row.setting_value);
+          } catch (_) {
+            sectionFilters = {};
+          }
+        }
+      }
+    }
     if (category_id) { sql += ' AND p.category_id = ?'; params.push(category_id); }
     if (brand_id) { sql += ' AND p.brand_id = ?'; params.push(brand_id); }
     if (search) { sql += ' AND (p.product_name LIKE ? OR p.description LIKE ?)'; params.push(`%${search}%`, `%${search}%`); }
-    if (min_price) { sql += ' AND p.price >= ?'; params.push(min_price); }
-    if (max_price) { sql += ' AND p.price <= ?'; params.push(max_price); }
+    const effMin = min_price || sectionFilters.min_price;
+    const effMax = max_price || sectionFilters.max_price;
+    if (effMin != null) { sql += ' AND p.price >= ?'; params.push(effMin); }
+    if (effMax != null) { sql += ' AND p.price <= ?'; params.push(effMax); }
 
-    if (sort === 'price_asc') sql += ' ORDER BY p.price ASC';
-    else if (sort === 'price_desc') sql += ' ORDER BY p.price DESC';
-    else if (sort === 'newest') sql += ' ORDER BY p.created_at DESC';
+    const effSort = sort || sectionFilters.sort;
+    if (effSort === 'price_asc') sql += ' ORDER BY p.price ASC';
+    else if (effSort === 'price_desc') sql += ' ORDER BY p.price DESC';
+    else if (effSort === 'newest') sql += ' ORDER BY p.created_at DESC';
     else sql += ' ORDER BY p.product_id DESC';
 
-    sql += ` LIMIT ${parseInt(limit) || 50} OFFSET ${parseInt(offset) || 0}`;
+    const effLimit = (limit != null ? parseInt(limit) : parseInt(sectionFilters.limit)) || 50;
+    sql += ` LIMIT ${effLimit} OFFSET ${parseInt(offset) || 0}`;
 
     const [rows] = await pool.query(sql, params);
     let total;

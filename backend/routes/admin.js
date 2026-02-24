@@ -4,6 +4,58 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Helpers for section filter keys
+function sectionKey(section) {
+  switch (section) {
+    case 'best_sellers': return 'section_filter_best_sellers';
+    case 'trending': return 'section_filter_trending';
+    case 'deals': return 'section_filter_deals';
+    case 'flash_sale': return 'section_filter_flash_sale';
+    case 'tech_part': return 'section_filter_tech_part';
+    default: return null;
+  }
+}
+
+// GET /api/admin/section-filters
+router.get('/section-filters', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM site_settings WHERE setting_key LIKE "section_filter_%"');
+    const obj = {};
+    for (const r of rows) {
+      try { obj[r.setting_key] = JSON.parse(r.setting_value); } catch (_) { obj[r.setting_key] = r.setting_value; }
+    }
+    res.json(obj);
+  } catch (err) {
+    console.error('Section filters get error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// PUT /api/admin/section-filters/:section
+// Body: { sort?: 'newest'|'price_asc'|'price_desc', limit?: number, min_price?: number, max_price?: number }
+router.put('/section-filters/:section', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const sec = req.params.section;
+    const key = sectionKey(sec);
+    if (!key) return res.status(400).json({ error: 'Invalid section.' });
+    const { sort, limit, min_price, max_price } = req.body || {};
+    const payload = {};
+    if (sort) payload.sort = sort;
+    if (limit != null) payload.limit = parseInt(limit, 10);
+    if (min_price != null) payload.min_price = parseFloat(min_price);
+    if (max_price != null) payload.max_price = parseFloat(max_price);
+    await pool.query(
+      `INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+      [key, JSON.stringify(payload)]
+    );
+    res.json({ message: 'Section filter updated.', key, value: payload });
+  } catch (err) {
+    console.error('Section filters update error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
 // GET /api/admin/dashboard - dashboard stats
 router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   try {

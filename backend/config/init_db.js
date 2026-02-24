@@ -216,6 +216,12 @@ async function initDatabase() {
       details TEXT,
       FOREIGN KEY (admin_id) REFERENCES users(user_id)
     );
+
+    CREATE TABLE IF NOT EXISTS site_settings (
+      setting_key VARCHAR(100) PRIMARY KEY,
+      setting_value TEXT NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
   `;
 
   const statements = schema.split(';').filter(s => s.trim().length > 0);
@@ -223,6 +229,10 @@ async function initDatabase() {
     await connection.query(stmt);
   }
   console.log('All tables created successfully.');
+
+  try {
+    await connection.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS specs_json JSON NULL');
+  } catch (_) {}
 
   // Seed admin user with hashed password; upsert so password is always correct
   const adminPassword = await bcrypt.hash('1234@', 10);
@@ -285,6 +295,21 @@ async function initDatabase() {
   await connection.query('INSERT IGNORE INTO tech_part_products (product_id, display_order) VALUES (1, 0), (4, 1), (5, 2), (6, 3)');
 
   console.log('Sample data seeded successfully.');
+  // Default section filters
+  const defaultFilters = [
+    ['section_filter_best_sellers', JSON.stringify({ sort: 'newest', limit: 20 })],
+    ['section_filter_trending', JSON.stringify({ sort: 'newest', limit: 20 })],
+    ['section_filter_deals', JSON.stringify({ sort: 'newest', limit: 20 })],
+    ['section_filter_flash_sale', JSON.stringify({ sort: 'newest', limit: 20 })],
+    ['section_filter_tech_part', JSON.stringify({ sort: 'newest', limit: 20 })],
+  ];
+  for (const [k, v] of defaultFilters) {
+    await connection.query(
+      `INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE setting_value = setting_value`,
+      [k, v]
+    );
+  }
   await connection.end();
   console.log('Database initialization complete!');
 }

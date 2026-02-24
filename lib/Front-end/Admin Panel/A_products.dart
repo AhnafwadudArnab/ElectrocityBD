@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../Provider/Admin_product_provider.dart';
-import '../utils/api_service.dart';
 import '../pages/home_page.dart';
+import '../utils/api_service.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
@@ -24,7 +24,10 @@ class AdminProductUploadPage extends StatelessWidget {
 
   const AdminProductUploadPage({super.key, this.embedded = false});
 
-  static void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
+  static void _navigateFromSidebar(
+    BuildContext context,
+    AdminSidebarItem item,
+  ) {
     if (item == AdminSidebarItem.products) return;
     if (item == AdminSidebarItem.viewStore) {
       Navigator.pushAndRemoveUntil(
@@ -72,10 +75,7 @@ class AdminProductUploadPage extends StatelessWidget {
       default:
         return;
     }
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    );
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
   Widget _buildProductsContent(BuildContext context) {
@@ -111,13 +111,22 @@ class AdminProductUploadPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const AdminUpdateProductPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const AdminUpdateProductPage(),
+                        ),
                       );
                     },
-                    icon: const Icon(Icons.delete_sweep, color: Color(0xFFF59E0B), size: 20),
+                    icon: const Icon(
+                      Icons.delete_sweep,
+                      color: Color(0xFFF59E0B),
+                      size: 20,
+                    ),
                     label: const Text(
                       "Delete Products",
-                      style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Color(0xFFF59E0B),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -129,10 +138,17 @@ class AdminProductUploadPage extends StatelessWidget {
                         (route) => false,
                       );
                     },
-                    icon: const Icon(Icons.store, color: Color(0xFFF59E0B), size: 20),
+                    icon: const Icon(
+                      Icons.store,
+                      color: Color(0xFFF59E0B),
+                      size: 20,
+                    ),
                     label: const Text(
                       "Back to Store",
-                      style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Color(0xFFF59E0B),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -174,14 +190,11 @@ class AdminProductUploadPage extends StatelessWidget {
             selected: AdminSidebarItem.products,
             onItemSelected: (item) => _navigateFromSidebar(context, item),
           ),
-          Expanded(
-            child: _buildProductsContent(context),
-          ),
+          Expanded(child: _buildProductsContent(context)),
         ],
       ),
     );
   }
-
 }
 
 class _SectionUploadCard extends StatefulWidget {
@@ -197,11 +210,18 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
+  final TextEditingController _minPriceController = TextEditingController();
+  final TextEditingController _maxPriceController = TextEditingController();
+  final TextEditingController _limitController = TextEditingController(
+    text: '20',
+  );
+  String _sort = 'newest';
   List<Map<String, dynamic>> _categories = [];
   int? _selectedCategoryId;
   PlatformFile? _selectedFile;
   bool _loadingCategories = true;
   bool _publishing = false;
+  bool _savingFilter = false;
 
   static const Map<String, String> _sectionToApiKey = {
     'Best Sellings': 'best_sellers',
@@ -215,6 +235,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   void initState() {
     super.initState();
     _loadCategories();
+    _loadSectionFilter();
   }
 
   Future<void> _loadCategories() async {
@@ -222,7 +243,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       final list = await ApiService.getCategories();
       if (mounted) {
         setState(() {
-          _categories = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          _categories = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
           _loadingCategories = false;
           if (_categories.isNotEmpty && _selectedCategoryId == null) {
             _selectedCategoryId = _categories.first['category_id'] as int?;
@@ -232,6 +255,30 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     } catch (_) {
       if (mounted) setState(() => _loadingCategories = false);
     }
+  }
+
+  Future<void> _loadSectionFilter() async {
+    try {
+      final map = await ApiService.getSectionFilters();
+      final key = () {
+        final sk = _sectionToApiKey[widget.sectionTitle];
+        if (sk == 'best_sellers') return 'section_filter_best_sellers';
+        if (sk == 'trending') return 'section_filter_trending';
+        if (sk == 'deals') return 'section_filter_deals';
+        if (sk == 'flash_sale') return 'section_filter_flash_sale';
+        if (sk == 'tech_part') return 'section_filter_tech_part';
+        return null;
+      }();
+      if (key != null && map[key] is Map) {
+        final cfg = Map<String, dynamic>.from(map[key]);
+        setState(() {
+          _sort = (cfg['sort'] ?? 'newest').toString();
+          _limitController.text = (cfg['limit'] ?? 20).toString();
+          _minPriceController.text = cfg['min_price']?.toString() ?? '';
+          _maxPriceController.text = cfg['max_price']?.toString() ?? '';
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -292,6 +339,98 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       "Image URL (optional)",
                       fieldBg,
                     ),
+                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Default Filter for ${widget.sectionTitle}",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _sort,
+                            dropdownColor: fieldBg,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: fieldBg,
+                              border: InputBorder.none,
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'newest',
+                                child: Text('Newest'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'price_asc',
+                                child: Text('Price Asc'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'price_desc',
+                                child: Text('Price Desc'),
+                              ),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => _sort = v ?? 'newest'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _customTextField(
+                            _limitController,
+                            "Limit",
+                            fieldBg,
+                            isNumber: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _customTextField(
+                            _minPriceController,
+                            "Min Price",
+                            fieldBg,
+                            isNumber: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _customTextField(
+                            _maxPriceController,
+                            "Max Price",
+                            fieldBg,
+                            isNumber: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: _savingFilter ? null : _saveSectionFilter,
+                        icon: const Icon(Icons.filter_alt, color: brandOrange),
+                        label: _savingFilter
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Save Default Filter',
+                                style: TextStyle(color: brandOrange),
+                              ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -338,11 +477,15 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       items: _loadingCategories
                           ? []
                           : _categories
-                              .map((c) => DropdownMenuItem<int>(
+                                .map(
+                                  (c) => DropdownMenuItem<int>(
                                     value: c['category_id'] as int?,
-                                    child: Text((c['category_name'] ?? '').toString()),
-                                  ))
-                              .toList(),
+                                    child: Text(
+                                      (c['category_name'] ?? '').toString(),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       onChanged: (v) => setState(() => _selectedCategoryId = v),
                     ),
                   ],
@@ -352,7 +495,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: _publishing ? null : () => _handlePublish(productProvider),
+            onPressed: _publishing
+                ? null
+                : () => _handlePublish(productProvider),
             style: ElevatedButton.styleFrom(
               backgroundColor: brandOrange,
               minimumSize: const Size(double.infinity, 50),
@@ -361,7 +506,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                 ? const SizedBox(
                     height: 24,
                     width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 : const Text(
                     "Publish Now",
@@ -397,12 +545,14 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     backgroundImage: hasBytes
                         ? MemoryImage(p['image'].bytes!)
                         : (imageUrl != null && imageUrl.isNotEmpty)
-                            ? NetworkImage(imageUrl)
-                            : null,
-                    backgroundColor: hasBytes || (imageUrl != null && imageUrl.isNotEmpty)
+                        ? NetworkImage(imageUrl)
+                        : null,
+                    backgroundColor:
+                        hasBytes || (imageUrl != null && imageUrl.isNotEmpty)
                         ? null
                         : Colors.grey[700],
-                    child: (hasBytes || (imageUrl != null && imageUrl.isNotEmpty))
+                    child:
+                        (hasBytes || (imageUrl != null && imageUrl.isNotEmpty))
                         ? null
                         : const Icon(Icons.image, color: Colors.white54),
                   ),
@@ -418,13 +568,23 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Color(0xFFF59E0B), size: 20),
-                        onPressed: () => _showEditDialog(context, productProvider, index, p),
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Color(0xFFF59E0B),
+                          size: 20,
+                        ),
+                        onPressed: () =>
+                            _showEditDialog(context, productProvider, index, p),
                         tooltip: 'Edit',
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                        onPressed: () => _confirmDelete(context, productProvider, index),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
+                        onPressed: () =>
+                            _confirmDelete(context, productProvider, index),
                         tooltip: 'Delete',
                       ),
                     ],
@@ -438,18 +598,28 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     );
   }
 
-  void _confirmDelete(BuildContext context, AdminProductProvider provider, int index) {
+  void _confirmDelete(
+    BuildContext context,
+    AdminProductProvider provider,
+    int index,
+  ) {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF151C2C),
-        title: const Text('Remove product?', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Remove product?',
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
           'This will remove the product from this section.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -461,14 +631,22 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         provider.removeProduct(widget.sectionTitle, index);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(backgroundColor: Colors.orange, content: Text('Product removed')),
+            const SnackBar(
+              backgroundColor: Colors.orange,
+              content: Text('Product removed'),
+            ),
           );
         }
       }
     });
   }
 
-  void _showEditDialog(BuildContext context, AdminProductProvider provider, int index, Map<String, dynamic> p) {
+  void _showEditDialog(
+    BuildContext context,
+    AdminProductProvider provider,
+    int index,
+    Map<String, dynamic> p,
+  ) {
     final nameC = TextEditingController(text: '${p['name']}');
     final priceC = TextEditingController(text: '${p['price']}');
     final descC = TextEditingController(text: '${p['desc']}');
@@ -483,7 +661,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF151C2C),
-              title: const Text('Edit product', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Edit product',
+                style: TextStyle(color: Colors.white),
+              ),
               content: SingleChildScrollView(
                 child: SizedBox(
                   width: 400,
@@ -496,7 +677,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         decoration: const InputDecoration(
                           labelText: 'Product name',
                           labelStyle: TextStyle(color: Colors.white54),
-                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -507,7 +690,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         decoration: const InputDecoration(
                           labelText: 'Price (BDT)',
                           labelStyle: TextStyle(color: Colors.white54),
-                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -518,7 +703,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         decoration: const InputDecoration(
                           labelText: 'Description',
                           labelStyle: TextStyle(color: Colors.white54),
-                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -528,7 +715,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         decoration: const InputDecoration(
                           labelText: 'Image URL',
                           labelStyle: TextStyle(color: Colors.white54),
-                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -540,32 +729,65 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                           labelText: 'Category',
                           labelStyle: TextStyle(color: Colors.white54),
                         ),
-                        items: ['Home Utility', 'Personal Care', 'Kitchen', 'Cooling']
-                            .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                            .toList(),
-                        onChanged: (v) => setDialogState(() => category = v ?? category),
+                        items:
+                            [
+                                  'Home Utility',
+                                  'Personal Care',
+                                  'Kitchen',
+                                  'Cooling',
+                                ]
+                                .map(
+                                  (c) => DropdownMenuItem(
+                                    value: c,
+                                    child: Text(c),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (v) =>
+                            setDialogState(() => category = v ?? category),
                       ),
                       const SizedBox(height: 8),
                       OutlinedButton.icon(
                         onPressed: () async {
-                          final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
-                          if (result != null) setDialogState(() => pickedFile = result.files.first);
+                          final result = await FilePicker.platform.pickFiles(
+                            type: FileType.image,
+                            withData: true,
+                          );
+                          if (result != null) {
+                            setDialogState(
+                              () => pickedFile = result.files.first,
+                            );
+                          }
                         },
-                        icon: const Icon(Icons.add_photo_alternate, color: Color(0xFFF59E0B)),
-                        label: const Text('Change image', style: TextStyle(color: Color(0xFFF59E0B))),
+                        icon: const Icon(
+                          Icons.add_photo_alternate,
+                          color: Color(0xFFF59E0B),
+                        ),
+                        label: const Text(
+                          'Change image',
+                          style: TextStyle(color: Color(0xFFF59E0B)),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF59E0B),
+                  ),
                   onPressed: () {
-                    if (nameC.text.trim().isEmpty || priceC.text.trim().isEmpty) {
+                    if (nameC.text.trim().isEmpty ||
+                        priceC.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Name and price required')),
+                        const SnackBar(
+                          content: Text('Name and price required'),
+                        ),
                       );
                       return;
                     }
@@ -574,15 +796,22 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       'price': priceC.text.trim(),
                       'desc': descC.text.trim(),
                       'category': category,
-                      'imageUrl': imageUrlC.text.trim().isEmpty ? null : imageUrlC.text.trim(),
+                      'imageUrl': imageUrlC.text.trim().isEmpty
+                          ? null
+                          : imageUrlC.text.trim(),
                     };
-                    if (pickedFile != null) data['image'] = pickedFile;
-                    else if (p['image'] != null) data['image'] = p['image'];
+                    if (pickedFile != null) {
+                      data['image'] = pickedFile;
+                    } else if (p['image'] != null)
+                      data['image'] = p['image'];
                     provider.updateProduct(widget.sectionTitle, index, data);
                     Navigator.pop(ctx);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(backgroundColor: Colors.green, content: Text('Product updated')),
+                        const SnackBar(
+                          backgroundColor: Colors.green,
+                          content: Text('Product updated'),
+                        ),
                       );
                     }
                   },
@@ -621,15 +850,17 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     }
     final price = double.tryParse(_priceController.text.trim()) ?? 0;
     if (price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter a valid price.")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Enter a valid price.")));
       return;
     }
 
     setState(() => _publishing = true);
     try {
-      final imageUrl = _imageUrlController.text.trim().isEmpty ? null : _imageUrlController.text.trim();
+      final imageUrl = _imageUrlController.text.trim().isEmpty
+          ? null
+          : _imageUrlController.text.trim();
       final res = await ApiService.createProductWithImage(
         product_name: _nameController.text.trim(),
         description: _descController.text.trim(),
@@ -648,19 +879,34 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         await ApiService.updateProductSections(productId, {sectionKey: true});
       }
 
-      final productData = {
-        "name": _nameController.text.trim(),
-        "price": _priceController.text.trim(),
-        "desc": _descController.text.trim(),
-        "category": () {
-          for (final c in _categories) {
-            if (c['category_id'] == _selectedCategoryId) return (c['category_name'] ?? '').toString();
-          }
-          return '';
-        }(),
-        "image": _selectedFile,
-        "imageUrl": imageUrl ?? (res['image_url']?.toString()),
-      };
+      final serverProduct = (res['product'] is Map)
+          ? Map<String, dynamic>.from(res['product'])
+          : null;
+      final productData = serverProduct != null
+          ? {
+              "id": "server_$productId",
+              "name": (serverProduct['product_name'] ?? '').toString(),
+              "price": (serverProduct['price'] ?? '').toString(),
+              "desc": (serverProduct['description'] ?? '').toString(),
+              "category": (serverProduct['category_name'] ?? '').toString(),
+              "imageUrl": (serverProduct['image_url'] ?? '').toString(),
+              "image": null,
+            }
+          : {
+              "name": _nameController.text.trim(),
+              "price": _priceController.text.trim(),
+              "desc": _descController.text.trim(),
+              "category": () {
+                for (final c in _categories) {
+                  if (c['category_id'] == _selectedCategoryId) {
+                    return (c['category_name'] ?? '').toString();
+                  }
+                }
+                return '';
+              }(),
+              "image": _selectedFile,
+              "imageUrl": imageUrl,
+            };
       provider.addProduct(widget.sectionTitle, productData);
 
       _nameController.clear();
@@ -694,6 +940,54 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       }
     } finally {
       if (mounted) setState(() => _publishing = false);
+    }
+  }
+
+  Future<void> _saveSectionFilter() async {
+    final section = _sectionToApiKey[widget.sectionTitle];
+    if (section == null) return;
+    setState(() => _savingFilter = true);
+    try {
+      final String? sort = _sort;
+      final int? limit = int.tryParse(_limitController.text.trim());
+      final double? minP = _minPriceController.text.trim().isEmpty
+          ? null
+          : double.tryParse(_minPriceController.text.trim());
+      final double? maxP = _maxPriceController.text.trim().isEmpty
+          ? null
+          : double.tryParse(_maxPriceController.text.trim());
+      await ApiService.updateSectionFilter(
+        section,
+        sort: sort,
+        limit: limit,
+        minPrice: minP,
+        maxPrice: maxP,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text('Default filter saved for section'),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: Colors.red, content: Text(e.message)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text('Failed: ${e.toString()}'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingFilter = false);
     }
   }
 

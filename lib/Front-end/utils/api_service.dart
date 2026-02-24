@@ -381,6 +381,26 @@ class ApiService {
     if (from != null && to != null) query = '?from=$from&to=$to';
     return await get('/admin/reports$query') as Map<String, dynamic>;
   }
+
+  // ─── Section Filters (Admin) ───
+
+  static Future<Map<String, dynamic>> getSectionFilters() async {
+    return await get('/admin/section-filters') as Map<String, dynamic>;
+  }
+
+  static Future<void> updateSectionFilter(String section, {
+    String? sort,
+    int? limit,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
+    final payload = <String, dynamic>{};
+    if (sort != null) payload['sort'] = sort;
+    if (limit != null) payload['limit'] = limit;
+    if (minPrice != null) payload['min_price'] = minPrice;
+    if (maxPrice != null) payload['max_price'] = maxPrice;
+    await put('/admin/section-filters/$section', payload);
+  }
 }
 
 class ApiException implements Exception {
