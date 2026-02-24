@@ -8,6 +8,8 @@ class AdminProductProvider extends ChangeNotifier {
     "Trending Items": [],
     "Deals of the Day": [],
     "Tech Part": [],
+    "Collections": [],
+    "Others": [],
   };
 
   static int _idCounter = 0;

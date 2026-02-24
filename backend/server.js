@@ -23,6 +23,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(uploadsDir));
 
+// Serve assets directory as static files at /assets
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
     cb(null, uploadsDir);

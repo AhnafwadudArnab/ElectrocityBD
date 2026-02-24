@@ -183,12 +183,27 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
     }
     const finalImageUrl = req.file ? `/uploads/${req.file.filename}` : (image_url || '');
 
-    const [result] = await pool.query(
-      `INSERT INTO products (product_name, description, price, stock_quantity, category_id, brand_id, image_url, specs_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [String(product_name).trim(), description || '', numPrice, numStock,
-       category_id || null, brand_id || null, finalImageUrl, specs_json || null]
-    );
+    let result;
+    try {
+      [result] = await pool.query(
+        `INSERT INTO products (product_name, description, price, stock_quantity, category_id, brand_id, image_url, specs_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [String(product_name).trim(), description || '', numPrice, numStock,
+         category_id || null, brand_id || null, finalImageUrl, specs_json || null]
+      );
+    } catch (e) {
+      // Fallback for schemas without specs_json column
+      if (e && (e.code === 'ER_BAD_FIELD_ERROR' || String(e.message || '').includes('Unknown column'))) {
+        [result] = await pool.query(
+          `INSERT INTO products (product_name, description, price, stock_quantity, category_id, brand_id, image_url)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [String(product_name).trim(), description || '', numPrice, numStock,
+           category_id || null, brand_id || null, finalImageUrl]
+        );
+      } else {
+        throw e;
+      }
+    }
 
     const [createdRows] = await pool.query(
       `SELECT p.*, c.category_name, b.brand_name
@@ -219,7 +234,7 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
     const { product_name, description, price, stock_quantity, category_id, brand_id, image_url, specs_json } = req.body;
     const finalImageUrl = req.file ? `/uploads/${req.file.filename}` : image_url;
 
-    let sql = `UPDATE products SET product_name = COALESCE(?, product_name),
+    let baseSql = `UPDATE products SET product_name = COALESCE(?, product_name),
                description = COALESCE(?, description),
                price = COALESCE(?, price),
                stock_quantity = COALESCE(?, stock_quantity),
@@ -243,18 +258,39 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
     }
     const params = [product_name, description, parsedPrice, parsedStock, category_id, brand_id];
 
+    // Build with optional columns
+    let sql = baseSql;
     if (finalImageUrl) {
       sql += ', image_url = ?';
       params.push(finalImageUrl);
     }
+    let includeSpecs = false;
     if (typeof specs_json !== 'undefined') {
+      includeSpecs = true;
       sql += ', specs_json = ?';
       params.push(specs_json || null);
     }
     sql += ' WHERE product_id = ?';
     params.push(req.params.id);
 
-    await pool.query(sql, params);
+    try {
+      await pool.query(sql, params);
+    } catch (e) {
+      if (includeSpecs && (e.code === 'ER_BAD_FIELD_ERROR' || String(e.message || '').includes('Unknown column'))) {
+        // Retry without specs_json column
+        const retryParams = [product_name, description, parsedPrice, parsedStock, category_id, brand_id];
+        let retrySql = baseSql;
+        if (finalImageUrl) {
+          retrySql += ', image_url = ?';
+          retryParams.push(finalImageUrl);
+        }
+        retrySql += ' WHERE product_id = ?';
+        retryParams.push(req.params.id);
+        await pool.query(retrySql, retryParams);
+      } else {
+        throw e;
+      }
+    }
     const [rows] = await pool.query(
       `SELECT p.*, c.category_name, b.brand_name
        FROM products p

@@ -1,9 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../All Pages/CART/Cart_provider.dart';
-import '../All Pages/Registrations/signup.dart';
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
 import '../utils/auth_session.dart';
@@ -50,7 +46,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     try {
       // First try local cached user data
       final local = await AuthSession.getUserData();
-      String? name = local?.fullName.trim().isNotEmpty == true ? local!.fullName.trim() : null;
+      String? name = local?.fullName.trim().isNotEmpty == true
+          ? local!.fullName.trim()
+          : null;
 
       // If not found, fetch from profile API and cache
       if (name == null || name.isEmpty) {
@@ -73,12 +71,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     _statsError = null;
     try {
       final stats = await ApiService.getDashboardStats();
-      if (mounted) setState(() { _dashboardStats = stats; _statsLoading = false; _statsError = null; });
+      if (mounted)
+        setState(() {
+          _dashboardStats = stats;
+          _statsLoading = false;
+          _statsError = null;
+        });
     } catch (e) {
-      if (mounted) setState(() {
-        _statsLoading = false;
-        _statsError = e is ApiException ? e.message : 'Failed to load dashboard.';
-      });
+      if (mounted)
+        setState(() {
+          _statsLoading = false;
+          _statsError = e is ApiException
+              ? e.message
+              : 'Failed to load dashboard.';
+        });
     }
   }
 
@@ -186,7 +192,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 default:
                   return;
               }
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => page),
+              );
             },
           ),
           Expanded(child: _buildDashboardContent()),
@@ -211,8 +220,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             child: Center(
               child: Text(
                 _adminName == null || _adminName!.isEmpty
-                    ? 'Admin Dashboard'
-                    : 'Admin Dashboard – $_adminName',
+                    ? 'Dashboard'
+                    : '$_adminName',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
@@ -238,95 +247,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ],
           ),
-          const SizedBox(width: 40),
-          // Admin profile dropdown
-          PopupMenuButton<int>(
-            offset: const Offset(0, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            tooltip: 'Admin Profile',
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 1,
-                child: ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Profile'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to profile page or show profile dialog
-                  },
-                ),
-              ),
-              PopupMenuItem(
-                value: 2,
-                child: ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to settings page
-                  },
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 3,
-                child: ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text(
-                    'Logout',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await ApiService.clearToken();
-                    await AuthSession.clear();
-                    if (!context.mounted) return;
-                    await context.read<CartProvider>().switchToGuest();
-                    if (!context.mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const Signup()),
-                      (route) => false,
-                    );
-                  },
-                ),
-              ),
-            ],
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.orange,
-                  child: const Text(
-                    'MG',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 100,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Marcus George',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        'Admin',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -346,7 +266,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_statsError!, style: TextStyle(color: Colors.red[700]), textAlign: TextAlign.center),
+              Text(
+                _statsError!,
+                style: TextStyle(color: Colors.red[700]),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _loadDashboardStats,
@@ -515,18 +439,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 40,
-                      getTitlesWidget: (value, meta) => Text('${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                      getTitlesWidget: (value, meta) => Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 10),
+                      ),
                     ),
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      getTitlesWidget: (value, meta) => Text('${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                      getTitlesWidget: (value, meta) => Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 10),
+                      ),
                     ),
                   ),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [

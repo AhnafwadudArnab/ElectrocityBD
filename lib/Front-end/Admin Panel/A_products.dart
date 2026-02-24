@@ -80,13 +80,6 @@ class AdminProductUploadPage extends StatelessWidget {
 
   Widget _buildProductsContent(BuildContext context) {
     const Color cardBg = Color(0xFF151C2C);
-    const List<String> sectionTitles = [
-      "Best Sellings",
-      "Flash Sale",
-      "Trending Items",
-      "Deals of the Day",
-      "Tech Part",
-    ];
     return Column(
       children: [
         Container(
@@ -156,21 +149,7 @@ class AdminProductUploadPage extends StatelessWidget {
             ],
           ),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              children: sectionTitles
-                  .map(
-                    (title) => Padding(
-                      padding: const EdgeInsets.only(bottom: 32),
-                      child: _SectionUploadCard(sectionTitle: title),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ),
+        const Expanded(child: _SectionSwitcherView()),
       ],
     );
   }
@@ -191,6 +170,66 @@ class AdminProductUploadPage extends StatelessWidget {
             onItemSelected: (item) => _navigateFromSidebar(context, item),
           ),
           Expanded(child: _buildProductsContent(context)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionSwitcherView extends StatefulWidget {
+  const _SectionSwitcherView();
+
+  @override
+  State<_SectionSwitcherView> createState() => _SectionSwitcherViewState();
+}
+
+class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
+  static const List<String> _displayOptions = [
+    'Best Selling',
+    'Trendings',
+    'Deals of the Day',
+    'Collections',
+    'Flash Sale',
+    'Others',
+  ];
+
+  static const Map<String, String> _displayToSection = {
+    'Best Selling': 'Best Sellings',
+    'Trendings': 'Trending Items',
+    'Deals of the Day': 'Deals of the Day',
+    'Collections': 'Collections',
+    'Flash Sale': 'Flash Sale',
+    'Others': 'Others',
+  };
+
+  String _selected = 'Best Selling';
+
+  @override
+  Widget build(BuildContext context) {
+    const Color fieldBg = Color(0xFF0B121E);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            value: _selected,
+            dropdownColor: fieldBg,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: 'Select Page',
+              labelStyle: TextStyle(color: Colors.white54),
+            ),
+            items: _displayOptions
+                .map((d) => DropdownMenuItem<String>(value: d, child: Text(d)))
+                .toList(),
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() => _selected = v);
+            },
+          ),
+          const SizedBox(height: 16),
+          _SectionUploadCard(sectionTitle: _displayToSection[_selected]!),
         ],
       ),
     );
@@ -225,7 +264,8 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _powerWattController = TextEditingController();
-  final TextEditingController _warrantyMonthsController = TextEditingController();
+  final TextEditingController _warrantyMonthsController =
+      TextEditingController();
   final TextEditingController _colorController = TextEditingController();
   final TextEditingController _lumensController = TextEditingController();
   final TextEditingController _colorTempController = TextEditingController();
@@ -581,32 +621,70 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     p['name'],
                     style: const TextStyle(color: Colors.white),
                   ),
-                  subtitle: Text(
-                    "৳ ${p['price']}",
-                    style: const TextStyle(color: Colors.green),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      IconButton(
+                      Text(
+                        "৳ ${p['price']}",
+                        style: const TextStyle(color: Colors.green),
+                      ),
+                      if ((p['category'] ?? '').toString().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            "Category: ${p['category']}",
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      if ((p['desc'] ?? '').toString().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            "${p['desc']}",
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  trailing: Wrap(
+                    spacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () =>
+                            _showEditDialog(context, productProvider, index, p),
                         icon: const Icon(
                           Icons.edit,
                           color: Color(0xFFF59E0B),
-                          size: 20,
+                          size: 18,
                         ),
-                        onPressed: () =>
-                            _showEditDialog(context, productProvider, index, p),
-                        tooltip: 'Edit',
+                        label: const Text(
+                          'Update',
+                          style: TextStyle(color: Color(0xFFF59E0B)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFF59E0B)),
+                        ),
                       ),
-                      IconButton(
+                      TextButton.icon(
+                        onPressed: () =>
+                            _confirmDelete(context, productProvider, index),
                         icon: const Icon(
                           Icons.delete_outline,
                           color: Colors.redAccent,
-                          size: 20,
+                          size: 18,
                         ),
-                        onPressed: () =>
-                            _confirmDelete(context, productProvider, index),
-                        tooltip: 'Delete',
+                        label: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
                       ),
                     ],
                   ),
@@ -1052,7 +1130,8 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   Widget _buildDetailsFields(Color bg) {
     final catName = () {
       for (final c in _categories) {
-        if (c['category_id'] == _selectedCategoryId) return (c['category_name'] ?? '').toString();
+        if (c['category_id'] == _selectedCategoryId)
+          return (c['category_name'] ?? '').toString();
       }
       return '';
     }().toLowerCase();
@@ -1068,9 +1147,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       fields.addAll([
         _customTextField(_modelController, "Model", bg),
         const SizedBox(height: 8),
-        _customTextField(_powerWattController, "Power (Watt)", bg, isNumber: true),
+        _customTextField(
+          _powerWattController,
+          "Power (Watt)",
+          bg,
+          isNumber: true,
+        ),
         const SizedBox(height: 8),
-        _customTextField(_warrantyMonthsController, "Warranty (months)", bg, isNumber: true),
+        _customTextField(
+          _warrantyMonthsController,
+          "Warranty (months)",
+          bg,
+          isNumber: true,
+        ),
       ]);
     }
     if (isPersonal || isHome || isTools) {
@@ -1082,9 +1171,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       fields.addAll([
         _customTextField(_lumensController, "Lumens", bg, isNumber: true),
         const SizedBox(height: 8),
-        _customTextField(_colorTempController, "Color Temperature (K)", bg, isNumber: true),
+        _customTextField(
+          _colorTempController,
+          "Color Temperature (K)",
+          bg,
+          isNumber: true,
+        ),
         const SizedBox(height: 8),
-        _customTextField(_powerWattController, "Power (Watt)", bg, isNumber: true),
+        _customTextField(
+          _powerWattController,
+          "Power (Watt)",
+          bg,
+          isNumber: true,
+        ),
       ]);
     }
     if (isTools) {
@@ -1098,9 +1197,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     if (isWiring) {
       if (fields.isNotEmpty) fields.add(const SizedBox(height: 8));
       fields.addAll([
-        _customTextField(_lengthMeterController, "Length (meter)", bg, isNumber: true),
+        _customTextField(
+          _lengthMeterController,
+          "Length (meter)",
+          bg,
+          isNumber: true,
+        ),
         const SizedBox(height: 8),
-        _customTextField(_gaugeAwgController, "Gauge (AWG)", bg, isNumber: true),
+        _customTextField(
+          _gaugeAwgController,
+          "Gauge (AWG)",
+          bg,
+          isNumber: true,
+        ),
         const SizedBox(height: 8),
         _customTextField(_materialController, "Material", bg),
       ]);
@@ -1120,6 +1229,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       if (t.isEmpty) return;
       m[k] = number ? (double.tryParse(t) ?? t) : t;
     }
+
     put('model', _modelController);
     put('power_watt', _powerWattController, number: true);
     put('warranty_months', _warrantyMonthsController, number: true);
