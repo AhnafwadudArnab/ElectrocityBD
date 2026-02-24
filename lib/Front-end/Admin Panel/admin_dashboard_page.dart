@@ -247,6 +247,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ],
           ),
+          const SizedBox(width: 50,)
         ],
       ),
     );
