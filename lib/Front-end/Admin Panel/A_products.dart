@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../All Pages/Registrations/login.dart';
 import '../Provider/Admin_product_provider.dart';
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
@@ -286,7 +287,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   void initState() {
     super.initState();
     _loadCategories();
-    _loadSectionFilter();
+    // _loadSectionFilter();
   }
 
   Future<void> _loadCategories() async {
@@ -294,11 +295,34 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       final list = await ApiService.getCategories();
       if (mounted) {
         setState(() {
-          _categories = list
+          final raw = list
               .map((e) => Map<String, dynamic>.from(e as Map))
               .toList();
+          final byName = <String, Map<String, dynamic>>{};
+          for (final c in raw) {
+            final id = c['category_id'] as int?;
+            final name = (c['category_name'] ?? '').toString().trim();
+            if (id == null || id <= 0 || name.isEmpty) continue;
+            final key = name.toLowerCase();
+            final existing = byName[key];
+            if (existing == null || ((existing['category_id'] as int) > id)) {
+              byName[key] = {'category_id': id, 'category_name': name};
+            }
+          }
+          final unique = byName.values.toList()
+            ..sort(
+              (a, b) =>
+                  (a['category_name'] ?? '').toString().toLowerCase().compareTo(
+                    (b['category_name'] ?? '').toString().toLowerCase(),
+                  ),
+            );
+          _categories = unique;
           _loadingCategories = false;
-          if (_categories.isNotEmpty && _selectedCategoryId == null) {
+          final stillExists = _categories.any(
+            (c) => c['category_id'] == _selectedCategoryId,
+          );
+          if (_categories.isNotEmpty &&
+              (_selectedCategoryId == null || !stillExists)) {
             _selectedCategoryId = _categories.first['category_id'] as int?;
           }
         });
@@ -308,29 +332,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     }
   }
 
-  Future<void> _loadSectionFilter() async {
-    try {
-      final map = await ApiService.getSectionFilters();
-      final key = () {
-        final sk = _sectionToApiKey[widget.sectionTitle];
-        if (sk == 'best_sellers') return 'section_filter_best_sellers';
-        if (sk == 'trending') return 'section_filter_trending';
-        if (sk == 'deals') return 'section_filter_deals';
-        if (sk == 'flash_sale') return 'section_filter_flash_sale';
-        if (sk == 'tech_part') return 'section_filter_tech_part';
-        return null;
-      }();
-      if (key != null && map[key] is Map) {
-        final cfg = Map<String, dynamic>.from(map[key]);
-        setState(() {
-          _sort = (cfg['sort'] ?? 'newest').toString();
-          _limitController.text = (cfg['limit'] ?? 20).toString();
-          _minPriceController.text = cfg['min_price']?.toString() ?? '';
-          _maxPriceController.text = cfg['max_price']?.toString() ?? '';
-        });
-      }
-    } catch (_) {}
-  }
+  Future<void> _loadSectionFilter() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -383,104 +385,6 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       "Full Description",
                       fieldBg,
                       maxLines: 3,
-                    ),
-                    const SizedBox(height: 12),
-                    _customTextField(
-                      _imageUrlController,
-                      "Image URL (optional)",
-                      fieldBg,
-                    ),
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Default Filter for ${widget.sectionTitle}",
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: _sort,
-                            dropdownColor: fieldBg,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: fieldBg,
-                              border: InputBorder.none,
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'newest',
-                                child: Text('Newest'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'price_asc',
-                                child: Text('Price Asc'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'price_desc',
-                                child: Text('Price Desc'),
-                              ),
-                            ],
-                            onChanged: (v) =>
-                                setState(() => _sort = v ?? 'newest'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _customTextField(
-                            _limitController,
-                            "Limit",
-                            fieldBg,
-                            isNumber: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _customTextField(
-                            _minPriceController,
-                            "Min Price",
-                            fieldBg,
-                            isNumber: true,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _customTextField(
-                            _maxPriceController,
-                            "Max Price",
-                            fieldBg,
-                            isNumber: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        onPressed: _savingFilter ? null : _saveSectionFilter,
-                        icon: const Icon(Icons.filter_alt, color: brandOrange),
-                        label: _savingFilter
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Save Default Filter',
-                                style: TextStyle(color: brandOrange),
-                              ),
-                      ),
                     ),
                     const SizedBox(height: 16),
                     Align(
@@ -749,7 +653,6 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     final nameC = TextEditingController(text: '${p['name']}');
     final priceC = TextEditingController(text: '${p['price']}');
     final descC = TextEditingController(text: '${p['desc']}');
-    final imageUrlC = TextEditingController(text: '${p['imageUrl'] ?? ''}');
     String category = p['category'] ?? 'Home Utility';
     PlatformFile? pickedFile;
 
@@ -808,33 +711,26 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      TextField(
-                        controller: imageUrlC,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          labelText: 'Image URL',
-                          labelStyle: TextStyle(color: Colors.white54),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white24),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: category,
-                        dropdownColor: const Color(0xFF0B121E),
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                          labelStyle: TextStyle(color: Colors.white54),
-                        ),
-                        items:
-                            [
-                                  'Home Utility',
-                                  'Personal Care',
-                                  'Kitchen',
-                                  'Cooling',
-                                ]
+                      Builder(
+                        builder: (context) {
+                          final List<String> catNames = _categories
+                              .map((e) => (e['category_name'] ?? '').toString())
+                              .where((e) => e.isNotEmpty)
+                              .toSet()
+                              .toList();
+                          final String? selectedValue =
+                              catNames.contains(category)
+                              ? category
+                              : (catNames.isNotEmpty ? catNames.first : null);
+                          return DropdownButtonFormField<String>(
+                            value: selectedValue,
+                            dropdownColor: const Color(0xFF0B121E),
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              labelText: 'Category',
+                              labelStyle: TextStyle(color: Colors.white54),
+                            ),
+                            items: catNames
                                 .map(
                                   (c) => DropdownMenuItem(
                                     value: c,
@@ -842,8 +738,10 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                                   ),
                                 )
                                 .toList(),
-                        onChanged: (v) =>
-                            setDialogState(() => category = v ?? category),
+                            onChanged: (v) =>
+                                setDialogState(() => category = v ?? category),
+                          );
+                        },
                       ),
                       const SizedBox(height: 8),
                       OutlinedButton.icon(
@@ -895,9 +793,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       'price': priceC.text.trim(),
                       'desc': descC.text.trim(),
                       'category': category,
-                      'imageUrl': imageUrlC.text.trim().isEmpty
-                          ? null
-                          : imageUrlC.text.trim(),
+                      'imageUrl': pickedFile == null
+                          ? (p['imageUrl'] ?? null)
+                          : null,
                     };
                     if (pickedFile != null) {
                       data['image'] = pickedFile;
@@ -935,16 +833,52 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
   // পাবলিশ করার ফাংশন - API তে সেভ করে তারপর সেকশনে অ্যাসাইন করে
   Future<void> _handlePublish(AdminProductProvider provider) async {
+    final token = await ApiService.getToken();
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF151C2C),
+          title: const Text(
+            'Admin login required',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'Please login as admin to publish products.',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LogIn()),
+                  (route) => false,
+                );
+              },
+              child: const Text('Login'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     if (_nameController.text.isEmpty || _priceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Product name and price required!")),
       );
       return;
     }
-    if (_selectedFile == null && _imageUrlController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Add an image (file or URL)!")),
-      );
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Add an image file!")));
       return;
     }
     final price = double.tryParse(_priceController.text.trim()) ?? 0;
@@ -957,9 +891,6 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
     setState(() => _publishing = true);
     try {
-      final imageUrl = _imageUrlController.text.trim().isEmpty
-          ? null
-          : _imageUrlController.text.trim();
       final specs = _buildSpecsForSelectedCategory();
       final res = await ApiService.createProductWithImage(
         product_name: _nameController.text.trim(),
@@ -967,7 +898,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         price: price,
         stock_quantity: 0,
         category_id: _selectedCategoryId,
-        image_url: imageUrl,
+        image_url: null,
         imageBytes: _selectedFile?.bytes,
         imageFileName: _selectedFile?.name,
         specs: specs.isEmpty ? null : specs,
@@ -1006,7 +937,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                 return '';
               }(),
               "image": _selectedFile,
-              "imageUrl": imageUrl,
+              "imageUrl": null,
             };
       provider.addProduct(widget.sectionTitle, productData);
 
@@ -1054,53 +985,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     }
   }
 
-  Future<void> _saveSectionFilter() async {
-    final section = _sectionToApiKey[widget.sectionTitle];
-    if (section == null) return;
-    setState(() => _savingFilter = true);
-    try {
-      final String? sort = _sort;
-      final int? limit = int.tryParse(_limitController.text.trim());
-      final double? minP = _minPriceController.text.trim().isEmpty
-          ? null
-          : double.tryParse(_minPriceController.text.trim());
-      final double? maxP = _maxPriceController.text.trim().isEmpty
-          ? null
-          : double.tryParse(_maxPriceController.text.trim());
-      await ApiService.updateSectionFilter(
-        section,
-        sort: sort,
-        limit: limit,
-        minPrice: minP,
-        maxPrice: maxP,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.green,
-            content: Text('Default filter saved for section'),
-          ),
-        );
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: Colors.red, content: Text(e.message)),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            content: Text('Failed: ${e.toString()}'),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _savingFilter = false);
-    }
-  }
+  Future<void> _saveSectionFilter() async {}
 
   Widget _customTextField(
     TextEditingController controller,

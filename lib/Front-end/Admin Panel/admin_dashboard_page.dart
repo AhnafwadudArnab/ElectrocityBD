@@ -1,5 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
+import '../All Pages/Registrations/signup.dart';
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
 import '../utils/auth_session.dart';
@@ -12,8 +14,8 @@ import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
 import 'A_orders.dart';
-import 'A_promotions.dart';
 import 'A_products.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -247,7 +249,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ],
           ),
-          const SizedBox(width: 50,)
+          const SizedBox(width: 50),
         ],
       ),
     );
@@ -273,10 +275,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _loadDashboardStats,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FilledButton.icon(
+                    onPressed: _loadDashboardStats,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                  const SizedBox(width: 12),
+                  if (_statsError!.toLowerCase().contains(
+                    'invalid or expired token',
+                  ))
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        await ApiService.clearToken();
+                        await AuthSession.clear();
+                        if (!mounted) return;
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const Signup()),
+                          (route) => false,
+                        );
+                      },
+                      icon: const Icon(Icons.logout, color: Colors.redAccent),
+                      label: const Text(
+                        'Login Again',
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

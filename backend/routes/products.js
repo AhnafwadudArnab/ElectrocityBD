@@ -25,7 +25,7 @@ function imageFullUrl(req, imageUrl) {
   if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
   if (imageUrl.startsWith('asset:')) return imageUrl;
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
-  const base = `${req.protocol}://${req.get('host') || 'localhost:3000'}`;
+  const base = `${req.protocol}://${req.get('host') || 'localhost:3001'}`;
   return imageUrl.startsWith('/') ? base + imageUrl : base + '/' + imageUrl;
 }
 
@@ -326,8 +326,27 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 // PUT /api/products/:id/sections - admin assign product to homepage sections
 router.put('/:id/sections', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    // Validate product id
     const id = parseInt(req.params.id, 10);
+    if (!id || isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid or missing product id in URL.' });
+    }
+
+    // Validate body is JSON
+    if (!req.is('application/json')) {
+      return res.status(400).json({ error: 'Request body must be JSON.' });
+    }
+
+    // Parse and validate body
     const { best_sellers, trending, deals, flash_sale, tech_part } = req.body || {};
+    if (typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Malformed JSON body.' });
+    }
+
+    // Log for debugging
+    if (Object.keys(req.body).length === 0) {
+      console.warn('PUT /products/:id/sections called with empty body for product id:', id);
+    }
 
     if (best_sellers) await pool.query('INSERT IGNORE INTO best_sellers (product_id, sales_count) VALUES (?, 0)', [id]);
     else await pool.query('DELETE FROM best_sellers WHERE product_id = ?', [id]);
@@ -362,7 +381,7 @@ router.put('/:id/sections', authenticateToken, requireAdmin, async (req, res) =>
     res.json({ message: 'Sections updated.' });
   } catch (err) {
     console.error('Product sections error:', err);
-    res.status(500).json({ error: 'Server error.' });
+    res.status(500).json({ error: 'Server error.', details: err.message });
   }
 });
 

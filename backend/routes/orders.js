@@ -8,7 +8,7 @@ function imageFullUrl(req, imageUrl) {
   if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
   if (imageUrl.startsWith('asset:')) return imageUrl;
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
-  const base = `${req.protocol}://${req.get('host') || 'localhost:3000'}`;
+  const base = `${req.protocol}://${req.get('host') || 'localhost:${process.env.PORT || 80}'}`;
   return imageUrl.startsWith('/') ? base + imageUrl : base + '/' + imageUrl;
 }
 

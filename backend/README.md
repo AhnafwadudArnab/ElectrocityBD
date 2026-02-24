@@ -19,7 +19,7 @@ DB_USER=root
 DB_PASSWORD=your_mysql_password
 DB_NAME=electrocity_db
 JWT_SECRET=your_secret_key_here
-PORT=3000
+PORT=80
 ```
 
 ### 3. Initialize Database

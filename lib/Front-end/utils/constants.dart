@@ -10,9 +10,11 @@ class AppConstants {
   static String get baseUrl {
     const String envApiUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'http://localhost:3000/api',
+      defaultValue: '',
     );
-    return envApiUrl;
+    if (envApiUrl.isNotEmpty) return envApiUrl;
+    // Default dev backend port
+    return 'http://localhost:3001/api';
   }
 
   /// Base URL for images (product images from backend uploads). API returns full URL; use this if you have relative path.

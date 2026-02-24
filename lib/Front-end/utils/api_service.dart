@@ -5,11 +5,35 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
 
-String get _baseUrl => AppConstants.baseUrl;
+String _apiBase() => ApiService.overrideBaseUrl ?? AppConstants.baseUrl;
 
 class ApiService {
   static const String _tokenKey = 'electrocity_jwt_token';
   static String? _cachedToken;
+  static String? overrideBaseUrl;
+  static void setBaseUrl(String url) => overrideBaseUrl = url;
+  static Future<String?> _reprobeBase() async {
+    final candidates = <String>{
+      if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty)
+        overrideBaseUrl!,
+      AppConstants.baseUrl,
+      'http://localhost:3002/api',
+      'http://localhost:3001/api',
+      'http://localhost:3000/api',
+      'http://127.0.0.1:3002/api',
+      'http://127.0.0.1:3001/api',
+      'http://127.0.0.1:3000/api',
+    }.toList();
+    for (final base in candidates) {
+      try {
+        final res = await http.get(Uri.parse('$base/health'));
+        if (res.statusCode >= 200 && res.statusCode < 400) return base;
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
+  }
 
   // ─── Token Management ───
 
@@ -48,20 +72,40 @@ class ApiService {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return body is Map<String, dynamic> ? body : {'data': body};
     }
+    if (res.statusCode == 401 || res.statusCode == 403) {
+      await clearToken();
+    }
     throw ApiException(body['error'] ?? 'Request failed', res.statusCode);
   }
 
+  static Future<T> _withReprobeBase<T>(
+    Future<T> Function(String base) runner,
+  ) async {
+    try {
+      return await runner(_apiBase());
+    } catch (_) {
+      final base = await _reprobeBase();
+      if (base != null) {
+        setBaseUrl(base);
+        return await runner(base);
+      }
+      rethrow;
+    }
+  }
+
   static Future<dynamic> get(String endpoint, {bool withAuth = true}) async {
-    final res = await http.get(
-      Uri.parse('$_baseUrl$endpoint'),
-      headers: await _headers(withAuth: withAuth),
-    );
-    final body = jsonDecode(res.body);
-    if (res.statusCode >= 200 && res.statusCode < 300) return body;
-    throw ApiException(
-      body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
-      res.statusCode,
-    );
+    return _withReprobeBase((base) async {
+      final res = await http.get(
+        Uri.parse('$base$endpoint'),
+        headers: await _headers(withAuth: withAuth),
+      );
+      final body = jsonDecode(res.body);
+      if (res.statusCode >= 200 && res.statusCode < 300) return body;
+      throw ApiException(
+        body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
+        res.statusCode,
+      );
+    });
   }
 
   static Future<Map<String, dynamic>> post(
@@ -69,32 +113,38 @@ class ApiService {
     Map<String, dynamic> data, {
     bool withAuth = true,
   }) async {
-    final res = await http.post(
-      Uri.parse('$_baseUrl$endpoint'),
-      headers: await _headers(withAuth: withAuth),
-      body: jsonEncode(data),
-    );
-    return _handleResponse(res);
+    return _withReprobeBase((base) async {
+      final res = await http.post(
+        Uri.parse('$base$endpoint'),
+        headers: await _headers(withAuth: withAuth),
+        body: jsonEncode(data),
+      );
+      return _handleResponse(res);
+    });
   }
 
   static Future<Map<String, dynamic>> put(
     String endpoint,
     Map<String, dynamic> data,
   ) async {
-    final res = await http.put(
-      Uri.parse('$_baseUrl$endpoint'),
-      headers: await _headers(),
-      body: jsonEncode(data),
-    );
-    return _handleResponse(res);
+    return _withReprobeBase((base) async {
+      final res = await http.put(
+        Uri.parse('$base$endpoint'),
+        headers: await _headers(),
+        body: jsonEncode(data),
+      );
+      return _handleResponse(res);
+    });
   }
 
   static Future<Map<String, dynamic>> delete(String endpoint) async {
-    final res = await http.delete(
-      Uri.parse('$_baseUrl$endpoint'),
-      headers: await _headers(),
-    );
-    return _handleResponse(res);
+    return _withReprobeBase((base) async {
+      final res = await http.delete(
+        Uri.parse('$base$endpoint'),
+        headers: await _headers(),
+      );
+      return _handleResponse(res);
+    });
   }
 
   // ─── Auth API ───
@@ -211,46 +261,59 @@ class ApiService {
     String? imageFileName,
     Map<String, dynamic>? specs,
   }) async {
-    final uri = Uri.parse('$_baseUrl/products');
-    final request = http.MultipartRequest('POST', uri);
-    final token = await getToken();
-    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+    Future<Map<String, dynamic>> _send(String base) async {
+      final uri = Uri.parse('$base/products');
+      final request = http.MultipartRequest('POST', uri);
+      final token = await getToken();
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
 
-    request.fields['product_name'] = product_name;
-    request.fields['description'] = description;
-    request.fields['price'] = price.toString();
-    request.fields['stock_quantity'] = stock_quantity.toString();
-    if (category_id != null)
-      request.fields['category_id'] = category_id.toString();
-    if (brand_id != null) request.fields['brand_id'] = brand_id.toString();
-    if (image_url != null && image_url.isNotEmpty)
-      request.fields['image_url'] = image_url;
-    if (specs != null && specs.isNotEmpty)
-      request.fields['specs_json'] = jsonEncode(specs);
+      request.fields['product_name'] = product_name;
+      request.fields['description'] = description;
+      request.fields['price'] = price.toString();
+      request.fields['stock_quantity'] = stock_quantity.toString();
+      if (category_id != null)
+        request.fields['category_id'] = category_id.toString();
+      if (brand_id != null) request.fields['brand_id'] = brand_id.toString();
+      if (image_url != null && image_url.isNotEmpty)
+        request.fields['image_url'] = image_url;
+      if (specs != null && specs.isNotEmpty)
+        request.fields['specs_json'] = jsonEncode(specs);
 
-    if (imageBytes != null &&
-        imageBytes.isNotEmpty &&
-        imageFileName != null &&
-        imageFileName.isNotEmpty) {
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'image',
-          imageBytes,
-          filename: imageFileName,
-        ),
+      if (imageBytes != null &&
+          imageBytes.isNotEmpty &&
+          imageFileName != null &&
+          imageFileName.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'image',
+            imageBytes,
+            filename: imageFileName,
+          ),
+        );
+      }
+
+      final streamed = await request.send();
+      final res = await http.Response.fromStream(streamed);
+      final body = jsonDecode(res.body);
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        return body is Map<String, dynamic> ? body : {'data': body};
+      }
+      throw ApiException(
+        body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
+        res.statusCode,
       );
     }
 
-    final streamed = await request.send();
-    final res = await http.Response.fromStream(streamed);
-    final body = jsonDecode(res.body);
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      return body is Map<String, dynamic> ? body : {'data': body};
+    try {
+      return await _send(_apiBase());
+    } catch (_) {
+      final base = await _reprobeBase();
+      if (base != null) {
+        setBaseUrl(base);
+        return await _send(base);
+      }
+      rethrow;
     }
-    throw ApiException(
-      body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
-      res.statusCode,
-    );
   }
 
   static Future<void> updateProduct(int id, Map<String, dynamic> data) async {

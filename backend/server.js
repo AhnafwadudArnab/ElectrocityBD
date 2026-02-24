@@ -7,7 +7,8 @@ require('dotenv').config();
 
 const pool = require('./config/db');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const DEFAULT_PORTS = [3000, 3001, 3002];
+let PORT = process.env.PORT || DEFAULT_PORTS[0];
 
 app.disable('x-powered-by');
 if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
@@ -61,6 +62,17 @@ app.use('/api/promotions', require('./routes/promotions'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Health check
+
+// Root handler
+app.get('/', (_req, res) => {
+  res.json({
+    message: 'Welcome to ElectrocityBD Backend API',
+    docs: '/api/health',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -80,10 +92,24 @@ pool.getConnection()
   .then((conn) => {
     conn.release();
     console.log('Database connected (electrocity_db)');
-    app.listen(PORT, () => {
-      console.log(`ElectrocityBD Backend: http://localhost:${PORT}`);
-      console.log('Admin login: ahnaf@electrocitybd.com / 1234@ (after npm run db:init)');
-    });
+    let portIndex = 0;
+    function tryListen() {
+      app.listen(PORT, () => {
+        console.log(`ElectrocityBD Backend: http://localhost:${PORT}`);
+        console.log('Admin login: ahnaf@admin.com / 1234@ (after npm run db:init)');
+      }).on('error', (err) => {
+        if (err.code === 'EADDRINUSE' && portIndex < DEFAULT_PORTS.length - 1) {
+          portIndex++;
+          PORT = DEFAULT_PORTS[portIndex];
+          console.warn(`Port ${DEFAULT_PORTS[portIndex - 1]} busy, trying ${PORT}...`);
+          tryListen();
+        } else {
+          console.error('Server listen error:', err);
+          process.exit(1);
+        }
+      });
+    }
+    tryListen();
   })
   .catch((err) => {
     console.error('Database connection failed:', err.message);
