@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../pages/home_page.dart';
 import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
-import '../../pages/home_page.dart';
 import '../CART/Cart_provider.dart';
 import 'login.dart';
 
@@ -65,7 +65,10 @@ class _SignupState extends State<Signup> {
       await AuthSession.setAdmin(false);
       if (mounted) {
         final email = (userMap?['email'] ?? _emailController.text).toString();
-        await context.read<CartProvider>().setCurrentUserId(email, mergeFromGuest: true);
+        await context.read<CartProvider>().setCurrentUserId(
+          email,
+          mergeFromGuest: true,
+        );
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +96,9 @@ class _SignupState extends State<Signup> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Server connection failed. Start backend (npm run dev).'),
+          content: Text(
+            'Server connection failed. Start backend (npm run dev).',
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -195,10 +200,7 @@ class _SignupState extends State<Signup> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF1E40AF),
-            Color(0xFFFBBF24),
-          ],
+          colors: [Color(0xFF1E40AF), Color(0xFFFBBF24)],
           end: Alignment.bottomRight,
         ),
       ),
@@ -227,7 +229,6 @@ class _SignupState extends State<Signup> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-             
             ],
           ],
         ),
@@ -352,24 +353,28 @@ class _SignupState extends State<Signup> {
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        obscureText: isPassword ? obscureText : false,
-        keyboardType: keyboardType,
-        validator: validator,
-        decoration: InputDecoration(
-          labelText: label,
-          isDense: true,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          suffixIcon: isPassword
-              ? IconButton(
-                  onPressed: onTogglePassword,
-                  icon: Icon(
-                    obscureText ? Icons.visibility_off : Icons.visibility,
-                    size: 20,
-                  ),
-                )
-              : null,
+      child: SizedBox(
+        height: 60,
+        child: TextFormField(
+          controller: controller,
+          obscureText: isPassword ? obscureText : false,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: const TextStyle(fontSize: 18),
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: false,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            suffixIcon: isPassword
+                ? IconButton(
+                    onPressed: onTogglePassword,
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      size: 24,
+                    ),
+                  )
+                : null,
+          ),
         ),
       ),
     );

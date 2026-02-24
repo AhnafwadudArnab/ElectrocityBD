@@ -63,9 +63,9 @@ class _LogInState extends State<LogIn> {
       } catch (_) {}
 
       await context.read<CartProvider>().setCurrentUserId(
-            userData.email,
-            mergeFromGuest: true,
-          );
+        userData.email,
+        mergeFromGuest: true,
+      );
       if (!mounted) return;
       // Re-init cart from server for logged-in user so home page has consistent state
       await context.read<CartProvider>().init();
@@ -73,7 +73,9 @@ class _LogInState extends State<LogIn> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(role == 'admin' ? 'Admin login successful!' : 'Login successful!'),
+          content: Text(
+            role == 'admin' ? 'Admin login successful!' : 'Login successful!',
+          ),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.white,
         ),
@@ -102,7 +104,9 @@ class _LogInState extends State<LogIn> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Server connection failed. Start backend (npm run dev).'),
+          content: Text(
+            'Server connection failed. Start backend (npm run dev).',
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -159,7 +163,9 @@ class _LogInState extends State<LogIn> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Server connection failed. Start backend: cd backend && npm run dev'),
+          content: Text(
+            'Server connection failed. Start backend: cd backend && npm run dev',
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           duration: Duration(seconds: 5),
@@ -432,28 +438,32 @@ class _LogInState extends State<LogIn> {
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: AppDimensions.padding(context) * 0.8),
-      child: TextFormField(
-        controller: controller,
-        obscureText: isPassword ? obscureText : false,
-        keyboardType: keyboardType,
-        validator: validator,
-        decoration: InputDecoration(
-          labelText: label,
-          isDense: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(
-              AppDimensions.borderRadius(context),
+      child: SizedBox(
+        height: 60,
+        child: TextFormField(
+          controller: controller,
+          obscureText: isPassword ? obscureText : false,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: const TextStyle(fontSize: 18),
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: false,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadius(context),
+              ),
             ),
+            suffixIcon: isPassword
+                ? IconButton(
+                    onPressed: onTogglePassword,
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      size: 24,
+                    ),
+                  )
+                : null,
           ),
-          suffixIcon: isPassword
-              ? IconButton(
-                  onPressed: onTogglePassword,
-                  icon: Icon(
-                    obscureText ? Icons.visibility_off : Icons.visibility,
-                    size: 20,
-                  ),
-                )
-              : null,
         ),
       ),
     );

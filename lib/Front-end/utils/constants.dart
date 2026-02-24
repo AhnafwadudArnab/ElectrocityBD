@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppConstants {
@@ -6,11 +5,14 @@ class AppConstants {
   static const String appName = 'ElectroCityBD';
   static const String appVersion = '1.0.0';
 
-  // API URL - real-time DB connection
-  // Web / same machine: localhost. Android emulator: 10.0.2.2. Real device: use your PC IP e.g. http://192.168.1.5:3000/api
+  // API URL - configurable for production and development
+  // Set 'API_BASE_URL' in --dart-define or use a config file for deployment
   static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:3000/api';
-    return 'http://localhost:3000/api';
+    const String envApiUrl = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'http://localhost:3000/api',
+    );
+    return envApiUrl;
   }
 
   /// Base URL for images (product images from backend uploads). API returns full URL; use this if you have relative path.
