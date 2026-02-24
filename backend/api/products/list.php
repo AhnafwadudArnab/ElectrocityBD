@@ -13,7 +13,69 @@ function imageFullUrl($imageUrl) {
     return strpos($imageUrl, '/') === 0 ? $base . $imageUrl : $base . '/' . $imageUrl;
 }
 
+$method = $_SERVER['REQUEST_METHOD'];
+
 try {
+    if ($method === 'POST') {
+        // Admin only check
+        $token = getBearerToken();
+        $payload = $token ? JWTHelper::verify($token) : null;
+        if (!$payload || $payload['role'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Unauthorized. Admin only.']);
+            exit;
+        }
+
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $isMultipart = stripos($contentType, 'multipart/form-data') !== false || !empty($_FILES);
+        if ($isMultipart) {
+            $name = $_POST['product_name'] ?? $_POST['name'] ?? '';
+            $desc = $_POST['description'] ?? '';
+            $price = $_POST['price'] ?? 0;
+            $stock = $_POST['stock_quantity'] ?? $_POST['stock'] ?? 0;
+            $catId = $_POST['category_id'] ?? null;
+            $brandId = $_POST['brand_id'] ?? null;
+            $imageUrl = $_POST['image_url'] ?? '';
+            if (isset($_FILES['image']) && is_uploaded_file($_FILES['image']['tmp_name'])) {
+                $uploadsDir = dirname(__DIR__, 2) . '/uploads';
+                if (!is_dir($uploadsDir)) {
+                    @mkdir($uploadsDir, 0777, true);
+                }
+                $orig = basename($_FILES['image']['name']);
+                $ext = pathinfo($orig, PATHINFO_EXTENSION);
+                $safeExt = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
+                $fname = 'prod_' . time() . '_' . bin2hex(random_bytes(4)) . ($safeExt ? ('.' . strtolower($safeExt)) : '');
+                $target = $uploadsDir . '/' . $fname;
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                    $imageUrl = '/uploads/' . $fname;
+                }
+            }
+        } else {
+            $body = getRequestBody();
+            $name = $body['product_name'] ?? $body['name'] ?? '';
+            $desc = $body['description'] ?? '';
+            $price = $body['price'] ?? 0;
+            $stock = $body['stock_quantity'] ?? $body['stock'] ?? 0;
+            $catId = $body['category_id'] ?? null;
+            $brandId = $body['brand_id'] ?? null;
+            $imageUrl = $body['image_url'] ?? '';
+        }
+
+        if (!$name || !$price) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Product name and price are required.']);
+            exit;
+        }
+
+            $stmt = $pdo->prepare("INSERT INTO products (category_id, brand_id, product_name, description, price, stock_quantity, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$catId, $brandId, $name, $desc, $price, $stock, $imageUrl]);
+        $newId = $pdo->lastInsertId();
+
+        echo json_encode(['message' => 'Product created successfully', 'product_id' => (int)$newId]);
+        exit;
+    }
+
+    // Existing GET logic
     $category_id = $_GET['category_id'] ?? null;
     $brand_id = $_GET['brand_id'] ?? null;
     $search = $_GET['search'] ?? null;
@@ -117,9 +179,6 @@ try {
 
     $products = [];
     foreach ($rows as $r) {
-        $specs = $r['specs_json'];
-        if (is_string($specs)) $specs = json_decode($specs, true);
-        $r['specs_json'] = $specs;
         $r['image_url'] = imageFullUrl($r['image_url']);
         $products[] = $r;
     }

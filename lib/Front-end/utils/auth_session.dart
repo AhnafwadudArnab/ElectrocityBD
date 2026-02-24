@@ -40,14 +40,22 @@ class UserData {
   );
 
   // Create from API response (backend login/register/profile)
-  factory UserData.fromApiResponse(Map<String, dynamic> user) => UserData(
-    firstName: (user['firstName'] ?? user['full_name'] ?? '').toString(),
-    lastName: (user['lastName'] ?? '').toString(),
-    email: (user['email'] ?? '').toString(),
-    phone: (user['phone'] ?? user['phone_number'] ?? '').toString(),
-    gender: (user['gender'] ?? 'Male').toString(),
-    address: (user['address'] ?? '').toString(),
-  );
+  factory UserData.fromApiResponse(Map<String, dynamic> data) {
+    // Handle both wrapped {"user": {...}} and direct {...} responses
+    final user =
+        data.containsKey('user') && data['user'] is Map<String, dynamic>
+        ? data['user'] as Map<String, dynamic>
+        : data;
+
+    return UserData(
+      firstName: (user['firstName'] ?? user['full_name'] ?? '').toString(),
+      lastName: (user['lastName'] ?? user['last_name'] ?? '').toString(),
+      email: (user['email'] ?? '').toString(),
+      phone: (user['phone'] ?? user['phone_number'] ?? '').toString(),
+      gender: (user['gender'] ?? 'Male').toString(),
+      address: (user['address'] ?? '').toString(),
+    );
+  }
 
   // Get full name
   String get fullName => '$firstName $lastName';

@@ -8,9 +8,9 @@ class SampleProducts {
       category: 'Audio',
       priceBDT: 3500, // Updated price
       images: [
-        'https://via.placeholder.com/500x500?text=Headphones+1',
-        'https://via.placeholder.com/500x500?text=Headphones+2',
-        'https://via.placeholder.com/500x500?text=Headphones+3',
+        'assets/prod/headphones1.jpg',
+        'assets/prod/headphones2.jpg',
+        'assets/prod/headphones3.jpg',
       ],
       description:
           'High-quality wireless headphones with noise cancellation and superior sound quality. Perfect for music lovers and professionals.',
@@ -26,10 +26,7 @@ class SampleProducts {
       name: 'Smart LED TV 43 inch',
       category: 'Television',
       priceBDT: 35000, // Updated price
-      images: [
-        'https://via.placeholder.com/500x500?text=TV+1',
-        'https://via.placeholder.com/500x500?text=TV+2',
-      ],
+      images: ['assets/prod/tv1.jpg', 'assets/prod/tv2.jpg'],
       description:
           'Ultra HD 4K Smart LED TV with built-in streaming apps and HDR support. Enjoy stunning picture quality.',
       additionalInfo: {
@@ -44,10 +41,7 @@ class SampleProducts {
       name: 'Gaming Mechanical Keyboard',
       category: 'Peripherals',
       priceBDT: 3500, // Updated price
-      images: [
-        'https://via.placeholder.com/500x500?text=Keyboard+1',
-        'https://via.placeholder.com/500x500?text=Keyboard+2',
-      ],
+      images: ['assets/prod/keyboard1.jpg', 'assets/prod/keyboard2.jpg'],
       description:
           'RGB backlit mechanical gaming keyboard with customizable keys and responsive switches.',
       additionalInfo: {
@@ -62,10 +56,7 @@ class SampleProducts {
       name: 'Wireless Gaming Mouse',
       category: 'Peripherals',
       priceBDT: 1800, // Updated price
-      images: [
-        'https://via.placeholder.com/500x500?text=Mouse+1',
-        'https://via.placeholder.com/500x500?text=Mouse+2',
-      ],
+      images: ['assets/prod/mouse1.jpg', 'assets/prod/mouse2.jpg'],
       description:
           'High-precision wireless gaming mouse with adjustable DPI and ergonomic design.',
       additionalInfo: {

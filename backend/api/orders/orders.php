@@ -31,19 +31,60 @@ if (!$payload) {
 $userId = $payload['userId'];
 $role = $payload['role'];
 $method = $_SERVER['REQUEST_METHOD'];
+$orderId = $_GET['id'] ?? null;
 
 try {
     if ($method === 'GET') {
+        if ($orderId) {
+            // Fetch single order
+            $stmt = $pdo->prepare("SELECT o.*, u.email, u.full_name, u.phone_number, u.address FROM orders o JOIN users u ON o.user_id = u.user_id WHERE o.order_id = ?");
+            $stmt->execute([$orderId]);
+            $order = $stmt->fetch();
+            
+            if (!$order) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Order not found.']);
+                exit;
+            }
+            
+            if ($role !== 'admin' && (int)$order['user_id'] !== (int)$userId) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Unauthorized.']);
+                exit;
+            }
+            
+            $stmtItems = $pdo->prepare(
+                "SELECT oi.*, p.image_url as product_image, p.price as current_price, p.product_name as current_name, b.brand_name
+                 FROM order_items oi
+                 LEFT JOIN products p ON oi.product_id = p.product_id
+                 LEFT JOIN brands b ON p.brand_id = b.brand_id
+                 WHERE oi.order_id = ?"
+            );
+            $stmtItems->execute([$orderId]);
+            $items = $stmtItems->fetchAll();
+            foreach ($items as &$it) {
+                $it['image_url'] = imageFullUrl($it['image_url'] ?: $it['product_image']);
+            }
+            $order['items'] = $items;
+            $order['customer_name'] = $order['full_name'] ?? null;
+            $order['customer_phone'] = $order['phone_number'] ?? null;
+            $order['shipping_address'] = [
+                'address' => $order['delivery_address'] ?: ($order['address'] ?? '')
+            ];
+            echo json_encode($order);
+            exit;
+        }
+
         if ($role === 'admin') {
             $stmt = $pdo->prepare(
-                "SELECT o.*, u.email, u.full_name
+                "SELECT o.*, u.email, u.full_name, u.phone_number, u.address
                  FROM orders o
                  JOIN users u ON o.user_id = u.user_id
                  ORDER BY o.order_date DESC"
             );
             $stmt->execute();
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY order_date DESC");
+            $stmt = $pdo->prepare("SELECT o.*, u.email, u.full_name, u.phone_number, u.address FROM orders o JOIN users u ON o.user_id = u.user_id WHERE o.user_id = ? ORDER BY o.order_date DESC");
             $stmt->execute([$userId]);
         }
         $orders = $stmt->fetchAll();
@@ -64,6 +105,11 @@ try {
                 $it['product_image'] = imageFullUrl($it['product_image'] ?: $it['image_url']);
             }
             $order['items'] = $items;
+            $order['customer_name'] = $order['full_name'] ?? null;
+            $order['customer_phone'] = $order['phone_number'] ?? null;
+            $order['shipping_address'] = [
+                'address' => $order['delivery_address'] ?: ($order['address'] ?? '')
+            ];
         }
 
         echo json_encode($orders);
@@ -83,21 +129,16 @@ try {
             exit;
         }
 
-        // Start transaction
         $pdo->beginTransaction();
-
         try {
-            // Stock check
             foreach ($items as $item) {
                 if (isset($item['product_id']) && $item['product_id'] !== null) {
                     $stmtStock = $pdo->prepare('SELECT stock_quantity FROM products WHERE product_id = ?');
                     $stmtStock->execute([$item['product_id']]);
                     $row = $stmtStock->fetch();
-                    
                     if (!$row) {
                         throw new Exception("Product ID {$item['product_id']} not found in database.");
                     }
-                    
                     $stock = $row['stock_quantity'] ?: 0;
                     $qty = (int)($item['quantity'] ?? 0);
                     if ($qty > $stock) {
@@ -105,50 +146,66 @@ try {
                     }
                 }
             }
-
-            // Insert Order
             $stmtOrder = $pdo->prepare(
                 "INSERT INTO orders (user_id, total_amount, payment_method, delivery_address, transaction_id, estimated_delivery, payment_status)
                  VALUES (?, ?, ?, ?, ?, ?, 'paid')"
             );
             $stmtOrder->execute([$userId, $total_amount, $payment_method, $delivery_address, $transaction_id, $estimated_delivery]);
             $orderId = $pdo->lastInsertId();
-
-            // Insert Order Items
             foreach ($items as $item) {
                 $stmtOrderItem = $pdo->prepare(
                     "INSERT INTO order_items (order_id, product_id, product_name, quantity, price_at_purchase, color, image_url)
                      VALUES (?, ?, ?, ?, ?, ?, ?)"
                 );
                 $stmtOrderItem->execute([
-                    $orderId, 
-                    $item['product_id'] ?? null, 
-                    $item['product_name'] ?? '', 
+                    $orderId,
+                    $item['product_id'] ?? null,
+                    $item['product_name'] ?? '',
                     $item['quantity'] ?? 1,
-                    $item['price'] ?? 0, 
-                    $item['color'] ?? '', 
+                    $item['price'] ?? 0,
+                    $item['color'] ?? '',
                     $item['image_url'] ?? ''
                 ]);
-                
-                // Update stock
                 if (isset($item['product_id']) && $item['product_id'] !== null) {
                     $stmtUpdateStock = $pdo->prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?');
                     $stmtUpdateStock->execute([(int)($item['quantity'] ?? 1), $item['product_id']]);
                 }
             }
-
-            // Clear user's cart
             $stmtClearCart = $pdo->prepare('DELETE FROM cart WHERE user_id = ?');
             $stmtClearCart->execute([$userId]);
-
             $pdo->commit();
-            echo json_encode(['message' => 'Order placed successfully.', 'order_id' => (int)$orderId]);
-
+            echo json_encode(['message' => 'Order placed successfully.', 'order_id' => $orderId]);
         } catch (Exception $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) $pdo->rollBack();
             http_response_code(400);
             echo json_encode(['error' => $e->getMessage()]);
         }
+
+    } else if ($method === 'PUT') {
+        if ($role !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Unauthorized. Admin only.']);
+            exit;
+        }
+        
+        if (!$orderId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Order ID is required.']);
+            exit;
+        }
+        
+        $body = getRequestBody();
+        $status = $body['status'] ?? null;
+        
+        if (!$status) {
+            http_response_code(400);
+            echo json_encode(['error' => 'status is required.']);
+            exit;
+        }
+        
+        $stmt = $pdo->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
+        $stmt->execute([$status, $orderId]);
+        echo json_encode(['message' => "Order status updated to $status."]);
     }
 
 } catch (Exception $e) {

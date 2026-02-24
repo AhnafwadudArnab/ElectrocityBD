@@ -87,26 +87,44 @@ try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
 
-        // Also update user_profile table if it exists
-        try {
-            $profileUpdates = [];
-            $profileParams = [];
-            if ($firstName !== null) { $profileUpdates[] = "full_name = ?"; $profileParams[] = $firstName; }
-            if ($lastName !== null) { $profileUpdates[] = "last_name = ?"; $profileParams[] = $lastName; }
-            if ($phone !== null) { $profileUpdates[] = "phone_number = ?"; $profileParams[] = $phone; }
-            if ($address !== null) { $profileUpdates[] = "address = ?"; $profileParams[] = $address; }
-            if ($gender !== null) { $profileUpdates[] = "gender = ?"; $profileParams[] = $gender; }
-            
-            if (!empty($profileUpdates)) {
-                $profileParams[] = $userId;
-                $stmtProfile = $pdo->prepare("UPDATE user_profile SET " . implode(', ', $profileUpdates) . " WHERE user_id = ?");
-                $stmtProfile->execute($profileParams);
-            }
-        } catch (Exception $e) {
-            // Ignore if user_profile doesn't exist or other errors
-        }
+        // Upsert user_profile to ensure row exists
+        $stmtProfileUpsert = $pdo->prepare("
+            INSERT INTO user_profile (user_id, full_name, last_name, phone_number, address, gender)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                full_name = VALUES(full_name),
+                last_name = VALUES(last_name),
+                phone_number = VALUES(phone_number),
+                address = VALUES(address),
+                gender = VALUES(gender)
+        ");
+        $stmtProfileUpsert->execute([
+            $userId,
+            $firstName ?? '',
+            $lastName ?? '',
+            $phone ?? '',
+            $address ?? '',
+            $gender ?? 'Male'
+        ]);
 
-        echo json_encode(['message' => 'Profile updated successfully.']);
+        // Return updated user payload
+        $stmt2 = $pdo->prepare('SELECT user_id, full_name, last_name, email, phone_number, address, gender, role, created_at FROM users WHERE user_id = ?');
+        $stmt2->execute([$userId]);
+        $user = $stmt2->fetch();
+        echo json_encode([
+            'message' => 'Profile updated successfully.',
+            'user' => [
+                'userId' => (int)$user['user_id'],
+                'firstName' => $user['full_name'],
+                'lastName' => $user['last_name'],
+                'email' => $user['email'],
+                'phone' => $user['phone_number'],
+                'address' => $user['address'],
+                'gender' => $user['gender'],
+                'role' => $user['role'],
+                'createdAt' => $user['created_at'],
+            ]
+        ]);
     } else {
         http_response_code(405);
         echo json_encode(['error' => 'Method Not Allowed']);

@@ -36,7 +36,7 @@ try {
         $stmt = $pdo->prepare(
             "SELECT w.wishlist_id, w.added_at,
              p.product_id, p.product_name, p.price, p.image_url, p.description
-             FROM wishlist w
+             FROM wishlists w
              JOIN products p ON w.product_id = p.product_id
              WHERE w.user_id = ?
              ORDER BY w.added_at DESC"
@@ -63,14 +63,14 @@ try {
         }
 
         // Check if already in wishlist
-        $stmt = $pdo->prepare('SELECT wishlist_id FROM wishlist WHERE user_id = ? AND product_id = ?');
+        $stmt = $pdo->prepare('SELECT wishlist_id FROM wishlists WHERE user_id = ? AND product_id = ?');
         $stmt->execute([$userId, $productId]);
         if ($stmt->fetch()) {
             echo json_encode(['message' => 'Product already in wishlist.']);
             exit;
         }
 
-        $stmt = $pdo->prepare('INSERT INTO wishlist (user_id, product_id) VALUES (?, ?)');
+        $stmt = $pdo->prepare('INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)');
         $stmt->execute([$userId, $productId]);
 
         echo json_encode(['message' => 'Product added to wishlist.']);
@@ -83,7 +83,7 @@ try {
             $productId = explode('?', $productId)[0];
         }
 
-        $stmt = $pdo->prepare('DELETE FROM wishlist WHERE user_id = ? AND product_id = ?');
+        $stmt = $pdo->prepare('DELETE FROM wishlists WHERE user_id = ? AND product_id = ?');
         $stmt->execute([$userId, $productId]);
 
         echo json_encode(['message' => 'Product removed from wishlist.']);

@@ -67,9 +67,41 @@ try {
         $rows = $stmt->fetchAll();
         $obj = [];
         foreach ($rows as $r) {
-            $obj[$r['setting_key']] = json_decode($r['setting_value'], true) ?: $r['setting_value'];
+            $key = str_replace('section_filter_', '', $r['setting_key']);
+            $obj[$key] = json_decode($r['setting_value'], true) ?: $r['setting_value'];
         }
         echo json_encode($obj);
+
+    } else if (strpos($subPath, 'section-filters') === 0 && $method === 'PUT') {
+        $section = end($pathParts);
+        $body = getRequestBody();
+        $settingKey = "section_filter_$section";
+        
+        $stmt = $pdo->prepare('INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+        $stmt->execute([$settingKey, json_encode($body)]);
+        echo json_encode(['message' => "Filter for $section updated successfully."]);
+
+    } else if ($subPath === 'reports' && $method === 'GET') {
+        $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
+        $to = $_GET['to'] ?? date('Y-m-d');
+        
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_date BETWEEN ? AND ? ORDER BY order_date DESC");
+        $stmt->execute(["$from 00:00:00", "$to 23:59:59"]);
+        $orders = $stmt->fetchAll();
+        
+        $totalRevenue = 0;
+        foreach ($orders as $o) {
+            if ($o['payment_status'] === 'paid') $totalRevenue += (float)$o['total_amount'];
+        }
+        
+        echo json_encode([
+            'orders' => $orders,
+            'summary' => [
+                'count' => count($orders),
+                'totalRevenue' => $totalRevenue,
+                'period' => ['from' => $from, 'to' => $to]
+            ]
+        ]);
     }
 
 } catch (Exception $e) {

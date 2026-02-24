@@ -30,8 +30,23 @@ if (!$payload) {
 
 $userId = $payload['userId'];
 $method = $_SERVER['REQUEST_METHOD'];
+$pathParts = explode('/', $_SERVER['REQUEST_URI']);
+$lastPart = end($pathParts);
+if (strpos($lastPart, '?') !== false) $lastPart = explode('?', $lastPart)[0];
 
 try {
+    if ($lastPart === 'all' && $method === 'GET' && $payload['role'] === 'admin') {
+        $stmt = $pdo->query(
+            "SELECT c.*, p.product_name, u.email, u.full_name
+             FROM cart c
+             JOIN products p ON c.product_id = p.product_id
+             JOIN users u ON c.user_id = u.user_id
+             ORDER BY c.added_at DESC"
+        );
+        echo json_encode($stmt->fetchAll());
+        exit;
+    }
+
     if ($method === 'GET') {
         $stmt = $pdo->prepare(
             "SELECT c.cart_id, c.quantity, c.added_at,
@@ -116,8 +131,15 @@ try {
             $cartId = explode('?', $cartId)[0];
         }
 
-        $stmt = $pdo->prepare('DELETE FROM cart WHERE cart_id = ? AND user_id = ?');
-        $stmt->execute([$cartId, $userId]);
+        if (!is_numeric($cartId) || $cartId === 'cart') {
+            $stmt = $pdo->prepare('DELETE FROM cart WHERE user_id = ?');
+            $stmt->execute([$userId]);
+            echo json_encode(['message' => 'Cart cleared.']);
+            return;
+        } else {
+            $stmt = $pdo->prepare('DELETE FROM cart WHERE cart_id = ? AND user_id = ?');
+            $stmt->execute([$cartId, $userId]);
+        }
 
         echo json_encode(['message' => 'Item removed from cart.']);
     }

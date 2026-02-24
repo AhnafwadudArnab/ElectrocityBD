@@ -88,6 +88,8 @@ $routes = [
     'auth/register' => 'auth/register.php',
     'auth/login' => 'auth/login.php',
     'auth/admin-login' => 'auth/admin_login.php',
+    'auth/change-password' => 'auth/change_password.php',
+    'auth/refresh' => 'auth/refresh.php',
     'auth/me' => 'auth/me.php',
     'products' => 'products/list.php',
     'products/detail' => 'products/detail.php', // Will handle /products/:id manually
@@ -108,10 +110,16 @@ if (preg_match('/^products\/(\d+)$/', $path, $matches)) {
     $path = 'products/detail';
 }
 
-// Handle /cart/:id and /wishlist/:id
-if (preg_match('/^(cart|wishlist)\/(\d+)$/', $path, $matches)) {
+// Handle /cart/:id, /wishlist/:id, /orders/:id
+if (preg_match('/^(cart|wishlist|orders)\/(\d+)$/', $path, $matches)) {
     $_GET['id'] = $matches[2];
     $path = $matches[1];
+}
+
+// Handle /orders/:id/status
+if (preg_match('/^orders\/(\d+)\/status$/', $path, $matches)) {
+    $_GET['id'] = $matches[1];
+    $path = 'orders';
 }
 
 // Handle /categories/:id/products

@@ -273,3 +273,20 @@ CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_wishlists_user ON wishlists(user_id);
 CREATE INDEX idx_customer_support_user ON customer_support(user_id);
 CREATE INDEX idx_customer_support_status ON customer_support(status);
+
+-- ---------------------------------------------------------------------------
+-- 17. Site Settings (for dynamic configuration like section filters)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key VARCHAR(100) PRIMARY KEY,
+  setting_value TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Seed initial section filters
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES 
+('section_filter_best_sellers', '{"limit": 10, "sort": "newest"}'),
+('section_filter_trending', '{"limit": 10, "sort": "newest"}'),
+('section_filter_deals', '{"limit": 10, "sort": "newest"}'),
+('section_filter_flash_sale', '{"limit": 10, "sort": "newest"}'),
+('section_filter_tech_part', '{"limit": 10, "sort": "newest"}');

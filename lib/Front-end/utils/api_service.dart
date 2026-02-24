@@ -17,9 +17,11 @@ class ApiService {
       if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty)
         overrideBaseUrl!,
       AppConstants.baseUrl,
+      'http://localhost:8000/api',
       'http://localhost:3002/api',
       'http://localhost:3001/api',
       'http://localhost:3000/api',
+      'http://127.0.0.1:8000/api',
       'http://127.0.0.1:3002/api',
       'http://127.0.0.1:3001/api',
       'http://127.0.0.1:3000/api',
@@ -81,13 +83,26 @@ class ApiService {
   static Future<T> _withReprobeBase<T>(
     Future<T> Function(String base) runner,
   ) async {
+    Future<T> _try(String base) async {
+      try {
+        return await runner(base);
+      } on ApiException catch (e) {
+        if (e.statusCode == 401 || e.statusCode == 403) {
+          final refreshed = await _refreshOnBase(base);
+          if (refreshed) {
+            return await runner(base);
+          }
+        }
+        rethrow;
+      }
+    }
     try {
-      return await runner(_apiBase());
+      return await _try(_apiBase());
     } catch (_) {
       final base = await _reprobeBase();
       if (base != null) {
         setBaseUrl(base);
-        return await runner(base);
+        return await _try(base);
       }
       rethrow;
     }
@@ -145,6 +160,23 @@ class ApiService {
       );
       return _handleResponse(res);
     });
+  }
+
+  static Future<bool> _refreshOnBase(String base) async {
+    try {
+      final res = await http.get(
+        Uri.parse('$base/auth/refresh'),
+        headers: await _headers(),
+      );
+      final body = await _handleResponse(res);
+      final token = body['token'] as String?;
+      if (token != null && token.isNotEmpty) {
+        await saveToken(token);
+        return true;
+      }
+    } catch (_) {}
+    await clearToken();
+    return false;
   }
 
   // ─── Auth API ───
@@ -276,8 +308,6 @@ class ApiService {
       if (brand_id != null) request.fields['brand_id'] = brand_id.toString();
       if (image_url != null && image_url.isNotEmpty)
         request.fields['image_url'] = image_url;
-      if (specs != null && specs.isNotEmpty)
-        request.fields['specs_json'] = jsonEncode(specs);
 
       if (imageBytes != null &&
           imageBytes.isNotEmpty &&
