@@ -43,18 +43,6 @@ class MidBannerRow extends StatelessWidget {
                       fit: BoxFit.fitWidth,
                     ),
                   ),
-                  // child: Center(
-                  //   child: Text(
-                  //     b['label'].toString(),
-                  //     textAlign: TextAlign.center,
-                  //     style: const TextStyle(
-                  //       color: Colors.white,
-                  //       fontSize: 16,
-                  //       fontWeight: FontWeight.bold,
-                  //       shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
-                  //     ),
-                  //   ),
-                  // ),
                 ),
               ),
             ),

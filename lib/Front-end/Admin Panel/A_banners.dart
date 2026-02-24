@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../pages/home_page.dart';
 import '../Provider/Banner_provider.dart';
+import '../pages/home_page.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
@@ -10,9 +10,9 @@ import 'A_carts.dart';
 import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
-import 'A_promotions.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
@@ -38,8 +38,10 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     TextEditingController(),
   ];
   final TextEditingController _sidebarTitleController = TextEditingController();
-  final TextEditingController _sidebarSubtitleController = TextEditingController();
-  final TextEditingController _sidebarButtonController = TextEditingController();
+  final TextEditingController _sidebarSubtitleController =
+      TextEditingController();
+  final TextEditingController _sidebarButtonController =
+      TextEditingController();
 
   int? _editingHeroIndex;
   bool _heroFormVisible = false;
@@ -48,15 +50,21 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
   @override
   void initState() {
     super.initState();
+    // Ensure BannerProvider is loaded
+    Future.microtask(() => context.read<BannerProvider>().load());
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncFromProvider());
   }
 
   void _ensureSyncedFromProvider(BannerProvider bp) {
     if (!bp.loaded || _syncedFromProvider) return;
     _syncedFromProvider = true;
-    _midControllers[0].text = bp.midBanners.isNotEmpty ? (bp.midBanners[0]['img'] ?? '') : '';
-    if (bp.midBanners.length > 1) _midControllers[1].text = bp.midBanners[1]['img'] ?? '';
-    if (bp.midBanners.length > 2) _midControllers[2].text = bp.midBanners[2]['img'] ?? '';
+    _midControllers[0].text = bp.midBanners.isNotEmpty
+        ? (bp.midBanners[0]['img'] ?? '')
+        : '';
+    if (bp.midBanners.length > 1)
+      _midControllers[1].text = bp.midBanners[1]['img'] ?? '';
+    if (bp.midBanners.length > 2)
+      _midControllers[2].text = bp.midBanners[2]['img'] ?? '';
     _sidebarTitleController.text = bp.sidebarTitle;
     _sidebarSubtitleController.text = bp.sidebarSubtitle;
     _sidebarButtonController.text = bp.sidebarButtonText;
@@ -67,9 +75,13 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     final bp = context.read<BannerProvider>();
     if (!bp.loaded) return;
     _syncedFromProvider = true;
-    _midControllers[0].text = bp.midBanners.isNotEmpty ? (bp.midBanners[0]['img'] ?? '') : '';
-    if (bp.midBanners.length > 1) _midControllers[1].text = bp.midBanners[1]['img'] ?? '';
-    if (bp.midBanners.length > 2) _midControllers[2].text = bp.midBanners[2]['img'] ?? '';
+    _midControllers[0].text = bp.midBanners.isNotEmpty
+        ? (bp.midBanners[0]['img'] ?? '')
+        : '';
+    if (bp.midBanners.length > 1)
+      _midControllers[1].text = bp.midBanners[1]['img'] ?? '';
+    if (bp.midBanners.length > 2)
+      _midControllers[2].text = bp.midBanners[2]['img'] ?? '';
     _sidebarTitleController.text = bp.sidebarTitle;
     _sidebarSubtitleController.text = bp.sidebarSubtitle;
     _sidebarButtonController.text = bp.sidebarButtonText;
@@ -163,16 +175,16 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
   }
 
   Widget _buildHeader() => Container(
-        height: 70,
-        width: double.infinity,
-        color: cardBg,
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: const Text(
-          "Management / Banners",
-          style: TextStyle(color: Colors.white54, fontSize: 14),
-        ),
-      );
+    height: 70,
+    width: double.infinity,
+    color: cardBg,
+    alignment: Alignment.centerLeft,
+    padding: const EdgeInsets.symmetric(horizontal: 32),
+    child: const Text(
+      "Management / Banners",
+      style: TextStyle(color: Colors.white54, fontSize: 14),
+    ),
+  );
 
   Widget _buildHeroSection() {
     return Consumer<BannerProvider>(
@@ -223,10 +235,15 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         controller: _heroImageController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText: 'Image path (e.g. assets/Hero banner logos/xxx.png)',
+                          labelText:
+                              'Image path (e.g. assets/Hero banner logos/xxx.png)',
                           labelStyle: TextStyle(color: Colors.grey.shade400),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade700)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade700),
+                          ),
                         ),
                       ),
                     ),
@@ -238,8 +255,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         decoration: InputDecoration(
                           labelText: 'Label',
                           labelStyle: TextStyle(color: Colors.grey.shade400),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade700)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade700),
+                          ),
                         ),
                       ),
                     ),
@@ -250,8 +271,13 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         final img = _heroImageController.text.trim();
                         final label = _heroLabelController.text.trim();
                         if (img.isEmpty) return;
-                        final newSlides = List<Map<String, String>>.from(slides);
-                        final entry = {'image': img, 'label': label.isEmpty ? 'OFFER' : label};
+                        final newSlides = List<Map<String, String>>.from(
+                          slides,
+                        );
+                        final entry = {
+                          'image': img,
+                          'label': label.isEmpty ? 'OFFER' : label,
+                        };
                         if (_editingHeroIndex != null) {
                           newSlides[_editingHeroIndex!] = entry;
                         } else {
@@ -284,7 +310,10 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                 final s = e.value;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: darkBg,
                     borderRadius: BorderRadius.circular(8),
@@ -292,22 +321,39 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                   ),
                   child: Row(
                     children: [
-                      Text('${i + 1}.', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                      Text(
+                        '${i + 1}.',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           s['image'] ?? '',
-                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         s['label'] ?? '',
-                        style: TextStyle(color: brandOrange, fontWeight: FontWeight.w600, fontSize: 13),
+                        style: TextStyle(
+                          color: brandOrange,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
                         onPressed: () {
                           setState(() {
                             _editingHeroIndex = i;
@@ -318,9 +364,15 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
                         onPressed: () async {
-                          final newSlides = List<Map<String, String>>.from(slides)..removeAt(i);
+                          final newSlides = List<Map<String, String>>.from(
+                            slides,
+                          )..removeAt(i);
                           await bp.saveHero(newSlides);
                           if (_editingHeroIndex == i) {
                             setState(() {
@@ -340,7 +392,10 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
               if (slides.isEmpty && !_heroFormVisible)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text("No hero slides. Click \"Add slide\" to add one.", style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    "No hero slides. Click \"Add slide\" to add one.",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
             ],
           ),
@@ -354,7 +409,8 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
       builder: (context, bp, _) {
         if (bp.loaded && !_syncedFromProvider) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _ensureSyncedFromProvider(context.read<BannerProvider>());
+            if (mounted)
+              _ensureSyncedFromProvider(context.read<BannerProvider>());
           });
         }
         return Container(
@@ -392,8 +448,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         decoration: InputDecoration(
                           hintText: 'e.g. assets/${i + 1}.png',
                           hintStyle: TextStyle(color: Colors.grey.shade600),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade700)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade700),
+                          ),
                         ),
                       ),
                     ),
@@ -405,17 +465,35 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
               ElevatedButton(
                 onPressed: () async {
                   final list = [
-                    {'img': _midControllers[0].text.trim().isEmpty ? 'assets/1.png' : _midControllers[0].text.trim()},
-                    {'img': _midControllers[1].text.trim().isEmpty ? 'assets/2.png' : _midControllers[1].text.trim()},
-                    {'img': _midControllers[2].text.trim().isEmpty ? 'assets/3.png' : _midControllers[2].text.trim()},
+                    {
+                      'img': _midControllers[0].text.trim().isEmpty
+                          ? 'assets/1.png'
+                          : _midControllers[0].text.trim(),
+                    },
+                    {
+                      'img': _midControllers[1].text.trim().isEmpty
+                          ? 'assets/2.png'
+                          : _midControllers[1].text.trim(),
+                    },
+                    {
+                      'img': _midControllers[2].text.trim().isEmpty
+                          ? 'assets/3.png'
+                          : _midControllers[2].text.trim(),
+                    },
                   ];
                   await bp.saveMid(list);
                   if (mounted) setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Mid banners saved.'), backgroundColor: Colors.green),
+                    const SnackBar(
+                      content: Text('Mid banners saved.'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: brandOrange, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brandOrange,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Save Mid Banners'),
               ),
             ],
@@ -452,8 +530,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                 decoration: InputDecoration(
                   labelText: 'Title',
                   labelStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade700)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade700),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -463,8 +545,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                 decoration: InputDecoration(
                   labelText: 'Subtitle',
                   labelStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade700)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade700),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -474,24 +560,40 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                 decoration: InputDecoration(
                   labelText: 'Button text',
                   labelStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade700)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade700),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () async {
                   await bp.saveSidebarPromo({
-                    'title': _sidebarTitleController.text.trim().isEmpty ? 'FLASH SALE' : _sidebarTitleController.text.trim(),
-                    'subtitle': _sidebarSubtitleController.text.trim().isEmpty ? 'Up to 40% Off on Earbuds' : _sidebarSubtitleController.text.trim(),
-                    'buttonText': _sidebarButtonController.text.trim().isEmpty ? 'VIEW ALL' : _sidebarButtonController.text.trim(),
+                    'title': _sidebarTitleController.text.trim().isEmpty
+                        ? 'FLASH SALE'
+                        : _sidebarTitleController.text.trim(),
+                    'subtitle': _sidebarSubtitleController.text.trim().isEmpty
+                        ? 'Up to 40% Off on Earbuds'
+                        : _sidebarSubtitleController.text.trim(),
+                    'buttonText': _sidebarButtonController.text.trim().isEmpty
+                        ? 'VIEW ALL'
+                        : _sidebarButtonController.text.trim(),
                   });
                   if (mounted) setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sidebar promo saved.'), backgroundColor: Colors.green),
+                    const SnackBar(
+                      content: Text('Sidebar promo saved.'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: brandOrange, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brandOrange,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Save Sidebar Promo'),
               ),
             ],

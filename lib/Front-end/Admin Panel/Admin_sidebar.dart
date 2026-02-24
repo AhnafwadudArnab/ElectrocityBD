@@ -5,12 +5,12 @@ enum AdminSidebarItem {
   orders,
   carts,
   products,
+  banners,
   reports,
   discounts,
   deals,
   flashSales,
   promotions,
-  banners,
   help,
   settings,
   viewStore,
@@ -58,7 +58,7 @@ class AdminSidebar extends StatelessWidget {
                   child: const Icon(Icons.bolt, color: Colors.white),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Admin Panel',
                   style: TextStyle(
                     fontSize: 20,

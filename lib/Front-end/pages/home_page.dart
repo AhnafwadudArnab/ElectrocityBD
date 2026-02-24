@@ -1,13 +1,13 @@
 import 'package:electrocitybd1/Front-end/widgets/Sections/TechPart.dart';
 import 'package:electrocitybd1/Front-end/widgets/Sections/Trendings/TrendingItems.dart';
-import 'package:electrocitybd1/Front-end/widgets/footer.dart';
 import 'package:electrocitybd1/Front-end/widgets/Sidebar/sidebar.dart';
+import 'package:electrocitybd1/Front-end/widgets/footer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
-import '../Provider/Banner_provider.dart';
 import '../Provider/Admin_product_provider.dart';
+import '../Provider/Banner_provider.dart';
 import '../widgets/Sections/BestSellings/best_selling.dart';
 import '../widgets/Sections/Collections/collections_pages.dart';
 import '../widgets/Sections/Deals_of_the_day.dart';
@@ -23,6 +23,9 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
     final showSidebar = r.isSmallDesktop || r.isDesktop;
+
+    // Ensure BannerProvider is loaded
+    Future.microtask(() => context.read<BannerProvider>().load());
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 252, 252, 252),
@@ -63,7 +66,10 @@ class _MainContentState extends State<_MainContent> {
   int _currentIndex = 0;
 
   static const List<Map<String, String>> _defaultSlides = [
-    {'image': 'assets/Hero banner logos/pre-ramadan.png', 'label': 'SPECIAL OFFERS'},
+    {
+      'image': 'assets/Hero banner logos/pre-ramadan.png',
+      'label': 'SPECIAL OFFERS',
+    },
     {'image': 'assets/Hero banner logos/dopp.png', 'label': 'HOT DEALS'},
     {'image': 'assets/Hero banner logos/top.png', 'label': 'NEW IN'},
   ];
@@ -202,7 +208,12 @@ class _MainContentState extends State<_MainContent> {
               top: 0,
               bottom: 0,
               child: Center(
-                child: _sliderButton(Icons.chevron_left, onTap: slidesLength > 0 ? () => _prevSlide(slidesLength) : null),
+                child: _sliderButton(
+                  Icons.chevron_left,
+                  onTap: slidesLength > 0
+                      ? () => _prevSlide(slidesLength)
+                      : null,
+                ),
               ),
             ),
 
@@ -212,7 +223,12 @@ class _MainContentState extends State<_MainContent> {
               top: 0,
               bottom: 0,
               child: Center(
-                child: _sliderButton(Icons.chevron_right, onTap: slidesLength > 0 ? () => _nextSlide(slidesLength) : null),
+                child: _sliderButton(
+                  Icons.chevron_right,
+                  onTap: slidesLength > 0
+                      ? () => _nextSlide(slidesLength)
+                      : null,
+                ),
               ),
             ),
 
@@ -311,173 +327,178 @@ class _MainContentState extends State<_MainContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-          /// HERO + BEST SELLING
-          r.isSmallMobile || r.isMobile
-              ? Column(
-                  children: [
-                    /// HERO BANNER
-                    _buildHeroBanner(context, slide, r, slidesLength: len),
-                    const SizedBox(height: 12),
+              /// HERO + BEST SELLING
+              r.isSmallMobile || r.isMobile
+                  ? Column(
+                      children: [
+                        /// HERO BANNER
+                        _buildHeroBanner(context, slide, r, slidesLength: len),
+                        const SizedBox(height: 12),
 
-                    /// BEST SELLING (full width on mobile)
-                    const BestSellingBox(),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// HERO BANNER
-                    Expanded(
-                      flex: 7,
-                      child: _buildHeroBanner(context, slide, r, slidesLength: len),
+                        /// BEST SELLING (full width on mobile)
+                        const BestSellingBox(),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /// HERO BANNER
+                        Expanded(
+                          flex: 7,
+                          child: _buildHeroBanner(
+                            context,
+                            slide,
+                            r,
+                            slidesLength: len,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        /// BEST SELLING
+                        const SizedBox(width: 300, child: BestSellingBox()),
+                      ],
                     ),
-                    const SizedBox(width: 12),
 
-                    /// BEST SELLING
-                    const SizedBox(width: 300, child: BestSellingBox()),
-                  ],
+              SizedBox(
+                height: r.value(
+                  smallMobile: 12.0,
+                  mobile: 14.0,
+                  tablet: 16.0,
+                  smallDesktop: 16.0,
+                  desktop: 16.0,
                 ),
+              ),
 
-          SizedBox(
-            height: r.value(
-              smallMobile: 12.0,
-              mobile: 14.0,
-              tablet: 16.0,
-              smallDesktop: 16.0,
-              desktop: 16.0,
-            ),
-          ),
+              /// OTHER SECTIONS (unchanged)
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
+                child: CollectionsPage(),
+              ),
+              SizedBox(
+                height: r.value(
+                  smallMobile: 10.0,
+                  mobile: 11.0,
+                  tablet: 12.0,
+                  smallDesktop: 12.0,
+                  desktop: 12.0,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
+                child: TrendingItems(),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
+                child: const FeaturedBrandsStrip(),
+              ),
+              SizedBox(
+                height: r.value(
+                  smallMobile: 12.0,
+                  mobile: 14.0,
+                  tablet: 16.0,
+                  smallDesktop: 16.0,
+                  desktop: 16.0,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
+                child: const DealsOfTheDay(),
+              ),
+              SizedBox(
+                height: r.value(
+                  smallMobile: 10.0,
+                  mobile: 12.0,
+                  tablet: 14.0,
+                  smallDesktop: 14.0,
+                  desktop: 14.0,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
+                child: FlashSaleCarousel(),
+              ),
+              SizedBox(
+                height: r.value(
+                  smallMobile: 12.0,
+                  mobile: 14.0,
+                  tablet: 16.0,
+                  smallDesktop: 16.0,
+                  desktop: 16.0,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.value(
+                    smallMobile: 8.0,
+                    mobile: 10.0,
+                    tablet: 12.0,
+                    smallDesktop: 12.0,
+                    desktop: 12.0,
+                  ),
+                ),
+                child: MidBannerRow(),
+              ),
 
-          /// OTHER SECTIONS (unchanged)
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.value(
-                smallMobile: 8.0,
-                mobile: 10.0,
-                tablet: 12.0,
-                smallDesktop: 12.0,
-                desktop: 12.0,
+              SizedBox(
+                height: r.value(
+                  smallMobile: 12.0,
+                  mobile: 14.0,
+                  tablet: 16.0,
+                  smallDesktop: 16.0,
+                  desktop: 16.0,
+                ),
               ),
-            ),
-            child: CollectionsPage(),
-          ),
-          SizedBox(
-            height: r.value(
-              smallMobile: 10.0,
-              mobile: 11.0,
-              tablet: 12.0,
-              smallDesktop: 12.0,
-              desktop: 12.0,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.value(
-                smallMobile: 8.0,
-                mobile: 10.0,
-                tablet: 12.0,
-                smallDesktop: 12.0,
-                desktop: 12.0,
+              Techpart(),
+              SizedBox(
+                height: r.value(
+                  smallMobile: 16.0,
+                  mobile: 20.0,
+                  tablet: 24.0,
+                  smallDesktop: 24.0,
+                  desktop: 24.0,
+                ),
               ),
-            ),
-            child: TrendingItems(),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.value(
-                smallMobile: 8.0,
-                mobile: 10.0,
-                tablet: 12.0,
-                smallDesktop: 12.0,
-                desktop: 12.0,
-              ),
-            ),
-            child: const FeaturedBrandsStrip(),
-          ),
-          SizedBox(
-            height: r.value(
-              smallMobile: 12.0,
-              mobile: 14.0,
-              tablet: 16.0,
-              smallDesktop: 16.0,
-              desktop: 16.0,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.value(
-                smallMobile: 8.0,
-                mobile: 10.0,
-                tablet: 12.0,
-                smallDesktop: 12.0,
-                desktop: 12.0,
-              ),
-            ),
-            child: const DealsOfTheDay(),
-          ),
-          SizedBox(
-            height: r.value(
-              smallMobile: 10.0,
-              mobile: 12.0,
-              tablet: 14.0,
-              smallDesktop: 14.0,
-              desktop: 14.0,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.value(
-                smallMobile: 8.0,
-                mobile: 10.0,
-                tablet: 12.0,
-                smallDesktop: 12.0,
-                desktop: 12.0,
-              ),
-            ),
-            child:  FlashSaleCarousel(),
-          ),
-          SizedBox(
-            height: r.value(
-              smallMobile: 12.0,
-              mobile: 14.0,
-              tablet: 16.0,
-              smallDesktop: 16.0,
-              desktop: 16.0,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.value(
-                smallMobile: 8.0,
-                mobile: 10.0,
-                tablet: 12.0,
-                smallDesktop: 12.0,
-                desktop: 12.0,
-              ),
-            ),
-            child: MidBannerRow(),
-          ),
-
-          SizedBox(
-            height: r.value(
-              smallMobile: 12.0,
-              mobile: 14.0,
-              tablet: 16.0,
-              smallDesktop: 16.0,
-              desktop: 16.0,
-            ),
-          ),
-          Techpart(),
-          SizedBox(
-            height: r.value(
-              smallMobile: 16.0,
-              mobile: 20.0,
-              tablet: 24.0,
-              smallDesktop: 24.0,
-              desktop: 24.0,
-            ),
-          ),
-          const FooterSection(),
+              const FooterSection(),
             ],
           ),
         );
