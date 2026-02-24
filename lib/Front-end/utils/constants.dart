@@ -14,7 +14,7 @@ class AppConstants {
     );
     if (envApiUrl.isNotEmpty) return envApiUrl;
     // Default dev backend port
-    return 'http://localhost:3001/api';
+    return 'http://localhost:3000/api';
   }
 
   /// Base URL for images (product images from backend uploads). API returns full URL; use this if you have relative path.

@@ -476,9 +476,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                       strokeWidth: 2,
                     ),
                   )
-                : const Text(
-                    "Publish Now",
-                    style: TextStyle(
+                : Text(
+                    "Publish to ${widget.sectionTitle}",
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -909,6 +909,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       final sectionKey = _sectionToApiKey[widget.sectionTitle];
       if (sectionKey != null) {
         await ApiService.updateProductSections(productId, {sectionKey: true});
+      } else {
+        // No backend section for this page (e.g., Collections/Others)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.orange,
+              content: Text(
+                'Created product; this page has no backend section to assign.',
+              ),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       final serverProduct = (res['product'] is Map)
