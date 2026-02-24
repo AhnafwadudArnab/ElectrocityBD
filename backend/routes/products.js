@@ -302,8 +302,21 @@ router.put('/:id/sections', authenticateToken, requireAdmin, async (req, res) =>
     if (deals) await pool.query('INSERT IGNORE INTO deals_of_the_day (product_id, deal_price, start_date, end_date) SELECT ?, price, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY) FROM products WHERE product_id = ?', [id, id]);
     else await pool.query('DELETE FROM deals_of_the_day WHERE product_id = ?', [id]);
 
-    const [fs] = await pool.query('SELECT flash_sale_id FROM flash_sales WHERE active = 1 LIMIT 1');
-    const fsId = fs && fs[0] ? fs[0].flash_sale_id : 1;
+    let fsId = 1;
+    try {
+      const [fs] = await pool.query('SELECT flash_sale_id FROM flash_sales WHERE active = 1 LIMIT 1');
+      if (fs && fs[0]) {
+        fsId = fs[0].flash_sale_id;
+      } else {
+        const [insertFs] = await pool.query(
+          'INSERT INTO flash_sales (title, start_time, end_time, active) VALUES (?, NOW(), DATE_ADD(NOW(), INTERVAL 12 HOUR), 1)',
+          ['Auto Flash Sale']
+        );
+        fsId = insertFs.insertId || 1;
+      }
+    } catch (e) {
+      console.error('Flash sale lookup/create error:', e);
+    }
     if (flash_sale) await pool.query('INSERT IGNORE INTO flash_sale_products (flash_sale_id, product_id) VALUES (?, ?)', [fsId, id]);
     else await pool.query('DELETE FROM flash_sale_products WHERE product_id = ?', [id]);
 

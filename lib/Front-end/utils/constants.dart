@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io' show Platform;
 
 class AppConstants {
   // App Info
@@ -10,8 +12,16 @@ class AppConstants {
   static String get baseUrl {
     const String envApiUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'http://localhost:3000/api',
+      // Backend runs on 3001 by default in this repo
+      defaultValue: 'http://localhost:3001/api',
     );
+    if (!kIsWeb) {
+      try {
+        if (Platform.isAndroid && envApiUrl.contains('localhost')) {
+          return envApiUrl.replaceFirst('localhost', '10.0.2.2');
+        }
+      } catch (_) {}
+    }
     return envApiUrl;
   }
 
