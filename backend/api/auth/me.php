@@ -20,7 +20,17 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     if ($method === 'GET') {
-        $stmt = $pdo->prepare('SELECT user_id, full_name, last_name, email, phone_number, address, gender, role, created_at FROM users WHERE user_id = ?');
+        $stmt = $pdo->prepare('
+            SELECT 
+                u.user_id, u.full_name, u.last_name, u.email, 
+                COALESCE(up.phone_number, u.phone_number) AS phone_number,
+                COALESCE(up.address, u.address) AS address,
+                COALESCE(up.gender, u.gender) AS gender,
+                u.role, u.created_at
+            FROM users u
+            LEFT JOIN user_profile up ON up.user_id = u.user_id
+            WHERE u.user_id = ?
+        ');
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
 
