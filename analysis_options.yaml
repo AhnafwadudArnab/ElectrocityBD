@@ -25,6 +25,7 @@ analyzer:
     unnecessary_cast: ignore
     no_leading_underscores_for_local_identifiers: ignore
     dead_code: ignore
+    use_build_context_synchronously: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

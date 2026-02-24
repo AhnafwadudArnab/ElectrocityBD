@@ -61,10 +61,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     _midControllers[0].text = bp.midBanners.isNotEmpty
         ? (bp.midBanners[0]['img'] ?? '')
         : '';
-    if (bp.midBanners.length > 1)
+    if (bp.midBanners.length > 1) {
       _midControllers[1].text = bp.midBanners[1]['img'] ?? '';
-    if (bp.midBanners.length > 2)
+    }
+    if (bp.midBanners.length > 2) {
       _midControllers[2].text = bp.midBanners[2]['img'] ?? '';
+    }
     _sidebarTitleController.text = bp.sidebarTitle;
     _sidebarSubtitleController.text = bp.sidebarSubtitle;
     _sidebarButtonController.text = bp.sidebarButtonText;
@@ -78,10 +80,12 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     _midControllers[0].text = bp.midBanners.isNotEmpty
         ? (bp.midBanners[0]['img'] ?? '')
         : '';
-    if (bp.midBanners.length > 1)
+    if (bp.midBanners.length > 1) {
       _midControllers[1].text = bp.midBanners[1]['img'] ?? '';
-    if (bp.midBanners.length > 2)
+    }
+    if (bp.midBanners.length > 2) {
       _midControllers[2].text = bp.midBanners[2]['img'] ?? '';
+    }
     _sidebarTitleController.text = bp.sidebarTitle;
     _sidebarSubtitleController.text = bp.sidebarSubtitle;
     _sidebarButtonController.text = bp.sidebarButtonText;
@@ -92,7 +96,9 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
   void dispose() {
     _heroImageController.dispose();
     _heroLabelController.dispose();
-    for (final c in _midControllers) c.dispose();
+    for (final c in _midControllers) {
+      c.dispose();
+    }
     _sidebarTitleController.dispose();
     _sidebarSubtitleController.dispose();
     _sidebarButtonController.dispose();
@@ -409,8 +415,9 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
       builder: (context, bp, _) {
         if (bp.loaded && !_syncedFromProvider) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted)
+            if (mounted) {
               _ensureSyncedFromProvider(context.read<BannerProvider>());
+            }
           });
         }
         return Container(
