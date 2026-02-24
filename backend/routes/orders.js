@@ -39,9 +39,10 @@ router.get('/', authenticateToken, async (req, res) => {
 
     for (const order of orders) {
       const [items] = await pool.query(
-        `SELECT oi.*, p.image_url as product_image
+        `SELECT oi.*, p.image_url as product_image, p.price as current_price, p.product_name as current_name, b.brand_name
          FROM order_items oi
          LEFT JOIN products p ON oi.product_id = p.product_id
+         LEFT JOIN brands b ON p.brand_id = b.brand_id
          WHERE oi.order_id = ?`,
         [order.order_id]
       );
@@ -162,9 +163,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
     }
 
     const [items] = await pool.query(
-      `SELECT oi.*, p.image_url as product_image
+      `SELECT oi.*, p.image_url as product_image, p.price as current_price, p.product_name as current_name, b.brand_name
        FROM order_items oi
        LEFT JOIN products p ON oi.product_id = p.product_id
+       LEFT JOIN brands b ON p.brand_id = b.brand_id
        WHERE oi.order_id = ?`,
       [order.order_id]
     );

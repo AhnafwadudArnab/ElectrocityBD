@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'constants.dart';
 
 String get _baseUrl => AppConstants.baseUrl;
@@ -56,10 +58,17 @@ class ApiService {
     );
     final body = jsonDecode(res.body);
     if (res.statusCode >= 200 && res.statusCode < 300) return body;
-    throw ApiException(body is Map ? (body['error'] ?? 'Request failed') : 'Request failed', res.statusCode);
+    throw ApiException(
+      body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
+      res.statusCode,
+    );
   }
 
-  static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data, {bool withAuth = true}) async {
+  static Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> data, {
+    bool withAuth = true,
+  }) async {
     final res = await http.post(
       Uri.parse('$_baseUrl$endpoint'),
       headers: await _headers(withAuth: withAuth),
@@ -68,7 +77,10 @@ class ApiService {
     return _handleResponse(res);
   }
 
-  static Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> put(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
     final res = await http.put(
       Uri.parse('$_baseUrl$endpoint'),
       headers: await _headers(),
@@ -165,10 +177,14 @@ class ApiService {
     if (search != null && search.isNotEmpty) query += '&search=$search';
     if (sort != null) query += '&sort=$sort';
     if (section != null && section.isNotEmpty) query += '&section=$section';
-    return await get('/products$query', withAuth: false) as Map<String, dynamic>;
+    return await get('/products$query', withAuth: false)
+        as Map<String, dynamic>;
   }
 
-  static Future<void> updateProductSections(int productId, Map<String, bool> sections) async {
+  static Future<void> updateProductSections(
+    int productId,
+    Map<String, bool> sections,
+  ) async {
     await put('/products/$productId/sections', sections);
   }
 
@@ -176,7 +192,9 @@ class ApiService {
     return await get('/products/$id', withAuth: false) as Map<String, dynamic>;
   }
 
-  static Future<Map<String, dynamic>> createProduct(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> createProduct(
+    Map<String, dynamic> data,
+  ) async {
     return await post('/products', data);
   }
 
@@ -191,6 +209,7 @@ class ApiService {
     String? image_url,
     List<int>? imageBytes,
     String? imageFileName,
+    Map<String, dynamic>? specs,
   }) async {
     final uri = Uri.parse('$_baseUrl/products');
     final request = http.MultipartRequest('POST', uri);
@@ -201,16 +220,25 @@ class ApiService {
     request.fields['description'] = description;
     request.fields['price'] = price.toString();
     request.fields['stock_quantity'] = stock_quantity.toString();
-    if (category_id != null) request.fields['category_id'] = category_id.toString();
+    if (category_id != null)
+      request.fields['category_id'] = category_id.toString();
     if (brand_id != null) request.fields['brand_id'] = brand_id.toString();
-    if (image_url != null && image_url.isNotEmpty) request.fields['image_url'] = image_url;
+    if (image_url != null && image_url.isNotEmpty)
+      request.fields['image_url'] = image_url;
+    if (specs != null && specs.isNotEmpty)
+      request.fields['specs_json'] = jsonEncode(specs);
 
-    if (imageBytes != null && imageBytes.isNotEmpty && imageFileName != null && imageFileName.isNotEmpty) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'image',
-        imageBytes,
-        filename: imageFileName,
-      ));
+    if (imageBytes != null &&
+        imageBytes.isNotEmpty &&
+        imageFileName != null &&
+        imageFileName.isNotEmpty) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: imageFileName,
+        ),
+      );
     }
 
     final streamed = await request.send();
@@ -219,7 +247,10 @@ class ApiService {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return body is Map<String, dynamic> ? body : {'data': body};
     }
-    throw ApiException(body is Map ? (body['error'] ?? 'Request failed') : 'Request failed', res.statusCode);
+    throw ApiException(
+      body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
+      res.statusCode,
+    );
   }
 
   static Future<void> updateProduct(int id, Map<String, dynamic> data) async {
@@ -262,7 +293,9 @@ class ApiService {
     return await get('/orders') as List<dynamic>;
   }
 
-  static Future<Map<String, dynamic>> placeOrder(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> placeOrder(
+    Map<String, dynamic> data,
+  ) async {
     return await post('/orders', data);
   }
 
@@ -376,7 +409,10 @@ class ApiService {
     return await get('/admin/customers') as List<dynamic>;
   }
 
-  static Future<Map<String, dynamic>> getReports({String? from, String? to}) async {
+  static Future<Map<String, dynamic>> getReports({
+    String? from,
+    String? to,
+  }) async {
     String query = '';
     if (from != null && to != null) query = '?from=$from&to=$to';
     return await get('/admin/reports$query') as Map<String, dynamic>;
@@ -388,7 +424,8 @@ class ApiService {
     return await get('/admin/section-filters') as Map<String, dynamic>;
   }
 
-  static Future<void> updateSectionFilter(String section, {
+  static Future<void> updateSectionFilter(
+    String section, {
     String? sort,
     int? limit,
     double? minPrice,

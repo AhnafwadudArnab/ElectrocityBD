@@ -223,6 +223,17 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   bool _publishing = false;
   bool _savingFilter = false;
 
+  final TextEditingController _modelController = TextEditingController();
+  final TextEditingController _powerWattController = TextEditingController();
+  final TextEditingController _warrantyMonthsController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _lumensController = TextEditingController();
+  final TextEditingController _colorTempController = TextEditingController();
+  final TextEditingController _lengthMeterController = TextEditingController();
+  final TextEditingController _gaugeAwgController = TextEditingController();
+  final TextEditingController _materialController = TextEditingController();
+  final TextEditingController _sizeController = TextEditingController();
+
   static const Map<String, String> _sectionToApiKey = {
     'Best Sellings': 'best_sellers',
     'Flash Sale': 'flash_sale',
@@ -431,6 +442,16 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                               ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Product Details",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDetailsFields(fieldBg),
                   ],
                 ),
               ),
@@ -861,6 +882,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       final imageUrl = _imageUrlController.text.trim().isEmpty
           ? null
           : _imageUrlController.text.trim();
+      final specs = _buildSpecsForSelectedCategory();
       final res = await ApiService.createProductWithImage(
         product_name: _nameController.text.trim(),
         description: _descController.text.trim(),
@@ -870,6 +892,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         image_url: imageUrl,
         imageBytes: _selectedFile?.bytes,
         imageFileName: _selectedFile?.name,
+        specs: specs.isEmpty ? null : specs,
       );
       final productId = res['productId'] as int?;
       if (productId == null) throw Exception('No product ID returned');
@@ -913,6 +936,16 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       _priceController.clear();
       _descController.clear();
       _imageUrlController.clear();
+      _modelController.clear();
+      _powerWattController.clear();
+      _warrantyMonthsController.clear();
+      _colorController.clear();
+      _lumensController.clear();
+      _colorTempController.clear();
+      _lengthMeterController.clear();
+      _gaugeAwgController.clear();
+      _materialController.clear();
+      _sizeController.clear();
       setState(() => _selectedFile = null);
 
       if (mounted) {
@@ -1014,5 +1047,89 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         ),
       ),
     );
+  }
+
+  Widget _buildDetailsFields(Color bg) {
+    final catName = () {
+      for (final c in _categories) {
+        if (c['category_id'] == _selectedCategoryId) return (c['category_name'] ?? '').toString();
+      }
+      return '';
+    }().toLowerCase();
+    final isKitchen = catName.contains('kitchen');
+    final isPersonal = catName.contains('personal');
+    final isHome = catName.contains('home');
+    final isLighting = catName.contains('lighting');
+    final isTools = catName.contains('tools');
+    final isWiring = catName.contains('wiring');
+
+    final List<Widget> fields = [];
+    if (isKitchen || isHome) {
+      fields.addAll([
+        _customTextField(_modelController, "Model", bg),
+        const SizedBox(height: 8),
+        _customTextField(_powerWattController, "Power (Watt)", bg, isNumber: true),
+        const SizedBox(height: 8),
+        _customTextField(_warrantyMonthsController, "Warranty (months)", bg, isNumber: true),
+      ]);
+    }
+    if (isPersonal || isHome || isTools) {
+      if (fields.isNotEmpty) fields.add(const SizedBox(height: 8));
+      fields.add(_customTextField(_colorController, "Color", bg));
+    }
+    if (isLighting) {
+      if (fields.isNotEmpty) fields.add(const SizedBox(height: 8));
+      fields.addAll([
+        _customTextField(_lumensController, "Lumens", bg, isNumber: true),
+        const SizedBox(height: 8),
+        _customTextField(_colorTempController, "Color Temperature (K)", bg, isNumber: true),
+        const SizedBox(height: 8),
+        _customTextField(_powerWattController, "Power (Watt)", bg, isNumber: true),
+      ]);
+    }
+    if (isTools) {
+      if (fields.isNotEmpty) fields.add(const SizedBox(height: 8));
+      fields.addAll([
+        _customTextField(_materialController, "Material", bg),
+        const SizedBox(height: 8),
+        _customTextField(_sizeController, "Size", bg),
+      ]);
+    }
+    if (isWiring) {
+      if (fields.isNotEmpty) fields.add(const SizedBox(height: 8));
+      fields.addAll([
+        _customTextField(_lengthMeterController, "Length (meter)", bg, isNumber: true),
+        const SizedBox(height: 8),
+        _customTextField(_gaugeAwgController, "Gauge (AWG)", bg, isNumber: true),
+        const SizedBox(height: 8),
+        _customTextField(_materialController, "Material", bg),
+      ]);
+    }
+    if (fields.isEmpty) {
+      fields.addAll([
+        _customTextField(_modelController, "Model (optional)", bg),
+      ]);
+    }
+    return Column(children: fields);
+  }
+
+  Map<String, dynamic> _buildSpecsForSelectedCategory() {
+    final Map<String, dynamic> m = {};
+    void put(String k, TextEditingController c, {bool number = false}) {
+      final t = c.text.trim();
+      if (t.isEmpty) return;
+      m[k] = number ? (double.tryParse(t) ?? t) : t;
+    }
+    put('model', _modelController);
+    put('power_watt', _powerWattController, number: true);
+    put('warranty_months', _warrantyMonthsController, number: true);
+    put('color', _colorController);
+    put('lumens', _lumensController, number: true);
+    put('color_temperature_k', _colorTempController, number: true);
+    put('length_meter', _lengthMeterController, number: true);
+    put('gauge_awg', _gaugeAwgController, number: true);
+    put('material', _materialController);
+    put('size', _sizeController);
+    return m;
   }
 }

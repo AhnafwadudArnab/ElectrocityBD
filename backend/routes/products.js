@@ -116,10 +116,15 @@ router.get('/', async (req, res) => {
       total = countResult[0]?.total ?? 0;
     }
 
-    const products = rows.map((r) => ({
-      ...r,
-      image_url: imageFullUrl(req, r.image_url),
-    }));
+    const products = rows.map((r) => {
+      let specs = r.specs_json;
+      try { if (typeof specs === 'string') specs = JSON.parse(specs); } catch (_) {}
+      return {
+        ...r,
+        specs_json: specs ?? null,
+        image_url: imageFullUrl(req, r.image_url),
+      };
+    });
 
     res.json({ products, total });
   } catch (err) {
@@ -144,7 +149,9 @@ router.get('/:id', async (req, res) => {
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
     const row = rows[0];
-    res.json({ ...row, image_url: imageFullUrl(req, row.image_url) });
+    let specs = row.specs_json;
+    try { if (typeof specs === 'string') specs = JSON.parse(specs); } catch (_) {}
+    res.json({ ...row, specs_json: specs ?? null, image_url: imageFullUrl(req, row.image_url) });
   } catch (err) {
     console.error('Product detail error:', err);
     res.status(500).json({ error: 'Server error.' });
@@ -154,7 +161,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/products - admin create
 router.post('/', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { product_name, description, price, stock_quantity, category_id, brand_id, image_url } = req.body;
+    const { product_name, description, price, stock_quantity, category_id, brand_id, image_url, specs_json } = req.body;
     if (!product_name || String(product_name).trim() === '') {
       return res.status(400).json({ error: 'Product name is required.' });
     }
@@ -177,10 +184,10 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
     const finalImageUrl = req.file ? `/uploads/${req.file.filename}` : (image_url || '');
 
     const [result] = await pool.query(
-      `INSERT INTO products (product_name, description, price, stock_quantity, category_id, brand_id, image_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (product_name, description, price, stock_quantity, category_id, brand_id, image_url, specs_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [String(product_name).trim(), description || '', numPrice, numStock,
-       category_id || null, brand_id || null, finalImageUrl]
+       category_id || null, brand_id || null, finalImageUrl, specs_json || null]
     );
 
     const [createdRows] = await pool.query(
@@ -191,7 +198,12 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
        WHERE p.product_id = ?`,
       [result.insertId]
     );
-    const created = createdRows[0] ? { ...createdRows[0], image_url: imageFullUrl(req, createdRows[0].image_url) } : null;
+    let created = createdRows[0] || null;
+    if (created) {
+      let specs = created.specs_json;
+      try { if (typeof specs === 'string') specs = JSON.parse(specs); } catch (_) {}
+      created = { ...created, specs_json: specs ?? null, image_url: imageFullUrl(req, createdRows[0].image_url) };
+    }
     res.status(201).json({ message: 'Product created.', productId: result.insertId, product: created });
   } catch (err) {
     console.error('Product create error:', err);
@@ -204,7 +216,7 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
 // PUT /api/products/:id - admin update
 router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { product_name, description, price, stock_quantity, category_id, brand_id, image_url } = req.body;
+    const { product_name, description, price, stock_quantity, category_id, brand_id, image_url, specs_json } = req.body;
     const finalImageUrl = req.file ? `/uploads/${req.file.filename}` : image_url;
 
     let sql = `UPDATE products SET product_name = COALESCE(?, product_name),
@@ -235,6 +247,10 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
       sql += ', image_url = ?';
       params.push(finalImageUrl);
     }
+    if (typeof specs_json !== 'undefined') {
+      sql += ', specs_json = ?';
+      params.push(specs_json || null);
+    }
     sql += ' WHERE product_id = ?';
     params.push(req.params.id);
 
@@ -247,7 +263,12 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
        WHERE p.product_id = ?`,
       [req.params.id]
     );
-    const updated = rows[0] ? { ...rows[0], image_url: imageFullUrl(req, rows[0].image_url) } : null;
+    let updated = rows[0] || null;
+    if (updated) {
+      let specs = updated.specs_json;
+      try { if (typeof specs === 'string') specs = JSON.parse(specs); } catch (_) {}
+      updated = { ...updated, specs_json: specs ?? null, image_url: imageFullUrl(req, rows[0].image_url) };
+    }
     res.json({ message: 'Product updated.', product: updated });
   } catch (err) {
     console.error('Product update error:', err);

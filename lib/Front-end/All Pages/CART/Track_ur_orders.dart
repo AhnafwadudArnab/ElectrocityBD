@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../utils/api_service.dart';
+import '../../widgets/footer.dart';
+import '../../widgets/header.dart';
 
 class TrackOrderFormPage extends StatefulWidget {
   const TrackOrderFormPage({super.key});
@@ -25,7 +28,10 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
     if (_formKey.currentState!.validate()) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const TrackOrderPage()),
+        MaterialPageRoute(
+          builder: (context) =>
+              TrackOrderPage(orderId: _orderIdController.text.trim()),
+        ),
       );
     }
   }
@@ -35,6 +41,7 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
     final r = AppResponsive.of(context);
 
     return Scaffold(
+      appBar: const Header(),
       backgroundColor: const Color(0xFFF5F5F5),
       body: SingleChildScrollView(
         child: Column(
@@ -273,66 +280,151 @@ class _TrackOrderFormPageState extends State<TrackOrderFormPage> {
                 ],
               ),
             ),
+            const FooterSection(),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildFeature(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(
-          AppDimensions.borderRadius(context),
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            color: const Color(0xFF1B7340),
-            size: AppDimensions.iconSize(context),
-          ),
-          SizedBox(height: AppResponsive.of(context).hp(1)),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppDimensions.smallFont(context),
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: AppResponsive.of(context).hp(0.5)),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppDimensions.smallFont(context) - 2,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class TrackOrderPage extends StatelessWidget {
-  const TrackOrderPage({super.key});
+Widget _buildFeature(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required String subtitle,
+}) {
+  return Container(
+    padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+    ),
+    child: Column(
+      children: [
+        Icon(
+          icon,
+          color: const Color(0xFF1B7340),
+          size: AppDimensions.iconSize(context),
+        ),
+        SizedBox(height: AppResponsive.of(context).hp(1)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: AppDimensions.smallFont(context),
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: AppResponsive.of(context).hp(0.5)),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: AppDimensions.smallFont(context) - 2,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class TrackOrderPage extends StatefulWidget {
+  final String orderId;
+  const TrackOrderPage({super.key, required this.orderId});
+
+  @override
+  State<TrackOrderPage> createState() => _TrackOrderPageState();
+}
+
+class _TrackOrderPageState extends State<TrackOrderPage> {
+  Map<String, dynamic>? order;
+  bool loading = true;
+  String? error;
+
+  Future<Map<String, dynamic>> getOrderDetail(int id) async {
+    final data = await ApiService.getOrderDetail(id);
+    return data;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+    try {
+      final id = int.tryParse(widget.orderId);
+      if (id == null) {
+        setState(() {
+          loading = false;
+          error = 'Invalid order ID';
+        });
+        return;
+      }
+      final data = await getOrderDetail(id);
+      setState(() {
+        order = data;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        loading = false;
+        error = e.toString();
+      });
+    }
+  }
+
+  String _statusLabel() {
+    final s = (order?['order_status'] ?? '').toString().toLowerCase();
+    if (s.isEmpty) return 'pending';
+    return s;
+  }
+
+  double _subtotal() {
+    final total = order?['total_amount'];
+    if (total is num) return total.toDouble();
+    if (total is String) {
+      final d = double.tryParse(total);
+      if (d != null) return d;
+    }
+    return 0;
+  }
+
+  bool _insideDhaka() {
+    final adr = (order?['delivery_address'] ?? '').toString().toLowerCase();
+    return adr.contains('dhaka');
+  }
+
+  double _deliveryCharge() {
+    return _insideDhaka() ? 60 : 120;
+  }
+
+  double _paymentFee() {
+    final m = (order?['payment_method'] ?? '').toString().toLowerCase();
+    if (m.contains('cash')) return (_subtotal() * 0.02);
+    if (m.contains('bkash')) return (_subtotal() * 0.015);
+    if (m.contains('nagad')) return (_subtotal() * 0.01);
+    return 0;
+  }
+
+  String _formatBDT(double v) {
+    return '৳${v.toStringAsFixed(0)}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
 
     return Scaffold(
+      appBar: const Header(),
       backgroundColor: const Color(0xFFF5F5F5),
       body: SingleChildScrollView(
         child: Column(
@@ -397,114 +489,173 @@ class TrackOrderPage extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.all(AppDimensions.padding(context)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Order Status Header
-                  Text(
-                    'Order Status',
-                    style: TextStyle(
-                      fontSize: AppDimensions.titleFont(context) * 0.7,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: r.hp(1)),
-                  Text(
-                    'Order ID : #SDGT1254FD',
-                    style: TextStyle(
-                      fontSize: AppDimensions.smallFont(context),
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  SizedBox(height: r.hp(3)),
-                  // Timeline Status
-                  Container(
-                    padding: EdgeInsets.all(AppDimensions.padding(context)),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.borderRadius(context),
-                      ),
-                    ),
-                    child: _buildTimeline(context),
-                  ),
-                  SizedBox(height: r.hp(4)),
-                  // Products Section
-                  Text(
-                    'Products',
-                    style: TextStyle(
-                      fontSize: AppDimensions.titleFont(context) * 0.7,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: r.hp(2)),
-                  // Product Items
-                  _buildProductItem(
-                    context: context,
-                    productName: 'Wooden Sofa Chair',
-                    color: 'Grey',
-                    quantity: '4 Qty.',
-                  ),
-                  SizedBox(height: AppDimensions.padding(context) * 0.75),
-                  _buildProductItem(
-                    context: context,
-                    productName: 'Red Gaming Chair',
-                    color: 'Black',
-                    quantity: '2 Qty.',
-                  ),
-                  SizedBox(height: AppDimensions.padding(context) * 0.75),
-                  _buildProductItem(
-                    context: context,
-                    productName: 'Swivel Chair',
-                    color: 'Light Brown',
-                    quantity: '1 Qty.',
-                  ),
-                  SizedBox(height: AppDimensions.padding(context) * 0.75),
-                  _buildProductItem(
-                    context: context,
-                    productName: 'Circular Sofa Chair',
-                    color: 'Brown',
-                    quantity: '2 Qty.',
-                  ),
-                  SizedBox(height: r.hp(4)),
-                  // Features Section
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFeature(
-                          context,
-                          icon: Icons.local_shipping_outlined,
-                          title: 'Free Shipping',
-                          subtitle: 'Free shipping for order above \$180',
-                        ),
-                      ),
-                      SizedBox(width: AppDimensions.padding(context) * 0.75),
-                      Expanded(
-                        child: _buildFeature(
-                          context,
-                          icon: Icons.credit_card,
-                          title: 'Flexible Payment',
-                          subtitle: 'Multiple secure payment options',
-                        ),
-                      ),
-                      SizedBox(width: AppDimensions.padding(context) * 0.75),
-                      Expanded(
-                        child: _buildFeature(
-                          context,
-                          icon: Icons.support_agent,
-                          title: '24x7 Support',
-                          subtitle: 'We support online all days.',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            if (loading)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: const CircularProgressIndicator(),
               ),
-            ),
+            if (!loading && error != null)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Text(error!, style: TextStyle(color: Colors.red[700])),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _load,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            if (!loading && error == null && order != null)
+              Padding(
+                padding: EdgeInsets.all(AppDimensions.padding(context)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Order Status',
+                      style: TextStyle(
+                        fontSize: AppDimensions.titleFont(context) * 0.7,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: r.hp(1)),
+                    Text(
+                      'Order ID : #${order!['order_id']}',
+                      style: TextStyle(
+                        fontSize: AppDimensions.smallFont(context),
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    SizedBox(height: r.hp(3)),
+                    Container(
+                      padding: EdgeInsets.all(AppDimensions.padding(context)),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.borderRadius(context),
+                        ),
+                      ),
+                      child: _buildTimeline(context),
+                    ),
+                    SizedBox(height: r.hp(4)),
+                    Text(
+                      'Products',
+                      style: TextStyle(
+                        fontSize: AppDimensions.titleFont(context) * 0.7,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: r.hp(2)),
+                    ...List<Widget>.from(
+                      ((order!['items'] as List<dynamic>? ?? [])).map((e) {
+                        final qty =
+                            int.tryParse(e['quantity']?.toString() ?? '1') ?? 1;
+                        final priceRaw = (e['price_at_purchase'] ?? e['price']);
+                        final unit = priceRaw is num
+                            ? priceRaw.toDouble()
+                            : (double.tryParse(priceRaw?.toString() ?? '') ??
+                                  0.0);
+                        final img = (e['image_url'] ?? e['product_image'] ?? '')
+                            .toString();
+                        final brand = (e['brand_name'] ?? '').toString();
+                        final currentPriceRaw = e['current_price'];
+                        final currentPrice = currentPriceRaw is num
+                            ? currentPriceRaw.toDouble()
+                            : (double.tryParse(
+                                    currentPriceRaw?.toString() ?? '',
+                                  ) ??
+                                  0.0);
+                        return _buildProductItem(
+                          context: context,
+                          productName: (e['product_name'] ?? e['name'] ?? '')
+                              .toString(),
+                          color: (e['color'] ?? '').toString(),
+                          quantity: qty,
+                          unitPrice: unit,
+                          imageUrl: img,
+                          brandName: brand,
+                          currentPrice: currentPrice,
+                        );
+                      }),
+                    ),
+                    SizedBox(height: r.hp(4)),
+                    Text(
+                      'Charges (BD)',
+                      style: TextStyle(
+                        fontSize: AppDimensions.titleFont(context) * 0.7,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.all(AppDimensions.padding(context)),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.borderRadius(context),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _chargeRow('Subtotal', _formatBDT(_subtotal())),
+                          const SizedBox(height: 8),
+                          _chargeRow(
+                            'Delivery (${_insideDhaka() ? 'Inside Dhaka 60' : 'Outside Dhaka 120'})',
+                            _formatBDT(_deliveryCharge()),
+                          ),
+                          const SizedBox(height: 8),
+                          _chargeRow('Payment Fee', _formatBDT(_paymentFee())),
+                          const Divider(height: 20),
+                          _chargeRow(
+                            'Total Payable',
+                            _formatBDT(
+                              _subtotal() + _deliveryCharge() + _paymentFee(),
+                            ),
+                            bold: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: r.hp(4)),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildFeature(
+                            context,
+                            icon: Icons.local_shipping_outlined,
+                            title: 'Free Shipping',
+                            subtitle: 'Free shipping for order above \$180',
+                          ),
+                        ),
+                        SizedBox(width: AppDimensions.padding(context) * 0.75),
+                        Expanded(
+                          child: _buildFeature(
+                            context,
+                            icon: Icons.credit_card,
+                            title: 'Flexible Payment',
+                            subtitle: 'Multiple secure payment options',
+                          ),
+                        ),
+                        SizedBox(width: AppDimensions.padding(context) * 0.75),
+                        Expanded(
+                          child: _buildFeature(
+                            context,
+                            icon: Icons.support_agent,
+                            title: '24x7 Support',
+                            subtitle: 'We support online all days.',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -513,6 +664,12 @@ class TrackOrderPage extends StatelessWidget {
 
   Widget _buildTimeline(BuildContext context) {
     final r = AppResponsive.of(context);
+    final s = _statusLabel();
+    final placed = true;
+    final accepted = s != 'pending' ? true : false;
+    final inProgress = s == 'processing' || s == 'shipped' || s == 'delivered';
+    final onTheWay = s == 'shipped' || s == 'delivered';
+    final delivered = s == 'delivered';
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -523,50 +680,50 @@ class TrackOrderPage extends StatelessWidget {
             context: context,
             icon: Icons.shopping_bag,
             label: 'Order Placed',
-            date: '20 Apr 2024',
-            time: '11:00 AM',
-            isCompleted: true,
-            isActive: true,
+            date: (order?['order_date'] ?? '').toString().split('T').first,
+            time: '',
+            isCompleted: placed,
+            isActive: placed,
           ),
           _buildStatusConnector(context, true),
           _buildStatusItem(
             context: context,
             icon: Icons.done_all,
             label: 'Accepted',
-            date: '20 Apr 2024',
-            time: '11:15 AM',
-            isCompleted: true,
-            isActive: false,
+            date: '',
+            time: '',
+            isCompleted: accepted,
+            isActive: accepted && !inProgress,
           ),
           _buildStatusConnector(context, false),
           _buildStatusItem(
             context: context,
             icon: Icons.local_shipping,
             label: 'In Progress',
-            date: 'Expected',
-            time: '21 Apr 2024',
-            isCompleted: false,
-            isActive: false,
+            date: '',
+            time: '',
+            isCompleted: inProgress,
+            isActive: inProgress && !onTheWay,
           ),
           _buildStatusConnector(context, false),
           _buildStatusItem(
             context: context,
             icon: Icons.directions_car,
             label: 'On the Way',
-            date: 'Expected',
-            time: '22,23 Apr 2024',
-            isCompleted: false,
-            isActive: false,
+            date: '',
+            time: '',
+            isCompleted: onTheWay,
+            isActive: onTheWay && !delivered,
           ),
           _buildStatusConnector(context, false),
           _buildStatusItem(
             context: context,
             icon: Icons.home,
             label: 'Delivered',
-            date: 'Expected',
-            time: '24 Apr 2024',
-            isCompleted: false,
-            isActive: false,
+            date: '',
+            time: '',
+            isCompleted: delivered,
+            isActive: delivered,
           ),
         ],
       ),
@@ -635,6 +792,26 @@ class TrackOrderPage extends StatelessWidget {
     );
   }
 
+  Widget _chargeRow(String k, String v, {bool bold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          k,
+          style: TextStyle(
+            fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+        Text(
+          v,
+          style: TextStyle(
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatusConnector(BuildContext context, bool isCompleted) {
     final r = AppResponsive.of(context);
 
@@ -652,9 +829,14 @@ class TrackOrderPage extends StatelessWidget {
     required BuildContext context,
     required String productName,
     required String color,
-    required String quantity,
+    required int quantity,
+    required double unitPrice,
+    required String imageUrl,
+    String? brandName,
+    double? currentPrice,
   }) {
     final r = AppResponsive.of(context);
+    final lineTotal = unitPrice * quantity;
 
     return Container(
       padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
@@ -666,42 +848,70 @@ class TrackOrderPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: AppDimensions.imageSize(context) * 0.4,
-            height: AppDimensions.imageSize(context) * 0.4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(
-                AppDimensions.borderRadius(context),
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadius(context),
             ),
-            child: Icon(
-              Icons.chair,
-              color: Colors.grey.shade400,
-              size: AppDimensions.iconSize(context),
-            ),
+            child: imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    width: AppDimensions.imageSize(context) * 0.4,
+                    height: AppDimensions.imageSize(context) * 0.4,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: AppDimensions.imageSize(context) * 0.4,
+                      height: AppDimensions.imageSize(context) * 0.4,
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.image, color: Colors.grey.shade400),
+                    ),
+                  )
+                : Container(
+                    width: AppDimensions.imageSize(context) * 0.4,
+                    height: AppDimensions.imageSize(context) * 0.4,
+                    color: Colors.grey.shade200,
+                    child: Icon(Icons.image, color: Colors.grey.shade400),
+                  ),
           ),
           SizedBox(width: AppDimensions.padding(context) * 0.75),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                productName,
-                style: TextStyle(
-                  fontSize: AppDimensions.bodyFont(context),
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  [
+                    if (brandName != null && brandName.isNotEmpty)
+                      '$brandName ·',
+                    productName,
+                  ].join(' '),
+                  style: TextStyle(
+                    fontSize: AppDimensions.bodyFont(context),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
-              SizedBox(height: r.hp(0.5)),
-              Text(
-                'Color : $color | $quantity',
-                style: TextStyle(
-                  fontSize: AppDimensions.smallFont(context),
-                  color: Colors.grey.shade600,
+                SizedBox(height: r.hp(0.5)),
+                Text(
+                  [
+                    if (color.isNotEmpty) 'Color: $color',
+                    'Qty: $quantity',
+                    'Unit: ৳${unitPrice.toStringAsFixed(0)}',
+                  ].join('  |  '),
+                  style: TextStyle(
+                    fontSize: AppDimensions.smallFont(context),
+                    color: Colors.grey.shade600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '৳${lineTotal.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: AppDimensions.bodyFont(context),
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
           ),
         ],
       ),

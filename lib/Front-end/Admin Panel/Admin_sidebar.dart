@@ -104,15 +104,7 @@ class AdminSidebar extends StatelessWidget {
                     activeBg: activeBackground,
                     inactiveColor: inactiveGrey,
                   ),
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.carts,
-                    icon: Icons.shopping_cart_outlined,
-                    label: 'Customer Carts',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
+                  // carts menu removed per requirement
 
                   _buildSidebarItem(
                     item: AdminSidebarItem.reports,
