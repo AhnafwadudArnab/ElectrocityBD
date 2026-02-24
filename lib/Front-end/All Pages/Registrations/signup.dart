@@ -58,10 +58,12 @@ class _SignupState extends State<Signup> {
         gender: 'Male',
       );
       if (!mounted) return;
+      final token = (result['token'] ?? '').toString();
       final userMap = result['user'] as Map<String, dynamic>?;
-      if (userMap != null) {
-        await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
+      if (token.isEmpty || userMap == null) {
+        throw ApiException('Registration failed. Try again.', 400);
       }
+      await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
       await AuthSession.setAdmin(false);
       if (mounted) {
         final email = (userMap?['email'] ?? _emailController.text).toString();
@@ -70,6 +72,11 @@ class _SignupState extends State<Signup> {
           mergeFromGuest: true,
         );
       }
+      try {
+        final profile = await ApiService.getProfile();
+        final fullUser = UserData.fromApiResponse(profile);
+        await AuthSession.updateUserData(fullUser);
+      } catch (_) {}
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

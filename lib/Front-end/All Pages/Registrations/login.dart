@@ -43,17 +43,13 @@ class _LogInState extends State<LogIn> {
       final result = await ApiService.login(email: email, password: password);
       if (!mounted) return;
 
+      final token = (result['token'] ?? '').toString();
       final userMap = result['user'] as Map<String, dynamic>?;
-      final role = (userMap?['role'] ?? '').toString();
-      final userData = userMap != null
-          ? UserData.fromApiResponse(userMap)
-          : UserData(
-              firstName: email.split('@').first,
-              lastName: '',
-              email: email,
-              phone: '',
-              gender: 'Male',
-            );
+      if (token.isEmpty || userMap == null) {
+        throw ApiException('Invalid email or password.', 401);
+      }
+      final role = (userMap['role'] ?? '').toString();
+      final userData = UserData.fromApiResponse(userMap);
       await AuthSession.saveUserData(userData);
       await AuthSession.setAdmin(role == 'admin');
       try {
