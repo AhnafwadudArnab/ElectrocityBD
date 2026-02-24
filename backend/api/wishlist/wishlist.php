@@ -13,12 +13,7 @@ function imageFullUrl($imageUrl) {
     return strpos($imageUrl, '/') === 0 ? $base . $imageUrl : $base . '/' . $imageUrl;
 }
 
-$headers = getallheaders();
-$authHeader = $headers['Authorization'] ?? '';
-$token = '';
-if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-    $token = $matches[1];
-}
+$token = getBearerToken();
 
 if (!$token) {
     http_response_code(401);

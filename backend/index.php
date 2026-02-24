@@ -14,18 +14,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/middleware/jwt_helper.php';
 
-// Helper for environments where getallheaders() is not defined
-if (!function_exists('getallheaders')) {
-    function getallheaders()
-    {
-        $headers = [];
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-            }
-        }
-        return $headers;
+// Serve static files from uploads and assets
+$requestUri = $_SERVER['REQUEST_URI'];
+$scriptName = $_SERVER['SCRIPT_NAME'];
+$basePath = str_replace('index.php', '', $scriptName);
+$path = str_replace($basePath, '', $requestUri);
+$path = explode('?', $path)[0]; // Remove query params
+
+// Handle static files for /uploads and /assets
+if (preg_match('/^\/(uploads|assets)\//', $path)) {
+    $filePath = __DIR__ . '/..' . $path;
+    if (strpos($path, '/uploads/') === 0) {
+        $filePath = __DIR__ . $path; // uploads is inside backend/
     }
+    
+    if (file_exists($filePath) && !is_dir($filePath)) {
+        $ext = pathinfo($filePath, PATHINFO_EXTENSION);
+        $mimeTypes = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+        ];
+        $contentType = $mimeTypes[strtolower($ext)] ?? 'application/octet-stream';
+        header("Content-Type: $contentType");
+        readfile($filePath);
+        exit;
+    }
+}
+
+// Helper to extract Bearer token from headers or server variables
+function getBearerToken() {
+    // 1. Try SERVER variables (most reliable in PHP built-in server)
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+
+    // 2. Try headers if server variables are empty
+    if (empty($authHeader)) {
+        $headers = [];
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+        } elseif (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+        }
+        
+        // Normalize keys to lowercase for easier lookup
+        $lowerHeaders = array_change_key_case($headers, CASE_LOWER);
+        $authHeader = $lowerHeaders['authorization'] ?? '';
+    }
+
+    if (!empty($authHeader) && preg_match('/Bearer\s(\S+)/i', $authHeader, $matches)) {
+        return $matches[1];
+    }
+    return null;
 }
 
 // Helper to get request body
@@ -33,13 +76,6 @@ function getRequestBody()
 {
     return json_decode(file_get_contents('php://input'), true) ?? [];
 }
-
-// Simple Router
-$requestUri = $_SERVER['REQUEST_URI'];
-$scriptName = $_SERVER['SCRIPT_NAME'];
-$basePath = str_replace('index.php', '', $scriptName);
-$path = str_replace($basePath, '', $requestUri);
-$path = explode('?', $path)[0]; // Remove query params
 
 // Support /api/ prefix
 if (strpos($path, 'api/') === 0) {

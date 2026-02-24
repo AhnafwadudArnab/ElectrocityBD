@@ -13,23 +13,18 @@ function imageFullUrl($imageUrl) {
     return strpos($imageUrl, '/') === 0 ? $base . $imageUrl : $base . '/' . $imageUrl;
 }
 
-$headers = getallheaders();
-$authHeader = $headers['Authorization'] ?? '';
-$token = '';
-if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-    $token = $matches[1];
-}
+$token = getBearerToken();
 
 if (!$token) {
     http_response_code(401);
-    echo json_encode(['error' => 'No token provided.']);
+    echo json_encode(['error' => 'No token provided. Please log in again.']);
     exit;
 }
 
 $payload = JWTHelper::verify($token);
 if (!$payload) {
     http_response_code(401);
-    echo json_encode(['error' => 'Invalid or expired token.']);
+    echo json_encode(['error' => 'Invalid or expired token. Please log in again.']);
     exit;
 }
 
@@ -88,55 +83,72 @@ try {
             exit;
         }
 
-        // Stock check
-        foreach ($items as $item) {
-            if (isset($item['product_id'])) {
-                $stmtStock = $pdo->prepare('SELECT stock_quantity FROM products WHERE product_id = ?');
-                $stmtStock->execute([$item['product_id']]);
-                $stock = $stmtStock->fetchColumn() ?: 0;
-                $qty = (int)($item['quantity'] ?? 0);
-                if ($qty > $stock) {
-                    http_response_code(400);
-                    echo json_encode(['error' => "Insufficient stock for product ID {$item['product_id']}. Available: $stock, requested: $qty."]);
-                    exit;
+        // Start transaction
+        $pdo->beginTransaction();
+
+        try {
+            // Stock check
+            foreach ($items as $item) {
+                if (isset($item['product_id']) && $item['product_id'] !== null) {
+                    $stmtStock = $pdo->prepare('SELECT stock_quantity FROM products WHERE product_id = ?');
+                    $stmtStock->execute([$item['product_id']]);
+                    $row = $stmtStock->fetch();
+                    
+                    if (!$row) {
+                        throw new Exception("Product ID {$item['product_id']} not found in database.");
+                    }
+                    
+                    $stock = $row['stock_quantity'] ?: 0;
+                    $qty = (int)($item['quantity'] ?? 0);
+                    if ($qty > $stock) {
+                        throw new Exception("Insufficient stock for product ID {$item['product_id']}. Available: $stock, requested: $qty.");
+                    }
                 }
             }
-        }
 
-        $stmtOrder = $pdo->prepare(
-            "INSERT INTO orders (user_id, total_amount, payment_method, delivery_address, transaction_id, estimated_delivery)
-             VALUES (?, ?, ?, ?, ?, ?)"
-        );
-        $stmtOrder->execute([$userId, $total_amount, $payment_method, $delivery_address, $transaction_id, $estimated_delivery]);
-        $orderId = $pdo->lastInsertId();
-
-        foreach ($items as $item) {
-            $stmtOrderItem = $pdo->prepare(
-                "INSERT INTO order_items (order_id, product_id, product_name, quantity, price_at_purchase, color, image_url)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+            // Insert Order
+            $stmtOrder = $pdo->prepare(
+                "INSERT INTO orders (user_id, total_amount, payment_method, delivery_address, transaction_id, estimated_delivery, payment_status)
+                 VALUES (?, ?, ?, ?, ?, ?, 'paid')"
             );
-            $stmtOrderItem->execute([
-                $orderId, 
-                $item['product_id'] ?? null, 
-                $item['product_name'] ?? '', 
-                $item['quantity'],
-                $item['price'], 
-                $item['color'] ?? '', 
-                $item['image_url'] ?? ''
-            ]);
-            
-            // Update stock
-            if (isset($item['product_id'])) {
-                $stmtUpdateStock = $pdo->prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?');
-                $stmtUpdateStock->execute([(int)$item['quantity'], $item['product_id']]);
+            $stmtOrder->execute([$userId, $total_amount, $payment_method, $delivery_address, $transaction_id, $estimated_delivery]);
+            $orderId = $pdo->lastInsertId();
+
+            // Insert Order Items
+            foreach ($items as $item) {
+                $stmtOrderItem = $pdo->prepare(
+                    "INSERT INTO order_items (order_id, product_id, product_name, quantity, price_at_purchase, color, image_url)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)"
+                );
+                $stmtOrderItem->execute([
+                    $orderId, 
+                    $item['product_id'] ?? null, 
+                    $item['product_name'] ?? '', 
+                    $item['quantity'] ?? 1,
+                    $item['price'] ?? 0, 
+                    $item['color'] ?? '', 
+                    $item['image_url'] ?? ''
+                ]);
+                
+                // Update stock
+                if (isset($item['product_id']) && $item['product_id'] !== null) {
+                    $stmtUpdateStock = $pdo->prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?');
+                    $stmtUpdateStock->execute([(int)($item['quantity'] ?? 1), $item['product_id']]);
+                }
             }
+
+            // Clear user's cart
+            $stmtClearCart = $pdo->prepare('DELETE FROM cart WHERE user_id = ?');
+            $stmtClearCart->execute([$userId]);
+
+            $pdo->commit();
+            echo json_encode(['message' => 'Order placed successfully.', 'order_id' => (int)$orderId]);
+
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            http_response_code(400);
+            echo json_encode(['error' => $e->getMessage()]);
         }
-
-        // Clear cart
-        $stmtClearCart = $pdo->prepare('DELETE FROM cart WHERE user_id = ?');
-        $stmtClearCart->execute([$userId]);
-
-        echo json_encode(['message' => 'Order placed successfully.', 'order_id' => (int)$orderId]);
     }
 
 } catch (Exception $e) {

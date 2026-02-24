@@ -60,6 +60,7 @@ try {
             'lastName' => $lastName,
             'email' => $email,
             'phone' => $phone,
+            'address' => '',
             'gender' => $gender,
             'role' => 'customer',
         ]

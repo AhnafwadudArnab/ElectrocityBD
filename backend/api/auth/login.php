@@ -43,6 +43,7 @@ try {
             'lastName' => $user['last_name'],
             'email' => $user['email'],
             'phone' => $user['phone_number'],
+            'address' => $user['address'],
             'gender' => $user['gender'],
             'role' => $user['role'],
         ]

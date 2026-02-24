@@ -1,7 +1,7 @@
 -- ============================================================
 -- ElectrocityBD - Sample Data
 -- Run after electrocity_schema.sql
--- Admin user: create via backend "npm run db:init" (password is hashed with bcrypt)
+-- Admin user: add manually or via SQL (email: ahnaf@admin.com, password: 1234@ - hashed with bcrypt)
 -- ============================================================
 
 USE electrocity_db;

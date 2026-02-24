@@ -38,12 +38,7 @@ try {
 
     } else if ($method === 'POST') {
         // Auth and Admin check
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? '';
-        $token = '';
-        if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-            $token = $matches[1];
-        }
+        $token = getBearerToken();
         $payload = JWTHelper::verify($token);
         if (!$payload || $payload['role'] !== 'admin') {
             http_response_code(403);

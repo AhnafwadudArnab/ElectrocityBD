@@ -1,6 +1,6 @@
 # ElectrocityBD – Database (MySQL)
 
-This folder holds **MySQL schema and sample data** for the ElectrocityBD e-commerce app. The schema is aligned with the **Node.js backend** in `backend/`.
+This folder holds **MySQL schema and sample data** for the ElectrocityBD e-commerce app. The schema is aligned with the **PHP backend** in `backend/`.
 
 ## Files
 
@@ -14,18 +14,18 @@ This folder holds **MySQL schema and sample data** for the ElectrocityBD e-comme
 ## Backend link
 
 - **Backend folder:** `backend/`
-- **DB config:** `backend/config/db.js` (uses `.env`: `DB_NAME=electrocity_db`)
-- **Init script:** `backend/config/init_db.js` creates the same tables and seeds an **admin user** with a bcrypt-hashed password.
+- **DB config:** `backend/config/db.php` (uses `electrocity_db`)
+- **Router script:** `backend/index.php` handles all API requests.
 
 So you can either:
 
-1. **Use the backend (recommended):**  
-   `cd backend && npm run db:init`  
-   This creates the database, all tables, and the admin user (email: `ahnaf@electrocitybd.com`, password: `1234@`).
+1. **Use the backend:**  
+   Start the PHP server: `php -S localhost:3000 backend/index.php`.  
+   The admin user (email: `ahnaf@admin.com`, password: `1234@`) should be added to the `users` table manually or via a SQL script.
 
 2. **Use MySQL only:**  
    - Run `electrocity_schema.sql` then `electrocity_sample_data.sql` (or run `All_db.sql` for schema + sample data).  
-   - Create the admin user via the backend once (e.g. run `npm run db:init`), or add a user manually with a bcrypt hash.
+   - Add a user manually with a bcrypt hash for login.
 
 ## Quick import (MySQL CLI)
 

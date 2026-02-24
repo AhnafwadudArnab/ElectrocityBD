@@ -97,7 +97,7 @@ class _SignupState extends State<Signup> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Server connection failed. Start backend (npm run dev).',
+            'Server connection failed. Start PHP backend (php -S localhost:3000 backend/index.php).',
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,

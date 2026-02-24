@@ -117,29 +117,37 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         return;
       }
       final userData = await AuthSession.getUserData();
-      final deliveryAddress = userData?.address ?? '';
+      String deliveryAddress = userData?.address ?? '';
+      
       if (deliveryAddress.trim().isEmpty) {
+        // Fallback or ask user
         if (!context.mounted) return;
-        _showError('Please add a delivery address in Profile before placing order.');
+        _showError('Please add a delivery address in your Profile before placing an order.');
         return;
       }
+
       final body = {
         'total_amount': total,
         'payment_method': methodName,
         'delivery_address': deliveryAddress,
         'transaction_id': transactionId,
         'estimated_delivery': estimatedDelivery,
-        'items': cartProvider.items.map((item) => {
-          'product_id': int.tryParse(item.productId),
-          'product_name': item.name,
-          'quantity': item.quantity,
-          'price': item.price,
-          'image_url': item.imageUrl,
-          'color': '',
+        'items': cartProvider.items.map((item) {
+          final pid = int.tryParse(item.productId);
+          return {
+            'product_id': pid,
+            'product_name': item.name,
+            'quantity': item.quantity,
+            'price': item.price,
+            'image_url': item.imageUrl,
+            'color': '',
+          };
         }).toList(),
       };
+      
       final result = await ApiService.placeOrder(body);
-      orderId = (result['orderId'] ?? result['order_id'])?.toString() ?? 'EC-${DateTime.now().millisecondsSinceEpoch}';
+      // Backend returns order_id
+      orderId = (result['order_id'] ?? result['orderId'])?.toString() ?? 'EC-${DateTime.now().millisecondsSinceEpoch}';
       await ordersProvider.refreshFromApi();
       await cartProvider.clearCart();
       if (!context.mounted) return;

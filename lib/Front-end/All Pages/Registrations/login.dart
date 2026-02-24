@@ -105,7 +105,7 @@ class _LogInState extends State<LogIn> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Server connection failed. Start backend (npm run dev).',
+            'Server connection failed. Start PHP backend (php -S localhost:3000 backend/index.php).',
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -149,8 +149,8 @@ class _LogInState extends State<LogIn> {
     } on ApiException catch (e) {
       if (!mounted) return;
       final msg = e.message.contains('Invalid admin')
-          ? 'Invalid admin credentials. Use email: ahnaf@electrocitybd.com, password: 1234@ — and run in backend folder: npm run db:init'
-          : e.message;
+          ? 'Invalid admin credentials. (Email: ahnaf@admin.com, Password: 1234@). Use MySQL to check your users table.'
+          : 'Invalid email or password.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(msg),
@@ -164,7 +164,7 @@ class _LogInState extends State<LogIn> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Server connection failed. Start backend: cd backend && npm run dev',
+            'Server connection failed. Start PHP backend: php -S localhost:3000 backend/index.php',
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
