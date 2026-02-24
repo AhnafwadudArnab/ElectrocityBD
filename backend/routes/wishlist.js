@@ -4,6 +4,14 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+function imageFullUrl(req, imageUrl) {
+  if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
+  if (imageUrl.startsWith('asset:')) return imageUrl;
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+  const base = `${req.protocol}://${req.get('host') || 'localhost:3000'}`;
+  return imageUrl.startsWith('/') ? base + imageUrl : base + '/' + imageUrl;
+}
+
 // GET /api/wishlist
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -19,7 +27,11 @@ router.get('/', authenticateToken, async (req, res) => {
        ORDER BY w.added_at DESC`,
       [req.user.userId]
     );
-    res.json(rows);
+    const items = rows.map((r) => ({
+      ...r,
+      image_url: imageFullUrl(req, r.image_url),
+    }));
+    res.json(items);
   } catch (err) {
     console.error('Wishlist get error:', err);
     res.status(500).json({ error: 'Server error.' });

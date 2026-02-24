@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 async function initDatabase() {
@@ -223,8 +224,8 @@ async function initDatabase() {
   }
   console.log('All tables created successfully.');
 
-  // Seed admin user (plain password; upsert so password is always correct)
-  const adminPassword = '1234@';
+  // Seed admin user with hashed password; upsert so password is always correct
+  const adminPassword = await bcrypt.hash('1234@', 10);
   const adminEmail = 'ahnaf@electrocitybd.com';
   await connection.query(
     `INSERT INTO users (full_name, last_name, email, password, phone_number, role)

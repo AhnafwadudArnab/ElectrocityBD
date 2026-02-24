@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -42,10 +43,11 @@ router.post('/register', ensureJwtSecret, async (req, res) => {
         return res.status(409).json({ error: 'Email already registered.' });
       }
 
+      const hashed = await bcrypt.hash(String(password), 10);
       const [result] = await conn.query(
         `INSERT INTO users (full_name, last_name, email, password, phone_number, gender, role)
          VALUES (?, ?, ?, ?, ?, ?, 'customer')`,
-        [firstName, lastName || '', email, String(password), phone || '', gender || 'Male']
+        [firstName, lastName || '', email, hashed, phone || '', gender || 'Male']
       );
       userId = result.insertId;
 
@@ -106,7 +108,8 @@ router.post('/login', ensureJwtSecret, async (req, res) => {
     }
 
     const user = rows[0];
-    if (user.password !== String(password)) {
+    const passOk = await bcrypt.compare(String(password), String(user.password || ''));
+    if (!passOk) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -155,8 +158,9 @@ router.post('/admin-login', ensureJwtSecret, async (req, res) => {
     }
 
     const admin = rows[0];
-    const storedPassword = admin.password || admin.PASSWORD || '';
-    if (storedPassword !== String(password)) {
+    const storedPassword = String(admin.password || admin.PASSWORD || '');
+    const passOk = await bcrypt.compare(String(password), storedPassword);
+    if (!passOk) {
       return res.status(401).json({ error: 'Invalid admin credentials.' });
     }
 
@@ -218,10 +222,12 @@ router.put('/change-password', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Current and new password are required.' });
     }
     const [[row]] = await pool.query('SELECT password FROM users WHERE user_id = ?', [req.user.userId]);
-    if (!row || row.password !== String(currentPassword)) {
+    const ok = row ? await bcrypt.compare(String(currentPassword), String(row.password || '')) : false;
+    if (!row || !ok) {
       return res.status(401).json({ error: 'Current password is wrong.' });
     }
-    await pool.query('UPDATE users SET password = ? WHERE user_id = ?', [String(newPassword), req.user.userId]);
+    const hashed = await bcrypt.hash(String(newPassword), 10);
+    await pool.query('UPDATE users SET password = ? WHERE user_id = ?', [hashed, req.user.userId]);
     res.json({ message: 'Password updated.' });
   } catch (err) {
     console.error('Change password error:', err);

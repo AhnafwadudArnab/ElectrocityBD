@@ -7,10 +7,18 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+  destination: (_req, _file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
+  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (allowed.includes(file.mimetype)) return cb(null, true);
+    return cb(new Error('Only PNG, JPG, JPEG, WEBP images are allowed'));
+  },
+});
 
 // Helper: full URL for images. Keep 'asset:...' as-is so Flutter loads from assets; uploads get base URL.
 function imageFullUrl(req, imageUrl) {
@@ -89,7 +97,8 @@ router.get('/', async (req, res) => {
     res.json({ products, total });
   } catch (err) {
     console.error('Products list error:', err);
-    res.status(500).json({ error: 'Server error.' });
+    const msg = err.message && err.message.includes('images are allowed') ? err.message : 'Server error.';
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -130,6 +139,14 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
     if (numStock < 0) {
       return res.status(400).json({ error: 'Stock quantity cannot be negative.' });
     }
+    if (category_id) {
+      const [[cat]] = await pool.query('SELECT category_id FROM categories WHERE category_id = ?', [category_id]);
+      if (!cat) return res.status(400).json({ error: 'Invalid category_id.' });
+    }
+    if (brand_id) {
+      const [[br]] = await pool.query('SELECT brand_id FROM brands WHERE brand_id = ?', [brand_id]);
+      if (!br) return res.status(400).json({ error: 'Invalid brand_id.' });
+    }
     const finalImageUrl = req.file ? `/uploads/${req.file.filename}` : (image_url || '');
 
     const [result] = await pool.query(
@@ -139,10 +156,21 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
        category_id || null, brand_id || null, finalImageUrl]
     );
 
-    res.status(201).json({ message: 'Product created.', productId: result.insertId });
+    const [createdRows] = await pool.query(
+      `SELECT p.*, c.category_name, b.brand_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.category_id
+       LEFT JOIN brands b ON p.brand_id = b.brand_id
+       WHERE p.product_id = ?`,
+      [result.insertId]
+    );
+    const created = createdRows[0] ? { ...createdRows[0], image_url: imageFullUrl(req, createdRows[0].image_url) } : null;
+    res.status(201).json({ message: 'Product created.', productId: result.insertId, product: created });
   } catch (err) {
     console.error('Product create error:', err);
-    res.status(500).json({ error: 'Server error.' });
+    const status = err.message && err.message.includes('images are allowed') ? 400 : 500;
+    const msg = status === 400 ? err.message : 'Server error.';
+    res.status(status).json({ error: msg });
   }
 });
 
@@ -158,8 +186,23 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
                stock_quantity = COALESCE(?, stock_quantity),
                category_id = COALESCE(?, category_id),
                brand_id = COALESCE(?, brand_id)`;
-    const params = [product_name, description, price ? parseFloat(price) : null,
-                    stock_quantity ? parseInt(stock_quantity) : null, category_id, brand_id];
+    const parsedPrice = price ? parseFloat(price) : null;
+    const parsedStock = stock_quantity ? parseInt(stock_quantity) : null;
+    if (parsedPrice != null && (isNaN(parsedPrice) || parsedPrice < 0)) {
+      return res.status(400).json({ error: 'Price must be a non-negative number.' });
+    }
+    if (parsedStock != null && parsedStock < 0) {
+      return res.status(400).json({ error: 'Stock quantity cannot be negative.' });
+    }
+    if (category_id) {
+      const [[cat]] = await pool.query('SELECT category_id FROM categories WHERE category_id = ?', [category_id]);
+      if (!cat) return res.status(400).json({ error: 'Invalid category_id.' });
+    }
+    if (brand_id) {
+      const [[br]] = await pool.query('SELECT brand_id FROM brands WHERE brand_id = ?', [brand_id]);
+      if (!br) return res.status(400).json({ error: 'Invalid brand_id.' });
+    }
+    const params = [product_name, description, parsedPrice, parsedStock, category_id, brand_id];
 
     if (finalImageUrl) {
       sql += ', image_url = ?';
@@ -169,7 +212,16 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
     params.push(req.params.id);
 
     await pool.query(sql, params);
-    res.json({ message: 'Product updated.' });
+    const [rows] = await pool.query(
+      `SELECT p.*, c.category_name, b.brand_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.category_id
+       LEFT JOIN brands b ON p.brand_id = b.brand_id
+       WHERE p.product_id = ?`,
+      [req.params.id]
+    );
+    const updated = rows[0] ? { ...rows[0], image_url: imageFullUrl(req, rows[0].image_url) } : null;
+    res.json({ message: 'Product updated.', product: updated });
   } catch (err) {
     console.error('Product update error:', err);
     res.status(500).json({ error: 'Server error.' });
