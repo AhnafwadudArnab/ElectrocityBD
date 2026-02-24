@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../Provider/Banner_provider.dart';
@@ -26,6 +30,55 @@ class AdminBannersPage extends StatefulWidget {
 }
 
 class _AdminBannersPageState extends State<AdminBannersPage> {
+  File? _pickedHeroImageFile;
+  bool _uploading = false;
+  Future<void> _pickHeroImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _pickedHeroImageFile = File(result.files.single.path!);
+        _uploading = true;
+      });
+      try {
+        final url = Uri.parse('http://localhost:3000/upload-image');
+        final request = http.MultipartRequest('POST', url);
+        request.files.add(
+          await http.MultipartFile.fromPath('image', result.files.single.path!),
+        );
+        final response = await request.send();
+        if (response.statusCode == 200) {
+          final respStr = await response.stream.bytesToString();
+          final imgUrl = RegExp(
+            r'"url"\s*:\s*"([^"]+)"',
+          ).firstMatch(respStr)?.group(1);
+          if (imgUrl != null) {
+            setState(() {
+              _heroImageController.text = imgUrl;
+            });
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Image upload failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _uploading = false;
+        });
+      }
+    }
+  }
+
   final Color darkBg = const Color(0xFF0B121E);
   final Color cardBg = const Color(0xFF151C2C);
   final Color brandOrange = const Color(0xFFF59E0B);
@@ -223,6 +276,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         _editingHeroIndex = null;
                         _heroImageController.clear();
                         _heroLabelController.clear();
+                        _pickedHeroImageFile = null;
                       });
                     },
                     icon: const Icon(Icons.add, color: Colors.white, size: 18),
@@ -237,20 +291,95 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: TextField(
-                        controller: _heroImageController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText:
-                              'Image path (e.g. assets/Hero banner logos/xxx.png)',
-                          labelStyle: TextStyle(color: Colors.grey.shade400),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: _heroImageController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Image path or pick file',
+                              labelStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              suffixIcon: _uploading
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(12.0),
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(
+                                        Icons.folder_open,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: _pickHeroImage,
+                                      tooltip: 'Pick image from computer',
+                                    ),
+                            ),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade700),
-                          ),
-                        ),
+                          if (_heroImageController.text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: SizedBox(
+                                height: 60,
+                                child: Builder(
+                                  builder: (context) {
+                                    final path = _heroImageController.text;
+                                    if (path.startsWith('http') ||
+                                        path.startsWith('/uploads/')) {
+                                      return Image.network(
+                                        path.startsWith('/uploads/')
+                                            ? 'http://localhost:3000$path'
+                                            : path,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(
+                                              Icons.broken_image,
+                                              color: Colors.red,
+                                            ),
+                                      );
+                                    } else {
+                                      try {
+                                        if (path.isEmpty)
+                                          return const SizedBox();
+                                        return Image.file(
+                                          File(path),
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (_, __, ___) =>
+                                              const Icon(
+                                                Icons.broken_image,
+                                                color: Colors.red,
+                                              ),
+                                        );
+                                      } catch (e) {
+                                        return Text(
+                                          'Invalid image: $e',
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 12,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -295,6 +424,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                           _editingHeroIndex = null;
                           _heroImageController.clear();
                           _heroLabelController.clear();
+                          _pickedHeroImageFile = null;
                         });
                       },
                     ),
@@ -305,6 +435,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         _editingHeroIndex = null;
                         _heroImageController.clear();
                         _heroLabelController.clear();
+                        _pickedHeroImageFile = null;
                       }),
                     ),
                   ],
@@ -363,9 +494,17 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         onPressed: () {
                           setState(() {
                             _editingHeroIndex = i;
-                            _heroFormVisible = false;
+                            _heroFormVisible = true;
                             _heroImageController.text = s['image'] ?? '';
                             _heroLabelController.text = s['label'] ?? '';
+                            // Only set _pickedHeroImageFile if it's a local file
+                            if ((s['image'] ?? '').isNotEmpty &&
+                                !(s['image']!.startsWith('http') ||
+                                    s['image']!.startsWith('/uploads/'))) {
+                              _pickedHeroImageFile = File(s['image']!);
+                            } else {
+                              _pickedHeroImageFile = null;
+                            }
                           });
                         },
                       ),
@@ -385,6 +524,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                               _editingHeroIndex = null;
                               _heroImageController.clear();
                               _heroLabelController.clear();
+                              _pickedHeroImageFile = null;
                             });
                           } else {
                             setState(() {});

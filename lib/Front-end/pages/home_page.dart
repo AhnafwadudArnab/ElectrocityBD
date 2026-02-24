@@ -24,33 +24,38 @@ class HomePage extends StatelessWidget {
     final r = AppResponsive.of(context);
     final showSidebar = r.isSmallDesktop || r.isDesktop;
 
-    // Ensure BannerProvider is loaded
-    Future.microtask(() => context.read<BannerProvider>().load());
-
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 252, 252, 252),
-      drawer: !showSidebar ? Drawer(child: const Sidebar()) : null,
-      body: Column(
-        children: [
-          const Header(),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (showSidebar)
-                  SizedBox(width: AppDimensions.padding(context)),
-                if (showSidebar) const Sidebar(),
-                if (showSidebar)
-                  SizedBox(width: AppDimensions.padding(context)),
-                const Expanded(child: _MainContent()),
-                if (showSidebar)
-                  SizedBox(width: AppDimensions.padding(context)),
-              ],
-            ),
+    return FutureBuilder(
+      future: context.read<BannerProvider>().load(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Scaffold(
+          backgroundColor: const Color.fromARGB(255, 252, 252, 252),
+          drawer: !showSidebar ? Drawer(child: const Sidebar()) : null,
+          body: Column(
+            children: [
+              const Header(),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (showSidebar)
+                      SizedBox(width: AppDimensions.padding(context)),
+                    if (showSidebar) const Sidebar(),
+                    if (showSidebar)
+                      SizedBox(width: AppDimensions.padding(context)),
+                    const Expanded(child: _MainContent()),
+                    if (showSidebar)
+                      SizedBox(width: AppDimensions.padding(context)),
+                  ],
+                ),
+              ),
+              // const FooterSection(),
+            ],
           ),
-          // const FooterSection(),
-        ],
-      ),
+        );
+      },
     );
   }
 }
