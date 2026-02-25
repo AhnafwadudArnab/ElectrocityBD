@@ -53,6 +53,7 @@ if ($method === 'POST') {
     $created = $product->create($data);
     if (is_array($created) && isset($created['product_id'])) {
         $created['productId'] = $created['product_id'];
+        $created['product'] = $product->getById($created['product_id']);
     }
     echo json_encode($created);
     exit;

@@ -82,12 +82,12 @@ class ProductController {
             }
         }
         
-        $this->product->category_id = $data['category_id'] ?? null;
-        $this->product->brand_id = $data['brand_id'] ?? null;
+        $this->product->category_id = isset($data['category_id']) ? (int)$data['category_id'] : null;
+        $this->product->brand_id = isset($data['brand_id']) ? (int)$data['brand_id'] : null;
         $this->product->product_name = $data['product_name'];
         $this->product->description = $data['description'] ?? '';
-        $this->product->price = $data['price'];
-        $this->product->stock_quantity = $data['stock_quantity'];
+        $this->product->price = isset($data['price']) ? (float)$data['price'] : 0.0;
+        $this->product->stock_quantity = isset($data['stock_quantity']) ? (int)$data['stock_quantity'] : 0;
         $this->product->image_url = $data['image_url'] ?? '';
         
         if ($this->product->create()) {

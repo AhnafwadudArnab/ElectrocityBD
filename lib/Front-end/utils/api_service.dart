@@ -69,8 +69,30 @@ class ApiService {
 
   // ─── Generic HTTP Methods ───
 
+  static dynamic _tryJsonDecode(String text) {
+    try {
+      return jsonDecode(text);
+    } catch (_) {
+      final a = text.indexOf('{');
+      final b = text.lastIndexOf('}');
+      if (a >= 0 && b >= a) {
+        final slice = text.substring(a, b + 1);
+        try {
+          return jsonDecode(slice);
+        } catch (_) {}
+      }
+      final c = text.indexOf('[');
+      final d = text.lastIndexOf(']');
+      if (c >= 0 && d >= c) {
+        final slice = text.substring(c, d + 1);
+        return jsonDecode(slice);
+      }
+      throw const FormatException('Invalid JSON');
+    }
+  }
+
   static Future<Map<String, dynamic>> _handleResponse(http.Response res) async {
-    final body = jsonDecode(res.body);
+    final body = _tryJsonDecode(res.body);
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return body is Map<String, dynamic> ? body : {'data': body};
     }
@@ -115,7 +137,7 @@ class ApiService {
         Uri.parse('$base$endpoint'),
         headers: await _headers(withAuth: withAuth),
       );
-      final body = jsonDecode(res.body);
+      final body = _tryJsonDecode(res.body);
       if (res.statusCode >= 200 && res.statusCode < 300) return body;
       throw ApiException(
         body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
@@ -330,7 +352,7 @@ class ApiService {
 
       final streamed = await request.send();
       final res = await http.Response.fromStream(streamed);
-      final body = jsonDecode(res.body);
+      final body = _tryJsonDecode(res.body);
       if (res.statusCode >= 200 && res.statusCode < 300) {
         return body is Map<String, dynamic> ? body : {'data': body};
       }

@@ -1,9 +1,29 @@
 <?php
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+ini_set('html_errors', '0');
+error_reporting(0);
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/cors.php';
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $segments = array_values(array_filter(explode('/', trim($path, '/'))));
+
+if (!empty($segments[0]) && $segments[0] === 'uploads') {
+    $local = __DIR__ . $path;
+    if (is_file($local)) {
+        $ext = strtolower(pathinfo($local, PATHINFO_EXTENSION));
+        $types = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+        ];
+        header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
+        readfile($local);
+        exit;
+    }
+}
 
 if (empty($segments[0])) {
     echo json_encode([

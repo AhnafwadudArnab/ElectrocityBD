@@ -24,14 +24,14 @@ $updated = [];
 
 try {
     if (!empty($data['best_sellers'])) {
-        $stmt = $db->prepare('INSERT INTO best_sellers (product_id, sales_count) VALUES (?, 1)
-                              ON DUPLICATE KEY UPDATE sales_count = sales_count');
+        $stmt = $db->prepare('INSERT INTO best_sellers (product_id, sales_count, last_updated) VALUES (?, 1, NOW())
+                              ON DUPLICATE KEY UPDATE sales_count = sales_count, last_updated = NOW()');
         $stmt->execute([$productId]);
         $updated[] = 'best_sellers';
     }
     if (!empty($data['trending'])) {
-        $stmt = $db->prepare('INSERT INTO trending_products (product_id, trending_score) VALUES (?, 1)
-                              ON DUPLICATE KEY UPDATE trending_score = trending_score');
+        $stmt = $db->prepare('INSERT INTO trending_products (product_id, trending_score, last_updated) VALUES (?, 1, NOW())
+                              ON DUPLICATE KEY UPDATE trending_score = trending_score, last_updated = NOW()');
         $stmt->execute([$productId]);
         $updated[] = 'trending';
     }

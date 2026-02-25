@@ -48,7 +48,32 @@ switch ($method) {
         
     case 'POST':
         $user = AuthMiddleware::authenticateAdmin();
-        $post_data = json_decode(file_get_contents('php://input'), true);
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../public/uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $filename = uniqid() . '_' . basename($_FILES['image']['name']);
+            $targetFile = $uploadDir . $filename;
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+                $imageUrl = '/uploads/' . $filename;
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'Image upload failed']);
+                exit;
+            }
+            $post_data = $_POST;
+            $post_data['image_url'] = $imageUrl;
+        } else {
+            // Fallback for JSON body (no file upload)
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (stripos($contentType, 'application/json') !== false) {
+                $post_data = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $post_data = $_POST;
+            }
+            $post_data['image_url'] = $post_data['image_url'] ?? '';
+        }
         echo json_encode($product->create($post_data));
         break;
         

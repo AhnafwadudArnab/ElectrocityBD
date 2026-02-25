@@ -283,6 +283,12 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     'Tech Part': 'tech_part',
   };
 
+  int? _intOrNull(dynamic v) {
+    if (v is int) return v;
+    if (v is String) return int.tryParse(v);
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -300,12 +306,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               .toList();
           final byName = <String, Map<String, dynamic>>{};
           for (final c in raw) {
-            final id = c['category_id'] as int?;
+            final id = _intOrNull(c['category_id']);
             final name = (c['category_name'] ?? '').toString().trim();
             if (id == null || id <= 0 || name.isEmpty) continue;
             final key = name.toLowerCase();
             final existing = byName[key];
-            if (existing == null || ((existing['category_id'] as int) > id)) {
+            final existingId = _intOrNull(existing?['category_id']);
+            if (existing == null || (existingId != null && existingId > id)) {
               byName[key] = {'category_id': id, 'category_name': name};
             }
           }
@@ -319,11 +326,11 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           _categories = unique;
           _loadingCategories = false;
           final stillExists = _categories.any(
-            (c) => c['category_id'] == _selectedCategoryId,
+            (c) => _intOrNull(c['category_id']) == _selectedCategoryId,
           );
           if (_categories.isNotEmpty &&
               (_selectedCategoryId == null || !stillExists)) {
-            _selectedCategoryId = _categories.first['category_id'] as int?;
+            _selectedCategoryId = _intOrNull(_categories.first['category_id']);
           }
         });
       }
@@ -444,7 +451,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                           : _categories
                                 .map(
                                   (c) => DropdownMenuItem<int>(
-                                    value: c['category_id'] as int?,
+                                    value: _intOrNull(c['category_id']),
                                     child: Text(
                                       (c['category_name'] ?? '').toString(),
                                     ),
@@ -897,7 +904,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         description: _descController.text.trim(),
         price: price,
         stock_quantity: 0,
-        category_id: _selectedCategoryId,
+        category_id: _intOrNull(_selectedCategoryId),
         image_url: null,
         imageBytes: _selectedFile?.bytes,
         imageFileName: _selectedFile?.name,
