@@ -58,6 +58,11 @@ class _SignupState extends State<Signup> {
         gender: 'Male',
       );
       if (!mounted) return;
+
+      // Strictly check backend response
+      if (result == null || result['token'] == null || result['user'] == null) {
+        throw ApiException('Registration failed. Try again.', 400);
+      }
       final token = (result['token'] ?? '').toString();
       final userMap = result['user'] as Map<String, dynamic>?;
       if (token.isEmpty || userMap == null) {

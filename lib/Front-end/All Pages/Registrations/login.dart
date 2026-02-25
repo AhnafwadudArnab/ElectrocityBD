@@ -43,6 +43,10 @@ class _LogInState extends State<LogIn> {
       final result = await ApiService.login(email: email, password: password);
       if (!mounted) return;
 
+      // Strictly check backend response
+      if (result == null || result['token'] == null || result['user'] == null) {
+        throw ApiException('Invalid email or password.', 401);
+      }
       final token = (result['token'] ?? '').toString();
       final userMap = result['user'] as Map<String, dynamic>?;
       if (token.isEmpty || userMap == null) {
@@ -63,7 +67,6 @@ class _LogInState extends State<LogIn> {
         mergeFromGuest: true,
       );
       if (!mounted) return;
-      // Re-init cart from server for logged-in user so home page has consistent state
       await context.read<CartProvider>().init();
       if (!mounted) return;
 

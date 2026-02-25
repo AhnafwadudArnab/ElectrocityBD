@@ -96,6 +96,7 @@ class ApiService {
         rethrow;
       }
     }
+
     try {
       return await _try(_apiBase());
     } catch (_) {
@@ -189,16 +190,21 @@ class ApiService {
     String phone = '',
     String gender = 'Male',
   }) async {
-    final result = await post('/auth/register', {
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'password': password,
-      'phone': phone,
-      'gender': gender,
-    }, withAuth: false);
-    if (result['token'] != null) await saveToken(result['token']);
-    return result;
+    try {
+      final result = await post('/auth/register', {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'gender': gender,
+      }, withAuth: false);
+      if (result['token'] != null) await saveToken(result['token']);
+      return result;
+    } on ApiException catch (e) {
+      // Return error message for UI display
+      return {'error': e.message, 'statusCode': e.statusCode};
+    }
   }
 
   static Future<Map<String, dynamic>> login({

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../config/db.php';
 // POST /api/auth/register
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -33,7 +34,8 @@ try {
     // Hash password
     $hashed = password_hash($password, PASSWORD_BCRYPT);
 
-    // Insert user
+    // Atomic insert into users + user_profile
+    $pdo->beginTransaction();
     $stmt = $pdo->prepare('INSERT INTO users (full_name, last_name, email, password, phone_number, gender, role) VALUES (?, ?, ?, ?, ?, ?, "customer")');
     $stmt->execute([$firstName, $lastName, $email, $hashed, $phone, $gender]);
     $userId = $pdo->lastInsertId();
@@ -41,6 +43,7 @@ try {
     // Insert user profile
     $stmt = $pdo->prepare('INSERT INTO user_profile (user_id, full_name, last_name, phone_number, address, gender) VALUES (?, ?, ?, ?, "", ?) ON DUPLICATE KEY UPDATE full_name = VALUES(full_name), last_name = VALUES(last_name), phone_number = VALUES(phone_number), gender = VALUES(gender)');
     $stmt->execute([$userId, $firstName, $lastName, $phone, $gender]);
+    $pdo->commit();
 
     // Sign JWT
     $token = JWTHelper::sign([
@@ -67,6 +70,9 @@ try {
     ]);
 
 } catch (Exception $e) {
+    if ($pdo && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(500);
     echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
 }
