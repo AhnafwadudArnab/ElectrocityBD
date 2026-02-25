@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../utils/JWT.php';
+require_once __DIR__ . '/../util/JWT.php';
 
 class AuthMiddleware {
     

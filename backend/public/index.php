@@ -1,40 +1,48 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/config/cors.php';
+require_once __DIR__ . '/../config/cors.php';
 
-$request_uri = $_SERVER['REQUEST_URI'];
-$script_name = $_SERVER['SCRIPT_NAME'];
-
-// Remove script name from request URI
-$base = str_replace('index.php', '', $script_name);
-$path = str_replace($base, '', $request_uri);
-$path = parse_url($path, PHP_URL_PATH);
-$segments = explode('/', trim($path, '/'));
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$segments = array_values(array_filter(explode('/', trim($path, '/'))));
 
 if (empty($segments[0])) {
     echo json_encode([
         'name' => 'ElectrocityBD API',
         'version' => '1.0.0',
         'endpoints' => [
-            '/api/auth' => 'Authentication endpoints',
+            '/api/auth/login' => 'User login',
+            '/api/auth/register' => 'User registration',
             '/api/products' => 'Product endpoints',
             '/api/cart' => 'Cart endpoints',
             '/api/orders' => 'Order endpoints',
-            '/api/user' => 'User endpoints',
-            '/api/admin' => 'Admin endpoints'
+            '/api/users' => 'User endpoints'
         ]
     ]);
     exit;
 }
 
-// Route to appropriate API file
-$api_file = __DIR__ . '/api/' . $segments[0] . '.php';
-
-if (file_exists($api_file)) {
-    $_GET = array_merge($_GET, $_REQUEST);
-    require_once $api_file;
-} else {
+if ($segments[0] === 'api') {
+    if ((isset($segments[1]) && $segments[1] === 'health')) {
+        echo json_encode(['status' => 'ok']);
+        exit;
+    }
+    $apiBase = __DIR__ . '/../api';
+    $file = null;
+    if (count($segments) >= 3) {
+        $file = $apiBase . '/' . $segments[1] . '/' . $segments[2] . '.php';
+    } elseif (count($segments) >= 2) {
+        $file = $apiBase . '/' . $segments[1] . '.php';
+    }
+    if ($file && file_exists($file)) {
+        $_GET = array_merge($_GET, $_REQUEST);
+        require_once $file;
+        exit;
+    }
     http_response_code(404);
     echo json_encode(['message' => 'Endpoint not found']);
+    exit;
 }
+
+http_response_code(404);
+echo json_encode(['message' => 'Endpoint not found']);
 ?>

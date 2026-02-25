@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../models/Product.php';
-require_once __DIR__ . '/../models/Category.php';
-require_once __DIR__ . '/../models/Brand.php';
+require_once __DIR__ . '/../models/product.php';
+require_once __DIR__ . '/../models/category.php';
+require_once __DIR__ . '/../models/brands.php';
 
 class ProductController {
     private $db;

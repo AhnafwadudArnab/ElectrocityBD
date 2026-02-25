@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/cors.php';
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../../config/cors.php';
+require_once __DIR__ . '/../../util/JWT.php';
 
-$database = new Database();
-$db = $database->getConnection();
+$db = db();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -54,7 +54,6 @@ if ($method === 'POST') {
     if ($stmt->execute()) {
         $userId = $db->lastInsertId();
         
-        // Create user profile
         $profileQuery = "INSERT INTO user_profile (user_id, full_name, last_name, phone_number, gender) 
                          VALUES (:user_id, :full_name, :last_name, :phone, :gender)";
         $profileStmt = $db->prepare($profileQuery);
@@ -65,8 +64,12 @@ if ($method === 'POST') {
         $profileStmt->bindParam(':gender', $gender);
         $profileStmt->execute();
         
-        // Generate token
-        $token = bin2hex(random_bytes(32));
+        $token = JWT::generate([
+            'user_id' => (int)$userId,
+            'email' => $email,
+            'role' => 'customer',
+            'exp' => time() + (7 * 24 * 60 * 60)
+        ]);
         
         echo json_encode([
             'token' => $token,

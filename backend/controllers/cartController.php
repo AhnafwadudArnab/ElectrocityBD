@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../models/Cart.php';
-require_once __DIR__ . '/../models/Product.php';
+require_once __DIR__ . '/../models/carts.php';
+require_once __DIR__ . '/../models/product.php';
 
 class CartController {
     private $db;

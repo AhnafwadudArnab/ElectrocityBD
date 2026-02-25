@@ -1,9 +1,8 @@
 <?php
 // Run this file once to create admin user
-require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/../bootstrap.php';
 
-$database = new Database();
-$db = $database->getConnection();
+$db = db();
 
 // Admin credentials
 $adminEmail = 'ahnaf@electrocitybd.com';

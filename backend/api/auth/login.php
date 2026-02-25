@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/cors.php';
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../../config/cors.php';
+require_once __DIR__ . '/../../util/JWT.php';
 
-$database = new Database();
-$db = $database->getConnection();
+$db = db();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -52,10 +52,12 @@ if ($method === 'POST') {
         exit;
     }
     
-    // Generate simple token (in production, use JWT)
-    $token = bin2hex(random_bytes(32));
-    
-    // Store token in database or session (simplified for demo)
+    $token = JWT::generate([
+        'user_id' => (int)$user['user_id'],
+        'email' => $user['email'],
+        'role' => $user['role'],
+        'exp' => time() + (7 * 24 * 60 * 60)
+    ]);
     
     // Return user data (without password)
     unset($user['password']);

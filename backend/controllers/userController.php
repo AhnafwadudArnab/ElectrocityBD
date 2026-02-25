@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../models/Wishlist.php';
+require_once __DIR__ . '/../models/user.php';
+require_once __DIR__ . '/../models/wishlist.php';
 
 class UserController {
     private $db;

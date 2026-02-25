@@ -1,12 +1,11 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/cors.php';
-require_once __DIR__ . '/../controllers/UserController.php';
-require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../../config/cors.php';
+require_once __DIR__ . '/../../controllers/userController.php';
+require_once __DIR__ . '/../middleware/authmiddleware.php';
 
-$database = new Database();
-$db = $database->getConnection();
+$db = db();
 $userController = new UserController($db);
 
 $method = $_SERVER['REQUEST_METHOD'];
