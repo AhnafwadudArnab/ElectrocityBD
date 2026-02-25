@@ -34,7 +34,7 @@ class User {
         $this->gender = htmlspecialchars(strip_tags($this->gender ?? 'Male'));
         $this->role = htmlspecialchars(strip_tags($this->role ?? 'customer'));
         
-        $hashed_password = password_hash($this->password, PASSWORD_BCRYPT);
+        $hashed_password = $this->password;
         
         $stmt->bindParam(":full_name", $this->full_name);
         $stmt->bindParam(":last_name", $this->last_name);

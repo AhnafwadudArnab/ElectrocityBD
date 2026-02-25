@@ -38,8 +38,8 @@ if ($method === 'POST') {
     
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    // Verify password
-    if (!password_verify($password, $user['password'])) {
+    // Verify password (supports plaintext or existing bcrypt)
+    if ($password !== $user['password'] && !password_verify($password, $user['password'])) {
         http_response_code(401);
         echo json_encode(['message' => 'Invalid email or password']);
         exit;

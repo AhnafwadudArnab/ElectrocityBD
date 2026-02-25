@@ -8,11 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 function hashPassword($password) {
-    return password_hash($password, PASSWORD_BCRYPT);
+    return $password;
 }
 
 function verifyPassword($password, $hash) {
-    return password_verify($password, $hash);
+    return $password === $hash;
 }
 <?php
 // registrations.php: Handles user signup and login for ElectrocityBD
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
 
-        // Insert user (store password as hash)
+        // Insert user (store password as plain text)
         $hash = hashPassword($password);
         $stmt = $conn->prepare('INSERT INTO users (full_name, last_name, email, password, phone_number, gender) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->bind_param('ssssss', $firstName, $lastName, $email, $hash, $phone, $gender);

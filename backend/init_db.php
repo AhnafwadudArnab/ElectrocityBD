@@ -10,7 +10,7 @@ $db = $database->getConnection();
 $full_name = 'Ahnaf';
 $last_name = 'Admin';
 $email = 'ahnaf@electrocitybd.com';
-$password = password_hash('1234@', PASSWORD_BCRYPT);
+$password = '1234@';
 $role = 'admin';
 
 // Check if admin exists

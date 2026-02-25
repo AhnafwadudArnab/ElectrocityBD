@@ -1674,15 +1674,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _addAddress() async {
-    if (streetAddressController.text.isEmpty || cityController.text.isEmpty) {
-      _showSnackBar("Please fill all required fields", Colors.red);
+    if (streetAddressController.text.isEmpty) {
+      _showSnackBar("Please enter Street Address", Colors.red);
       return;
     }
 
-    final b = buildingAddressController.text.trim();
-    final addressText = b.isNotEmpty
-        ? "${streetAddressController.text.trim()}, $b, ${cityController.text.trim()} ${zipCodeController.text.trim()}"
-        : "${streetAddressController.text.trim()}, ${cityController.text.trim()} ${zipCodeController.text.trim()}";
+    final parts = <String>[];
+    final street = streetAddressController.text.trim();
+    final building = buildingAddressController.text.trim();
+    final city = cityController.text.trim();
+    final zip = zipCodeController.text.trim();
+    if (street.isNotEmpty) parts.add(street);
+    if (building.isNotEmpty) parts.add(building);
+    if (city.isNotEmpty) parts.add(city);
+    final addressText = parts.join(', ') + (zip.isNotEmpty ? ' $zip' : '');
 
     setState(() {
       addresses.add({"address": addressText});

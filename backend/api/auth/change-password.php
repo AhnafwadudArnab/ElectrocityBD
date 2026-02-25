@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../config/cors.php';
+require_once __DIR__ . '/../../config/cors.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 if ($method !== 'PUT') {
@@ -24,14 +24,19 @@ $db = db();
 $stmt = $db->prepare('SELECT password FROM users WHERE user_id = ?');
 $stmt->execute([$u['user_id']]);
 $row = $stmt->fetch();
-if (!$row || !password_verify($current, $row['password'])) {
+if (
+    !$row ||
+    (
+        $current !== $row['password'] &&
+        !password_verify($current, $row['password'])
+    )
+) {
     http_response_code(401);
     echo json_encode(['message' => 'Invalid current password']);
     exit;
 }
 
-$hash = password_hash($new, PASSWORD_BCRYPT);
 $upd = $db->prepare('UPDATE users SET password = ? WHERE user_id = ?');
-$upd->execute([$hash, $u['user_id']]);
+$upd->execute([$new, $u['user_id']]);
 echo json_encode(['message' => 'Password changed']);
 ?>

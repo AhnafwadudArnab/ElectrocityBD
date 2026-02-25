@@ -18,7 +18,7 @@ $checkStmt->execute();
 
 if ($checkStmt->rowCount() === 0) {
     // Create admin user
-    $hashedPassword = password_hash($adminPassword, PASSWORD_BCRYPT);
+    $hashedPassword = $adminPassword;
     
     $query = "INSERT INTO users (full_name, last_name, email, password, role) 
               VALUES (:full_name, :last_name, :email, :password, 'admin')";
