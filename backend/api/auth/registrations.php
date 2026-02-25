@@ -1,62 +1,88 @@
 <?php
-// registrations.php: Handles user registration and login for ElectrocityBD
+// registrations.php: Handles user signup and login for ElectrocityBD
 
-header('Content-Type: application/json');
-require_once '../../config/db.php';
+require_once '../../config/db.php'; // Database connection
 
-function respond($status, $message, $data = null) {
-    echo json_encode([
-        'status' => $status,
-        'message' => $message,
-        'data' => $data
-    ]);
+function respond($status, $data) {
+    header('Content-Type: application/json');
+    http_response_code($status);
+    echo json_encode($data);
     exit;
+}
+
+function hashPassword($password) {
+    return password_hash($password, PASSWORD_BCRYPT);
+}
+
+function verifyPassword($password, $hash) {
+    return password_verify($password, $hash);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    $email = $_POST['email'] ?? '';
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $name = $_POST['name'] ?? '';
 
     if ($action === 'signup') {
-        // Registration
-        if (!$email || !$password || !$name) {
-            respond('error', 'Missing required fields');
+        $firstName = trim($_POST['firstName'] ?? '');
+        $lastName = trim($_POST['lastName'] ?? '');
+        $gender = $_POST['gender'] ?? 'Male';
+        $phone = $_POST['phone'] ?? '';
+
+        if (!$email || !$password || !$firstName) {
+            respond(400, ['error' => 'Missing required fields']);
         }
-        $hashed = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $conn->prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
-        $stmt->bind_param('sss', $name, $email, $hashed);
+
+        // Check if user exists
+        $stmt = $conn->prepare('SELECT user_id FROM users WHERE email = ?');
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows > 0) {
+            respond(409, ['error' => 'Email already registered']);
+        }
+        $stmt->close();
+
+        // Insert user
+        $hash = hashPassword($password);
+        $stmt = $conn->prepare('INSERT INTO users (full_name, last_name, email, password, phone_number, gender) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('ssssss', $firstName, $lastName, $email, $hash, $phone, $gender);
         if ($stmt->execute()) {
-            respond('success', 'User registered successfully');
+            respond(201, ['message' => 'Signup successful']);
         } else {
-            respond('error', 'Registration failed: ' . $conn->error);
+            respond(500, ['error' => 'Signup failed']);
         }
-    } elseif ($action === 'login') {
-        // Login
+        $stmt->close();
+    }
+    elseif ($action === 'login') {
         if (!$email || !$password) {
-            respond('error', 'Missing required fields');
+            respond(400, ['error' => 'Missing email or password']);
         }
-        $stmt = $conn->prepare('SELECT id, name, email, password FROM users WHERE email = ?');
+        $stmt = $conn->prepare('SELECT user_id, full_name, last_name, password, role FROM users WHERE email = ?');
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
-            if (password_verify($password, $row['password'])) {
-                respond('success', 'Login successful', [
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'email' => $row['email']
+            if (verifyPassword($password, $row['password'])) {
+                respond(200, [
+                    'user_id' => $row['user_id'],
+                    'full_name' => $row['full_name'],
+                    'last_name' => $row['last_name'],
+                    'email' => $email,
+                    'role' => $row['role'],
+                    'message' => 'Login successful'
                 ]);
             } else {
-                respond('error', 'Invalid password');
+                respond(401, ['error' => 'Invalid password']);
             }
         } else {
-            respond('error', 'User not found');
+            respond(404, ['error' => 'User not found']);
         }
-    } else {
-        respond('error', 'Invalid action');
+        $stmt->close();
+    }
+    else {
+        respond(400, ['error' => 'Invalid action']);
     }
 } else {
-    respond('error', 'Invalid request method');
+    respond(405, ['error' => 'Method not allowed']);
 }
