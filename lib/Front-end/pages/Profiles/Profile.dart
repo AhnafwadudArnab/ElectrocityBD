@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
+import '../../All Pages/CART/Orders.dart'; // Import OrderModel and OrderItem from Orders.dart
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import 'My_order.dart';
-import '../../All Pages/CART/Orders.dart'; // Import OrderModel and OrderItem from Orders.dart
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -44,11 +44,9 @@ class _ProfilePageState extends State<ProfilePage> {
       TextEditingController();
 
   // Address Controllers
-  final TextEditingController addressFirstNameController =
-      TextEditingController();
-  final TextEditingController addressLastNameController =
-      TextEditingController();
   final TextEditingController streetAddressController = TextEditingController();
+  final TextEditingController buildingAddressController =
+      TextEditingController();
   final TextEditingController cityController = TextEditingController();
   final TextEditingController zipCodeController = TextEditingController();
 
@@ -122,7 +120,7 @@ class _ProfilePageState extends State<ProfilePage> {
         selectedGender = userData.gender;
         if (userData.address.isNotEmpty) {
           addresses = [
-            {'name': userData.fullName, 'address': userData.address},
+            {'address': userData.address},
           ];
         }
       });
@@ -138,7 +136,7 @@ class _ProfilePageState extends State<ProfilePage> {
         selectedGender = userData.gender;
         if (userData.address.isNotEmpty) {
           addresses = [
-            {'name': userData.fullName, 'address': userData.address},
+            {'address': userData.address},
           ];
         }
       });
@@ -154,9 +152,8 @@ class _ProfilePageState extends State<ProfilePage> {
     currentPasswordController.dispose();
     newPasswordController.dispose();
     confirmPasswordController.dispose();
-    addressFirstNameController.dispose();
-    addressLastNameController.dispose();
     streetAddressController.dispose();
+    buildingAddressController.dispose();
     cityController.dispose();
     zipCodeController.dispose();
     cardHolderController.dispose();
@@ -766,14 +763,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Text(
-                              //   addresses[index]["name"]!,
-                              //   style: TextStyle(
-                              //     fontWeight: FontWeight.bold,
-                              //     fontSize: AppDimensions.bodyFont(context),
-                              //   ),
-                              // ),
-                              // SizedBox(height: padding / 4),
                               Text(
                                 addresses[index]["address"]!,
                                 style: TextStyle(
@@ -826,44 +815,15 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SizedBox(height: padding),
-            r.isMobile || r.isSmallMobile
-                ? Column(
-                    children: [
-                      _buildTextField(
-                        "First Name *",
-                        "Ex. John",
-                        controller: addressFirstNameController,
-                      ),
-                      _buildTextField(
-                        "Last Name *",
-                        "Ex. Doe",
-                        controller: addressLastNameController,
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                        child: _buildTextField(
-                          "First Name *",
-                          "Ex. John",
-                          controller: addressFirstNameController,
-                        ),
-                      ),
-                      SizedBox(width: padding),
-                      Expanded(
-                        child: _buildTextField(
-                          "Last Name *",
-                          "Ex. Doe",
-                          controller: addressLastNameController,
-                        ),
-                      ),
-                    ],
-                  ),
             _buildTextField(
               "Street Address *",
               "Enter Street Address",
               controller: streetAddressController,
+            ),
+            _buildTextField(
+              "Building/Apartment",
+              "Enter Building / Apartment",
+              controller: buildingAddressController,
             ),
             r.isMobile || r.isSmallMobile
                 ? Column(
@@ -1485,7 +1445,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         onPressed: () async {
                           await ApiService.clearToken();
                           await AuthSession.clear();
-                          if (mounted) await context.read<CartProvider>().switchToGuest();
+                          if (mounted)
+                            await context.read<CartProvider>().switchToGuest();
                           if (!mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
@@ -1550,7 +1511,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         onPressed: () async {
                           await ApiService.clearToken();
                           await AuthSession.clear();
-                          if (mounted) await context.read<CartProvider>().switchToGuest();
+                          if (mounted)
+                            await context.read<CartProvider>().switchToGuest();
                           if (!mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
@@ -1660,7 +1622,9 @@ class _ProfilePageState extends State<ProfilePage> {
       isEditingPersonalInfo = false;
     });
 
-    final primaryAddress = addresses.isNotEmpty ? (addresses.first['address'] ?? '') : '';
+    final primaryAddress = addresses.isNotEmpty
+        ? (addresses.first['address'] ?? '')
+        : '';
     final userData = UserData(
       firstName: firstNameController.text.trim(),
       lastName: lastNameController.text.trim(),
@@ -1690,7 +1654,9 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Profile saved locally. DB update failed: ${e.message}"),
+          content: Text(
+            "Profile saved locally. DB update failed: ${e.message}",
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -1698,7 +1664,9 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Profile saved locally. Start backend to sync to database."),
+          content: Text(
+            "Profile saved locally. Start backend to sync to database.",
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -1706,25 +1674,22 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _addAddress() async {
-    if (addressFirstNameController.text.isEmpty ||
-        streetAddressController.text.isEmpty ||
-        cityController.text.isEmpty) {
+    if (streetAddressController.text.isEmpty || cityController.text.isEmpty) {
       _showSnackBar("Please fill all required fields", Colors.red);
       return;
     }
 
-    final name =
-        "${addressFirstNameController.text.trim()} ${addressLastNameController.text.trim()}";
-    final addressText =
-        "${streetAddressController.text.trim()}, ${cityController.text.trim()} ${zipCodeController.text.trim()}";
+    final b = buildingAddressController.text.trim();
+    final addressText = b.isNotEmpty
+        ? "${streetAddressController.text.trim()}, $b, ${cityController.text.trim()} ${zipCodeController.text.trim()}"
+        : "${streetAddressController.text.trim()}, ${cityController.text.trim()} ${zipCodeController.text.trim()}";
 
     setState(() {
-      addresses.add({"name": name, "address": addressText});
+      addresses.add({"address": addressText});
     });
 
-    addressFirstNameController.clear();
-    addressLastNameController.clear();
     streetAddressController.clear();
+    buildingAddressController.clear();
     cityController.clear();
     zipCodeController.clear();
 
@@ -1741,18 +1706,19 @@ class _ProfilePageState extends State<ProfilePage> {
         : null;
     if (updated != null) await AuthSession.updateUserData(updated);
     try {
-      await ApiService.updateProfile({
-        'address': addressText,
-      });
+      await ApiService.updateProfile({'address': addressText});
     } catch (_) {}
 
-    if (mounted) _showSnackBar("Address added and saved to profile!", Colors.green);
+    if (mounted)
+      _showSnackBar("Address added and saved to profile!", Colors.green);
   }
 
   Future<void> _deleteAddress(int index) async {
     if (index < 0 || index >= addresses.length) return;
     setState(() => addresses.removeAt(index));
-    final primaryAddress = addresses.isNotEmpty ? (addresses.first['address'] ?? '') : '';
+    final primaryAddress = addresses.isNotEmpty
+        ? (addresses.first['address'] ?? '')
+        : '';
     final userData = await AuthSession.getUserData();
     if (userData != null) {
       final updated = UserData(
@@ -1824,7 +1790,10 @@ class _ProfilePageState extends State<ProfilePage> {
       currentPasswordController.clear();
       newPasswordController.clear();
       confirmPasswordController.clear();
-      _showSnackBar("Password updated successfully! (Saved to database)", Colors.green);
+      _showSnackBar(
+        "Password updated successfully! (Saved to database)",
+        Colors.green,
+      );
     } on ApiException catch (e) {
       if (!mounted) return;
       _showSnackBar(e.message, Colors.red);
