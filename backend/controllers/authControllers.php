@@ -74,7 +74,7 @@ class AuthController {
             return ['message' => 'Invalid email or password'];
         }
         
-        if (!password_verify($data['password'], $this->user->password)) {
+        if ($data['password'] !== $this->user->password && !password_verify($data['password'], $this->user->password)) {
             http_response_code(401);
             return ['message' => 'Invalid email or password'];
         }
@@ -116,7 +116,7 @@ class AuthController {
             return ['message' => 'Access denied. Admin only.'];
         }
         
-        if (!password_verify($data['password'], $this->user->password)) {
+        if ($data['password'] !== $this->user->password && !password_verify($data['password'], $this->user->password)) {
             http_response_code(401);
             return ['message' => 'Invalid admin credentials'];
         }

@@ -12,13 +12,13 @@ if ($method === 'GET') {
     $stmt->execute([(int)$payload['user_id']]);
     $u = $stmt->fetch();
     echo json_encode([
-        'user_id' => $u['user_id'],
-        'firstName' => $u['full_name'],
-        'lastName' => $u['last_name'],
-        'email' => $u['email'],
-        'phone' => $u['phone_number'],
-        'gender' => $u['gender'],
-        'role' => $u['role'],
+        'user_id' => $u['user_id'] ?? (int)$payload['user_id'],
+        'firstName' => $u['full_name'] ?? '',
+        'lastName' => $u['last_name'] ?? '',
+        'email' => $u['email'] ?? ($payload['email'] ?? ''),
+        'phone' => $u['phone_number'] ?? '',
+        'gender' => $u['gender'] ?? 'Male',
+        'role' => $u['role'] ?? ($payload['role'] ?? 'customer'),
     ]);
     exit;
 }

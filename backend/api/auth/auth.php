@@ -15,6 +15,12 @@ switch ($method) {
         if (isset($_GET['action'])) {
             switch ($_GET['action']) {
                 case 'register':
+                    if (!isset($data['full_name'])) {
+                        $first = $data['firstName'] ?? '';
+                        $last = $data['lastName'] ?? '';
+                        $full = trim($first . ' ' . $last);
+                        if (!empty($full)) $data['full_name'] = $full;
+                    }
                     echo json_encode($auth->register($data));
                     break;
                 case 'login':

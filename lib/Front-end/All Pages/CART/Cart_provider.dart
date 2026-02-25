@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
-import 'Main_carting.dart';
+import 'cart_models.dart';
 
 class CartProvider extends ChangeNotifier {
   static const String _storageKey = 'electrocity_cart_by_user';
@@ -14,6 +14,7 @@ class CartProvider extends ChangeNotifier {
 
   /// userId (email) or guest_xxx -> productId -> CartItem
   final Map<String, Map<String, CartItem>> _carts = {};
+
   /// productId -> server cart_id (for API delete/update when logged in)
   final Map<String, int> _serverCartIds = {};
   String _currentUserId = '';
@@ -33,7 +34,9 @@ class CartProvider extends ChangeNotifier {
         _carts.clear();
         for (final e in decoded.entries) {
           final list = (e.value as List<dynamic>)
-              .map((x) => CartItem.fromJson(Map<String, dynamic>.from(x as Map)))
+              .map(
+                (x) => CartItem.fromJson(Map<String, dynamic>.from(x as Map)),
+              )
               .toList();
           final map = <String, CartItem>{};
           for (final item in list) {
@@ -95,8 +98,13 @@ class CartProvider extends ChangeNotifier {
   }
 
   /// Switch current user (e.g. after login). Merges guest cart into user cart if merging from guest.
-  Future<void> setCurrentUserId(String userId, {bool mergeFromGuest = false}) async {
-    if (mergeFromGuest && _currentUserId.startsWith('guest_') && _currentUserId != userId) {
+  Future<void> setCurrentUserId(
+    String userId, {
+    bool mergeFromGuest = false,
+  }) async {
+    if (mergeFromGuest &&
+        _currentUserId.startsWith('guest_') &&
+        _currentUserId != userId) {
       final guestCart = _carts[_currentUserId];
       if (guestCart != null && guestCart.isNotEmpty) {
         final userCart = _carts.putIfAbsent(userId, () => {});
@@ -150,9 +158,7 @@ class CartProvider extends ChangeNotifier {
     final cart = _carts[_currentUserId] ??= {};
     if (cart.containsKey(productId)) {
       final current = cart[productId]!;
-      cart[productId] = current.copyWith(
-        quantity: current.quantity + quantity,
-      );
+      cart[productId] = current.copyWith(quantity: current.quantity + quantity);
     } else {
       cart[productId] = CartItem(
         productId: productId,

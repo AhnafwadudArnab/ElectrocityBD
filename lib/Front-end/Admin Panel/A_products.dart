@@ -257,7 +257,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   );
   String _sort = 'newest';
   List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _brands = [];
   int? _selectedCategoryId;
+  int? _selectedBrandId;
   PlatformFile? _selectedFile;
   bool _loadingCategories = true;
   bool _publishing = false;
@@ -284,15 +286,30 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   };
 
   int? _intOrNull(dynamic v) {
+    if (v == null) return null;
     if (v is int) return v;
     if (v is String) return int.tryParse(v);
+    if (v is Map && v.containsKey('brand_id')) return _intOrNull(v['brand_id']);
+    if (v is Map && v.containsKey('category_id'))
+      return _intOrNull(v['category_id']);
     return null;
+  }
+
+  int _toIntStrict(dynamic v) {
+    if (v is int) return v;
+    if (v is double) return v.toInt();
+    if (v is String) {
+      final p = int.tryParse(v);
+      if (p != null) return p;
+    }
+    throw FormatException('Invalid productId: $v');
   }
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _loadBrands();
     // _loadSectionFilter();
   }
 
@@ -337,6 +354,26 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     } catch (_) {
       if (mounted) setState(() => _loadingCategories = false);
     }
+  }
+
+  Future<void> _loadBrands() async {
+    try {
+      final list = await ApiService.get('/brands') as List;
+      if (mounted) {
+        setState(() {
+          _brands = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          final stillExists = _brands.any(
+            (b) => _intOrNull(b['brand_id']) == _selectedBrandId,
+          );
+          if (_brands.isNotEmpty &&
+              (_selectedBrandId == null || !stillExists)) {
+            _selectedBrandId = _intOrNull(_brands.first['brand_id']);
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadSectionFilter() async {}
@@ -445,6 +482,8 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         filled: true,
                         fillColor: fieldBg,
                         border: InputBorder.none,
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: Colors.white54),
                       ),
                       items: _loadingCategories
                           ? []
@@ -459,6 +498,28 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                                 )
                                 .toList(),
                       onChanged: (v) => setState(() => _selectedCategoryId = v),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<int>(
+                      value: _selectedBrandId,
+                      dropdownColor: fieldBg,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: fieldBg,
+                        border: InputBorder.none,
+                        labelText: 'Brand',
+                        labelStyle: TextStyle(color: Colors.white54),
+                      ),
+                      items: _brands
+                          .map(
+                            (b) => DropdownMenuItem<int>(
+                              value: _intOrNull(b['brand_id']),
+                              child: Text((b['brand_name'] ?? '').toString()),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedBrandId = v),
                     ),
                   ],
                 ),
@@ -905,13 +966,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         price: price,
         stock_quantity: 0,
         category_id: _intOrNull(_selectedCategoryId),
+        brand_id: _intOrNull(_selectedBrandId),
         image_url: null,
         imageBytes: _selectedFile?.bytes,
         imageFileName: _selectedFile?.name,
         specs: specs.isEmpty ? null : specs,
       );
-      final productId = res['productId'] as int?;
-      if (productId == null) throw Exception('No product ID returned');
+      final productId = _toIntStrict(res['productId']);
 
       final sectionKey = _sectionToApiKey[widget.sectionTitle];
       if (sectionKey != null) {

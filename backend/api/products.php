@@ -39,7 +39,7 @@ if ($method === 'GET') {
                 exit;
         }
     }
-    echo json_encode(['products' => $product->getAll($_GET), 'total' => count($product->getAll($_GET))]);
+    echo json_encode($product->getAll($_GET));
     exit;
 }
 
@@ -52,8 +52,10 @@ if ($method === 'POST') {
     }
     $created = $product->create($data);
     if (is_array($created) && isset($created['product_id'])) {
-        $created['productId'] = $created['product_id'];
-        $created['product'] = $product->getById($created['product_id']);
+        $pid = (int)$created['product_id'];
+        $created['product_id'] = $pid;
+        $created['productId'] = $pid;
+        $created['product'] = $product->getById($pid);
     }
     echo json_encode($created);
     exit;

@@ -59,30 +59,26 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     final bool useDb = _dbProducts.isNotEmpty;
     final bool hasAdmin = adminProducts.isNotEmpty && !useDb;
 
-    final listTiles = <Widget>[
-      if (!_loading && useDb)
-        ..._dbProducts.asMap().entries.map(
-          (e) => _buildTileFromDb(context, e.value, e.key),
-        ),
-      if (!_loading && !useDb && hasAdmin)
-        ...adminProducts.asMap().entries.map(
-          (e) => _buildBestSellingTile(
-            context,
-            e.value,
-            index: e.key,
-            isFromAdmin: true,
-          ),
-        ),
-      if (!_loading && !useDb && !hasAdmin)
-        ...sampleProducts.asMap().entries.map(
-          (e) => _buildBestSellingTile(
-            context,
-            e.value,
-            index: e.key,
-            isFromAdmin: false,
-          ),
-        ),
-    ];
+    final listTiles = <Widget>[];
+    if (!_loading) {
+      const int maxItems = 4;
+      if (useDb) {
+        final count = _dbProducts.length < maxItems ? _dbProducts.length : maxItems;
+        for (int i = 0; i < count; i++) {
+          listTiles.add(_buildTileFromDb(context, _dbProducts[i], i));
+        }
+      } else if (hasAdmin) {
+        final count = adminProducts.length < maxItems ? adminProducts.length : maxItems;
+        for (int i = 0; i < count; i++) {
+          listTiles.add(_buildBestSellingTile(context, adminProducts[i], index: i, isFromAdmin: true));
+        }
+      } else {
+        final count = sampleProducts.length < maxItems ? sampleProducts.length : maxItems;
+        for (int i = 0; i < count; i++) {
+          listTiles.add(_buildBestSellingTile(context, sampleProducts[i], index: i, isFromAdmin: false));
+        }
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

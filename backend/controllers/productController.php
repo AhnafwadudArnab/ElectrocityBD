@@ -94,7 +94,7 @@ class ProductController {
             http_response_code(201);
             return [
                 'message' => 'Product created',
-                'product_id' => $this->product->product_id
+                'product_id' => (int)$this->product->product_id
             ];
         }
         
