@@ -126,8 +126,8 @@ class AdminSidebar extends StatelessWidget {
                   ),
                   _buildSidebarItem(
                     item: AdminSidebarItem.deals,
-                    icon: Icons.local_offer_outlined,
-                    label: 'Deals of the Day',
+                    icon: Icons.verified_outlined,
+                    label: 'Featured Brands',
                     onItemSelected: onItemSelected,
                     activeColor: brandOrange,
                     activeBg: activeBackground,

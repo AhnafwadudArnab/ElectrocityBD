@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../pages/home_page.dart';
@@ -10,8 +12,8 @@ import 'A_carts.dart';
 import 'A_deals.dart';
 import 'A_flash_sales.dart';
 import 'A_orders.dart';
-import 'A_promotions.dart';
 import 'A_products.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
@@ -39,26 +41,40 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
 
   List<Map<String, dynamic>> _discounts = [];
   bool _loading = true;
+  DateTime? _pickedFrom;
+  DateTime? _pickedTo;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _loadDiscounts();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _loadDiscounts() async {
     setState(() => _loading = true);
     try {
       final list = await ApiService.getDiscounts();
-      if (mounted) setState(() {
-        _discounts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-        _loading = false;
-      });
+      if (mounted)
+        setState(() {
+          _discounts = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          _loading = false;
+        });
     } catch (e) {
       if (mounted) setState(() => _loading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e is ApiException ? e.message : 'Failed to load discounts')),
-      );
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e is ApiException ? e.message : 'Failed to load discounts',
+            ),
+          ),
+        );
     }
   }
 
@@ -69,6 +85,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     _validFromController.dispose();
     _validToController.dispose();
     _scrollController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -131,33 +148,33 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
       children: [
         _buildHeader(),
         Expanded(
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTopActionRow(),
-                        const SizedBox(height: 32),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(flex: 2, child: _buildDiscountList()),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              flex: 1,
-                              child: Container(
-                                key: _formKey,
-                                child: _buildCreateDiscountForm(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTopActionRow(),
+                const SizedBox(height: 32),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: _buildDiscountList()),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        key: _formKey,
+                        child: _buildCreateDiscountForm(),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -178,6 +195,74 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickDateTime(
+    TextEditingController controller, {
+    bool isFrom = true,
+  }) async {
+    final now = DateTime.now();
+    final initial = isFrom ? (_pickedFrom ?? now) : (_pickedTo ?? now);
+    final first = DateTime(now.year - 2);
+    final last = DateTime(now.year + 5);
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: first,
+      lastDate: last,
+      helpText: 'Select date',
+    );
+    if (date == null) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'Select time',
+    );
+    final dt = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time?.hour ?? 0,
+      time?.minute ?? 0,
+    );
+    if (isFrom) {
+      _pickedFrom = dt;
+    } else {
+      _pickedTo = dt;
+    }
+    controller.text = _fmtDateTime(dt);
+    setState(() {});
+  }
+
+  String _fmtDateTime(DateTime dt) {
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}';
+  }
+
+  String _timeLeft(dynamic fromRaw, dynamic toRaw) {
+    final now = DateTime.now();
+    final from = DateTime.tryParse((fromRaw ?? '').toString());
+    final to = DateTime.tryParse((toRaw ?? '').toString());
+    if (to == null) return '';
+    if (from != null && now.isBefore(from)) {
+      final diff = from.difference(now);
+      return 'Starts in ${_fmtDuration(diff)}';
+    }
+    if (now.isAfter(to)) {
+      final diff = now.difference(to);
+      return 'Expired ${_fmtDuration(diff)} ago';
+    }
+    final diff = to.difference(now);
+    return 'Ends in ${_fmtDuration(diff)}';
+  }
+
+  String _fmtDuration(Duration d) {
+    final days = d.inDays;
+    final hours = d.inHours % 24;
+    final mins = d.inMinutes % 60;
+    if (days > 0) return '${days}d ${hours}h ${mins}m';
+    if (hours > 0) return '${hours}h ${mins}m';
+    return '${mins}m';
   }
 
   Widget _buildHeader() => Container(
@@ -257,7 +342,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           ),
           const SizedBox(height: 20),
           if (_loading)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(color: Color(0xFFF59E0B))))
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
+              ),
+            )
           else
             Table(
               columnWidths: const {
@@ -279,22 +369,54 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                     _tableCell("", isBold: true, color: Colors.grey),
                   ],
                 ),
-                ..._discounts.map((d) => TableRow(
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.white10)),
-                  ),
-                  children: [
-                    _tableCell((d['product_name'] ?? '').toString(), isBold: false),
-                    _tableCell('${d['discount_percent'] ?? ''}%', color: brandOrange),
-                    _tableCell((d['valid_from'] ?? '').toString()),
-                    _tableCell((d['valid_to'] ?? '').toString()),
-                    _statusBadge(_discountStatus(d)),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                      onPressed: () => _deleteDiscount(d['discount_id'] as int),
+                ..._discounts.map(
+                  (d) => TableRow(
+                    decoration: const BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.white10)),
                     ),
-                  ],
-                )),
+                    children: [
+                      _tableCell(
+                        (d['product_name'] ?? '').toString(),
+                        isBold: false,
+                      ),
+                      _tableCell(
+                        '${d['discount_percent'] ?? ''}%',
+                        color: brandOrange,
+                      ),
+                      _tableCell((d['valid_from'] ?? '').toString()),
+                      _tableCell((d['valid_to'] ?? '').toString()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 8,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _statusBadge(_discountStatus(d)),
+                            const SizedBox(height: 6),
+                            Text(
+                              _timeLeft(d['valid_from'], d['valid_to']),
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
+                        onPressed: () =>
+                            _deleteDiscount(d['discount_id'] as int),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
         ],
@@ -305,10 +427,19 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   Future<void> _deleteDiscount(int id) async {
     try {
       await ApiService.deleteDiscount(id);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.orange, content: Text('Discount removed')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.orange,
+            content: Text('Discount removed'),
+          ),
+        );
       _loadDiscounts();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e is ApiException ? e.message : 'Failed')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e is ApiException ? e.message : 'Failed')),
+        );
     }
   }
 
@@ -339,10 +470,68 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           _darkField("e.g. 10", controller: _percentController),
           const SizedBox(height: 20),
           _inputLabel("Valid from (YYYY-MM-DD)"),
-          _darkField("Optional", controller: _validFromController),
+          TextField(
+            controller: _validFromController,
+            readOnly: true,
+            onTap: () => _pickDateTime(_validFromController, isFrom: true),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: "Optional",
+              hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+              filled: true,
+              fillColor: darkBg,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+              ),
+              suffixIcon: IconButton(
+                onPressed: () =>
+                    _pickDateTime(_validFromController, isFrom: true),
+                icon: const Icon(Icons.schedule, color: Colors.white38),
+                tooltip: 'Pick date & time',
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
           _inputLabel("Valid to (YYYY-MM-DD)"),
-          _darkField("Optional", controller: _validToController),
+          TextField(
+            controller: _validToController,
+            readOnly: true,
+            onTap: () => _pickDateTime(_validToController, isFrom: false),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: "Optional",
+              hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+              filled: true,
+              fillColor: darkBg,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+              ),
+              suffixIcon: IconButton(
+                onPressed: () =>
+                    _pickDateTime(_validToController, isFrom: false),
+                icon: const Icon(Icons.schedule, color: Colors.white38),
+                tooltip: 'Pick date & time',
+              ),
+            ),
+          ),
           const SizedBox(height: 32),
           ElevatedButton(
             onPressed: _createDiscount,
@@ -368,14 +557,20 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
     final productId = int.tryParse(_productIdController.text.trim());
     if (productId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter a valid product ID"), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text("Enter a valid product ID"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
     final percent = double.tryParse(_percentController.text.trim());
     if (percent == null || percent <= 0 || percent > 100) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter discount % between 1 and 100"), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text("Enter discount % between 1 and 100"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -383,8 +578,12 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
       await ApiService.createDiscount({
         'product_id': productId,
         'discount_percent': percent,
-        'valid_from': _validFromController.text.trim().isEmpty ? null : _validFromController.text.trim(),
-        'valid_to': _validToController.text.trim().isEmpty ? null : _validToController.text.trim(),
+        'valid_from': _validFromController.text.trim().isEmpty
+            ? null
+            : _validFromController.text.trim(),
+        'valid_to': _validToController.text.trim().isEmpty
+            ? null
+            : _validToController.text.trim(),
       });
       _productIdController.clear();
       _percentController.clear();
@@ -392,14 +591,21 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
       _validToController.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Discount created"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Discount created"),
+            backgroundColor: Colors.green,
+          ),
         );
         _loadDiscounts();
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e is ApiException ? e.message : 'Failed'), backgroundColor: Colors.red),
-      );
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is ApiException ? e.message : 'Failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
     }
   }
 
@@ -483,5 +689,4 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
           ),
         ),
       );
-
 }

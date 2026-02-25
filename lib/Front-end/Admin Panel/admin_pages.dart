@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import 'Admin_sidebar.dart';
-import 'admin_dashboard_page.dart';
+import 'A_Help.dart';
+import 'A_Reports.dart';
+import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
-import 'A_deals.dart';
 import 'A_discounts.dart';
+import 'A_featured_brands.dart';
 import 'A_flash_sales.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
 import 'A_promotions.dart';
-import 'A_Reports.dart';
-import 'A_Help.dart';
-import 'A_Settings.dart';
+import 'Admin_sidebar.dart';
+import 'admin_dashboard_page.dart';
 
 /// Returns the admin page widget for the given sidebar item (embedded mode).
 /// Use this to avoid circular imports between admin pages.
@@ -31,7 +31,7 @@ Widget? getAdminPage(AdminSidebarItem item) {
     case AdminSidebarItem.discounts:
       return const AdminDiscountPage(embedded: true);
     case AdminSidebarItem.deals:
-      return const AdminDealsPage(embedded: true);
+      return const AdminFeatureBrandsPage(embedded: true);
     case AdminSidebarItem.flashSales:
       return const AdminFlashSalesPage(embedded: true);
     case AdminSidebarItem.promotions:

@@ -189,7 +189,6 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
     'Best Selling',
     'Trendings',
     'Deals of the Day',
-    'Collections',
     'Flash Sale',
     'Others',
   ];
@@ -198,7 +197,6 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
     'Best Selling': 'Best Sellings',
     'Trendings': 'Trending Items',
     'Deals of the Day': 'Deals of the Day',
-    'Collections': 'Collections',
     'Flash Sale': 'Flash Sale',
     'Others': 'Others',
   };

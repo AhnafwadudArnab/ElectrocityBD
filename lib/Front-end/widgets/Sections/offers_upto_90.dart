@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../Provider/Banner_provider.dart';
 
 /// A horizontal row of 4 offer cards showing "Up to 90% OFF" with background images.
 class OffersUpto90 extends StatelessWidget {
@@ -8,26 +10,23 @@ class OffersUpto90 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final offers = [
+    final bp = context.watch<BannerProvider>();
+    final offers = bp.offers90.isNotEmpty ? bp.offers90 : const [
       {
         'label': 'Mega Smartphone Sale',
-        'image':
-            'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=60',
+        'image': 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=60',
       },
       {
         'label': 'Laptop Clearance',
-        'image':
-            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=60',
+        'image': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=60',
       },
       {
         'label': 'Home Appliances',
-        'image':
-            'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=900&q=60',
+        'image': 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=900&q=60',
       },
       {
         'label': 'Fashion Deals',
-        'image':
-            'https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=900&q=60',
+        'image': 'https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=900&q=60',
       },
     ];
 

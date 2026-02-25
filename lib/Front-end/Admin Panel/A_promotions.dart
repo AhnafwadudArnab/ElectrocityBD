@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
@@ -27,11 +28,17 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
   final _startController = TextEditingController();
   final _endController = TextEditingController();
   bool _active = true;
+  DateTime? _pickedStart;
+  DateTime? _pickedEnd;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -41,6 +48,7 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
     _percentController.dispose();
     _startController.dispose();
     _endController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -109,6 +117,64 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
 
   String _fmt(dynamic v) => v?.toString() ?? '';
 
+  Future<void> _pickDateTime(TextEditingController controller, {required bool isStart}) async {
+    final now = DateTime.now();
+    final initial = isStart ? (_pickedStart ?? now) : (_pickedEnd ?? now);
+    final first = DateTime(now.year - 2);
+    final last = DateTime(now.year + 5);
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: first,
+      lastDate: last,
+      helpText: 'Select date',
+    );
+    if (date == null) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'Select time',
+    );
+    final dt = DateTime(date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0);
+    if (isStart) {
+      _pickedStart = dt;
+    } else {
+      _pickedEnd = dt;
+    }
+    controller.text = _fmtDateTime(dt);
+    setState(() {});
+  }
+
+  String _two(int v) => v.toString().padLeft(2, '0');
+  String _fmtDateTime(DateTime dt) =>
+      '${dt.year}-${_two(dt.month)}-${_two(dt.day)} ${_two(dt.hour)}:${_two(dt.minute)}';
+
+  String _timeLeft(dynamic fromRaw, dynamic toRaw) {
+    final now = DateTime.now();
+    final from = DateTime.tryParse((fromRaw ?? '').toString());
+    final to = DateTime.tryParse((toRaw ?? '').toString());
+    if (to == null) return '';
+    if (from != null && now.isBefore(from)) {
+      final diff = from.difference(now);
+      return 'Starts in ${_fmtDuration(diff)}';
+    }
+    if (now.isAfter(to)) {
+      final diff = now.difference(to);
+      return 'Expired ${_fmtDuration(diff)} ago';
+    }
+    final diff = to.difference(now);
+    return 'Ends in ${_fmtDuration(diff)}';
+  }
+
+  String _fmtDuration(Duration d) {
+    final days = d.inDays;
+    final hours = d.inHours % 24;
+    final mins = d.inMinutes % 60;
+    if (days > 0) return '${days}d ${hours}h ${mins}m';
+    if (hours > 0) return '${hours}h ${mins}m';
+    return '${mins}m';
+  }
+
   Widget _buildContent() {
     return Column(
       children: [
@@ -162,7 +228,17 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                                           Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('${e['promotion_id']}', style: const TextStyle(color: Colors.white))),
                                           Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(_fmt(e['title']), style: const TextStyle(color: Colors.white))),
                                           Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('${e['discount_percent'] ?? ''}%', style: const TextStyle(color: Colors.white))),
-                                          Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text('${_fmt(e['start_date'])} – ${_fmt(e['end_date'])}', style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('${_fmt(e['start_date'])} – ${_fmt(e['end_date'])}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                                const SizedBox(height: 4),
+                                                Text(_timeLeft(e['start_date'], e['end_date']), style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                              ],
+                                            ),
+                                          ),
                                           Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text((e['active'] == 1 || e['active'] == true) ? 'Yes' : 'No', style: TextStyle(color: (e['active'] == 1 || e['active'] == true) ? Colors.green : Colors.red))),
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -198,11 +274,43 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                             TextField(controller: _percentController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(hintText: 'Discount %', hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: darkBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
                             const SizedBox(height: 12),
-                            TextField(controller: _startController, style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(hintText: 'Start date (YYYY-MM-DD)', hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: darkBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
+                            TextField(
+                              controller: _startController,
+                              readOnly: true,
+                              onTap: () => _pickDateTime(_startController, isStart: true),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'Start (YYYY-MM-DD HH:mm)',
+                                hintStyle: const TextStyle(color: Colors.white24),
+                                filled: true,
+                                fillColor: darkBg,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                suffixIcon: IconButton(
+                                  onPressed: () => _pickDateTime(_startController, isStart: true),
+                                  icon: const Icon(Icons.schedule, color: Colors.white38),
+                                  tooltip: 'Pick date & time',
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 12),
-                            TextField(controller: _endController, style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(hintText: 'End date (YYYY-MM-DD)', hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: darkBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
+                            TextField(
+                              controller: _endController,
+                              readOnly: true,
+                              onTap: () => _pickDateTime(_endController, isStart: false),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'End (YYYY-MM-DD HH:mm)',
+                                hintStyle: const TextStyle(color: Colors.white24),
+                                filled: true,
+                                fillColor: darkBg,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                suffixIcon: IconButton(
+                                  onPressed: () => _pickDateTime(_endController, isStart: false),
+                                  icon: const Icon(Icons.schedule, color: Colors.white38),
+                                  tooltip: 'Pick date & time',
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             Row(children: [const Text('Active ', style: TextStyle(color: Colors.white)), Switch(value: _active, onChanged: (v) => setState(() => _active = v), activeColor: brandOrange)]),
                             const SizedBox(height: 20),
@@ -241,8 +349,28 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
                 TextField(controller: titleC, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Title', labelStyle: TextStyle(color: Colors.white54))),
                 TextField(controller: descC, maxLines: 2, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: Colors.white54))),
                 TextField(controller: percentC, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Discount %', labelStyle: TextStyle(color: Colors.white54))),
-                TextField(controller: startC, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Start', labelStyle: TextStyle(color: Colors.white54))),
-                TextField(controller: endC, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'End', labelStyle: TextStyle(color: Colors.white54))),
+                TextField(
+                  controller: startC,
+                  readOnly: true,
+                  onTap: () => _pickDateTime(startC, isStart: true),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Start',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    suffixIcon: Icon(Icons.schedule, color: Colors.white38),
+                  ),
+                ),
+                TextField(
+                  controller: endC,
+                  readOnly: true,
+                  onTap: () => _pickDateTime(endC, isStart: false),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'End',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    suffixIcon: Icon(Icons.schedule, color: Colors.white38),
+                  ),
+                ),
                 Row(children: [const Text('Active ', style: TextStyle(color: Colors.white)), Switch(value: active, onChanged: (v) => setDialog(() => active = v), activeColor: brandOrange)]),
               ],
             ),

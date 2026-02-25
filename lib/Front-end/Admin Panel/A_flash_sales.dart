@@ -25,6 +25,8 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
   final _startController = TextEditingController();
   final _endController = TextEditingController();
   bool _active = true;
+  DateTime? _pickedStart;
+  DateTime? _pickedEnd;
 
   @override
   void initState() {
@@ -102,6 +104,40 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
   }
 
   String _fmt(dynamic v) => v?.toString() ?? '';
+
+  Future<void> _pickDateTime(TextEditingController controller, {required bool isStart}) async {
+    final now = DateTime.now();
+    final initial = isStart ? (_pickedStart ?? now) : (_pickedEnd ?? now);
+    final first = DateTime(now.year - 2);
+    final last = DateTime(now.year + 5);
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: first,
+      lastDate: last,
+      helpText: 'Select date',
+    );
+    if (date == null) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'Select time',
+    );
+    final dt = DateTime(
+      date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0,
+    );
+    if (isStart) {
+      _pickedStart = dt;
+    } else {
+      _pickedEnd = dt;
+    }
+    controller.text = _fmtDateTime(dt);
+    setState(() {});
+  }
+
+  String _two(int v) => v.toString().padLeft(2, '0');
+  String _fmtDateTime(DateTime dt) =>
+      '${dt.year}-${_two(dt.month)}-${_two(dt.day)} ${_two(dt.hour)}:${_two(dt.minute)}';
 
   Widget _buildContent() {
     return Column(
@@ -184,11 +220,43 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
                             TextField(controller: _titleController, style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(hintText: 'Title', hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: darkBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
                             const SizedBox(height: 12),
-                            TextField(controller: _startController, style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(hintText: 'Start (YYYY-MM-DD HH:mm)', hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: darkBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
+                            TextField(
+                              controller: _startController,
+                              readOnly: true,
+                              onTap: () => _pickDateTime(_startController, isStart: true),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'Start (YYYY-MM-DD HH:mm)',
+                                hintStyle: const TextStyle(color: Colors.white24),
+                                filled: true,
+                                fillColor: darkBg,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                suffixIcon: IconButton(
+                                  onPressed: () => _pickDateTime(_startController, isStart: true),
+                                  icon: const Icon(Icons.schedule, color: Colors.white38),
+                                  tooltip: 'Pick date & time',
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 12),
-                            TextField(controller: _endController, style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(hintText: 'End (YYYY-MM-DD HH:mm)', hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: darkBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
+                            TextField(
+                              controller: _endController,
+                              readOnly: true,
+                              onTap: () => _pickDateTime(_endController, isStart: false),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'End (YYYY-MM-DD HH:mm)',
+                                hintStyle: const TextStyle(color: Colors.white24),
+                                filled: true,
+                                fillColor: darkBg,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                suffixIcon: IconButton(
+                                  onPressed: () => _pickDateTime(_endController, isStart: false),
+                                  icon: const Icon(Icons.schedule, color: Colors.white38),
+                                  tooltip: 'Pick date & time',
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             Row(children: [const Text('Active ', style: TextStyle(color: Colors.white)), Switch(value: _active, onChanged: (v) => setState(() => _active = v), activeColor: brandOrange)]),
                             const SizedBox(height: 20),
@@ -223,8 +291,28 @@ class _AdminFlashSalesPageState extends State<AdminFlashSalesPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(controller: titleC, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Title', labelStyle: TextStyle(color: Colors.white54))),
-                TextField(controller: startC, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Start', labelStyle: TextStyle(color: Colors.white54))),
-                TextField(controller: endC, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'End', labelStyle: TextStyle(color: Colors.white54))),
+                TextField(
+                  controller: startC,
+                  readOnly: true,
+                  onTap: () => _pickDateTime(startC, isStart: true),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Start',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    suffixIcon: Icon(Icons.schedule, color: Colors.white38),
+                  ),
+                ),
+                TextField(
+                  controller: endC,
+                  readOnly: true,
+                  onTap: () => _pickDateTime(endC, isStart: false),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'End',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    suffixIcon: Icon(Icons.schedule, color: Colors.white38),
+                  ),
+                ),
                 Row(children: [const Text('Active ', style: TextStyle(color: Colors.white)), Switch(value: active, onChanged: (v) => setDialog(() => active = v), activeColor: brandOrange)]),
               ],
             ),

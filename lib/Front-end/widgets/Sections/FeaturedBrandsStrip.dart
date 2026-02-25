@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
+import '../../Provider/Banner_provider.dart';
 
 class FeaturedBrandsStrip extends StatefulWidget {
   const FeaturedBrandsStrip({super.key});
@@ -20,7 +22,7 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
   // Adjust this based on your logo container width + padding
   static const double _itemStep = 200;
 
-  final List<String> brandLogos = [
+  final List<String> _defaultBrandLogos = [
     'assets/Brand Logo/Gree.png',
     'assets/Brand Logo/jamuna.jpg',
     'assets/Brand Logo/LG.png',
@@ -75,6 +77,8 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
 
   @override
   Widget build(BuildContext context) {
+    final logos = context.watch<BannerProvider>().featuredBrands;
+    final brandLogos = logos.isNotEmpty ? logos : _defaultBrandLogos;
     return Column(
       children: [
         // 1. Header Section
