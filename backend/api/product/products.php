@@ -18,19 +18,19 @@ switch ($method) {
         } elseif (isset($_GET['action'])) {
             switch ($_GET['action']) {
                 case 'best-sellers':
-                    echo json_encode($product->getBestSellers($data));
+                    echo json_encode(['products' => $product->getBestSellers($data)]);
                     break;
                 case 'trending':
-                    echo json_encode($product->getTrending($data));
+                    echo json_encode(['products' => $product->getTrending($data)]);
                     break;
                 case 'deals':
-                    echo json_encode($product->getDealsOfDay($data));
+                    echo json_encode(['products' => $product->getDealsOfDay($data)]);
                     break;
                 case 'flash-sale':
-                    echo json_encode($product->getFlashSale($data));
+                    echo json_encode(['products' => $product->getFlashSale($data)]);
                     break;
                 case 'search':
-                    echo json_encode($product->search($data));
+                    echo json_encode(['products' => $product->search($data)]);
                     break;
                 case 'categories':
                     echo json_encode($product->getCategories());
