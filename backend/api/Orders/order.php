@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../config/cors.php';
 require_once __DIR__ . '/../../controllers/orderController.php';
-require_once __DIR__ . '/../middleware/authmiddleware.php';
+require_once __DIR__ . '/../../middleware/authmiddleware.php';
 
 $db = db();
 $order = new OrderController($db);

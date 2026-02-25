@@ -273,7 +273,7 @@ class ApiService {
     int productId,
     Map<String, bool> sections,
   ) async {
-    await put('/products/$productId/sections', sections);
+    await put('/products/sections?id=$productId', sections);
   }
 
   static Future<Map<String, dynamic>> getProduct(int id) async {
@@ -399,7 +399,7 @@ class ApiService {
   }
 
   static Future<void> updateOrderStatus(int orderId, String status) async {
-    await put('/orders/$orderId/status', {'status': status});
+    await put('/orders?id=$orderId', {'status': status});
   }
 
   static Future<Map<String, dynamic>> getOrderDetail(int orderId) async {
