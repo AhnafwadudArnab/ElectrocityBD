@@ -60,7 +60,7 @@ class _SignupState extends State<Signup> {
       if (!mounted) return;
 
       // Strictly check backend response
-      if (result == null || result['token'] == null || result['user'] == null) {
+      if (result['token'] == null || result['user'] == null) {
         throw ApiException('Registration failed. Try again.', 400);
       }
       final token = (result['token'] ?? '').toString();
@@ -71,7 +71,7 @@ class _SignupState extends State<Signup> {
       await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
       await AuthSession.setAdmin(false);
       if (mounted) {
-        final email = (userMap?['email'] ?? _emailController.text).toString();
+        final email = (userMap['email'] ?? _emailController.text).toString();
         await context.read<CartProvider>().setCurrentUserId(
           email,
           mergeFromGuest: true,

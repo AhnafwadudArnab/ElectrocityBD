@@ -44,7 +44,7 @@ class _LogInState extends State<LogIn> {
       if (!mounted) return;
 
       // Strictly check backend response
-      if (result == null || result['token'] == null || result['user'] == null) {
+      if (result['token'] == null || result['user'] == null) {
         throw ApiException('Invalid email or password.', 401);
       }
       final token = (result['token'] ?? '').toString();
