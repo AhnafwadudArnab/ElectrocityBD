@@ -15,6 +15,13 @@ class ProductDetailsPage extends StatefulWidget {
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
   int _quantity = 1;
   int _activeImageIndex = 0;
+  ImageProvider _resolve(String path) {
+    final p = path.toLowerCase();
+    if (p.startsWith('http://') || p.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,11 +77,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   }
 
   Widget _buildImageGallery(AppResponsive r) {
-    final images =
-        widget.product.images is List<String> &&
+    final images = widget.product.images is List<String> &&
             widget.product.images.isNotEmpty
         ? List<String>.from(widget.product.images)
-        : ['https://via.placeholder.com/500x500?text=No+Image'];
+        : ['assets/images/placeholder.png'];
     final imageHeight = r.value(
       smallMobile: 220.0,
       mobile: 260.0,
@@ -91,7 +97,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             color: const Color(0xFFF7F7F7),
             borderRadius: BorderRadius.circular(12),
             image: DecorationImage(
-              image: NetworkImage(images[_activeImageIndex]),
+              image: _resolve(images[_activeImageIndex]),
               fit: BoxFit.contain,
             ),
           ),
@@ -117,12 +123,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    images[index],
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image(
+                      image: _resolve(images[index]),
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover),
                 ),
               ),
             ),

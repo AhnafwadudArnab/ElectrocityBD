@@ -5,7 +5,8 @@ import 'SideCatePages/KitchenAppliances.dart';
 import 'SideCatePages/PersonalCareLifestyle.dart';
 
 class CategoryPage extends StatelessWidget {
-  const CategoryPage({super.key, required String title});
+  final String title;
+  const CategoryPage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class CategoryPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories'), centerTitle: true),
+      appBar: AppBar(title: Text(title), centerTitle: true),
       body: ListView.builder(
         itemCount: categories.length,
         itemBuilder: (context, index) {

@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
-import '../../utils/api_service.dart';
 import '../../utils/auth_session.dart';
 import '../CART/Cart_provider.dart';
+// ...existing code...
 import 'login.dart';
 
 class Signup extends StatefulWidget {
@@ -42,46 +42,28 @@ class _SignupState extends State<Signup> {
 
   Future<void> _onSignup() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
     try {
       final name = _nameController.text.trim();
       final parts = name.split(RegExp(r'\s+'));
       final firstName = parts.isNotEmpty ? parts.first : 'User';
       final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-      final result = await ApiService.register(
+      final email = _emailController.text.trim();
+      final localUser = UserData(
         firstName: firstName,
         lastName: lastName,
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        email: email,
         phone: '',
         gender: 'Male',
       );
-      if (!mounted) return;
-
-      // Strictly check backend response
-      if (result['token'] == null || result['user'] == null) {
-        throw ApiException('Registration failed. Try again.', 400);
-      }
-      final token = (result['token'] ?? '').toString();
-      final userMap = result['user'] as Map<String, dynamic>?;
-      if (token.isEmpty || userMap == null) {
-        throw ApiException('Registration failed. Try again.', 400);
-      }
-      await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
+      await AuthSession.saveUserData(localUser);
       await AuthSession.setAdmin(false);
       if (mounted) {
-        final email = (userMap['email'] ?? _emailController.text).toString();
         await context.read<CartProvider>().setCurrentUserId(
           email,
           mergeFromGuest: true,
         );
       }
-      try {
-        final profile = await ApiService.getProfile();
-        final fullUser = UserData.fromApiResponse(profile);
-        await AuthSession.updateUserData(fullUser);
-      } catch (_) {}
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -95,30 +77,81 @@ class _SignupState extends State<Signup> {
         MaterialPageRoute(builder: (_) => const HomePage()),
         (route) => false,
       );
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Server connection failed. Start PHP backend (php -S localhost:3000 backend/index.php).',
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+  // Future<void> _onSignup() async {
+  //   if (!_formKey.currentState!.validate()) return;
+
+  //   setState(() => _isLoading = true);
+  //   try {
+  //     final name = _nameController.text.trim();
+  //     final parts = name.split(RegExp(r'\s+'));
+  //     final firstName = parts.isNotEmpty ? parts.first : 'User';
+  //     final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+  //     final result = await ApiService.register(
+  //       firstName: firstName,
+  //       lastName: lastName,
+  //       email: _emailController.text.trim(),
+  //       password: _passwordController.text,
+  //       phone: '',
+  //       gender: 'Male',
+  //     );
+  //     if (!mounted) return;
+
+  //     // ...existing code...
+  //     if (result['token'] == null || result['user'] == null) {
+  //       throw ApiException('Registration failed. Try again.', 400);
+  //     }
+  //     final token = (result['token'] ?? '').toString();
+  //     final userMap = result['user'] as Map<String, dynamic>?;
+  //     if (token.isEmpty || userMap == null) {
+  //       throw ApiException('Registration failed. Try again.', 400);
+  //     }
+
+  //     try {
+  //       final profile = await ApiService.getProfile();
+  //       final fullUser = UserData.fromApiResponse(profile);
+  //       // ...existing code...
+  //     } catch (_) {}
+  //     if (!mounted) return;
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Account created successfully!'),
+  //         behavior: SnackBarBehavior.floating,
+  //         backgroundColor: Colors.white,
+  //       ),
+  //     );
+  //     Navigator.pushAndRemoveUntil(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const HomePage()),
+  //       (route) => false,
+  //     );
+  //   } on ApiException catch (e) {
+  //     if (!mounted) return;
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(e.message),
+  //         backgroundColor: Colors.red,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     if (!mounted) return;
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text(
+  //           'Server connection failed.',
+  //         ),
+  //         backgroundColor: Colors.red,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   } finally {
+  //     if (mounted) setState(() => _isLoading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
