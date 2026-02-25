@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../API/api_service.dart';
 import '../../Admin Panel/A_customers.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
@@ -32,42 +33,135 @@ class _LogInState extends State<LogIn> {
     super.dispose();
   }
 
-  Future<void> _loginUser() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    if (email.isEmpty || password.isEmpty) return;
-    final user = UserData(
-      firstName: 'User',
-      lastName: '',
-      email: email,
-      phone: '',
-      gender: 'Male',
-    );
-    await AuthSession.saveUserData(user);
-    await AuthSession.setAdmin(false);
-    await context.read<CartProvider>().setCurrentUserId(
-      email,
-      mergeFromGuest: true,
-    );
-    if (!mounted) return;
-    await context.read<CartProvider>().init();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful!'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.white,
-      ),
-    );
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const HomePage()),
-      (route) => false,
-    );
+  // Regular user login with API
+  Future<void> _onLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      // Call the login API
+      final result = await ApiService.login(email: email, password: password);
+
+      if (!mounted) return;
+
+      // Check if response contains token and user
+      if (result['token'] == null || result['user'] == null) {
+        throw ApiException('Invalid email or password.', 401);
+      }
+
+      final token = (result['token'] ?? '').toString();
+      final userMap = result['user'] as Map<String, dynamic>?;
+
+      if (token.isEmpty || userMap == null) {
+        throw ApiException('Invalid email or password.', 401);
+      }
+
+      // Get user role
+      final role = (userMap['role'] ?? 'customer').toString();
+
+      // Create UserData object from response
+      final userData = UserData(
+        firstName: userMap['firstName'] ?? userMap['full_name'] ?? 'User',
+        lastName: userMap['lastName'] ?? userMap['last_name'] ?? '',
+        email: userMap['email'] ?? '',
+        phone: userMap['phone'] ?? userMap['phone_number'] ?? '',
+        gender: userMap['gender'] ?? 'Male',
+      );
+
+      // Save user data to session
+      await AuthSession.saveUserData(userData);
+      await AuthSession.saveToken(token);
+      await AuthSession.setAdmin(role == 'admin');
+      await AuthSession.setLoggedIn(true);
+
+      // Try to get full profile
+      try {
+        final profile = await ApiService.getProfile();
+        final fullUser = UserData(
+          firstName:
+              profile['firstName'] ??
+              profile['full_name'] ??
+              userData.firstName,
+          lastName:
+              profile['lastName'] ?? profile['last_name'] ?? userData.lastName,
+          email: profile['email'] ?? userData.email,
+          phone: profile['phone'] ?? profile['phone_number'] ?? userData.phone,
+          gender: profile['gender'] ?? userData.gender,
+        );
+        await AuthSession.updateUserData(fullUser);
+      } catch (_) {
+        // Profile fetch failed, but that's ok
+      }
+
+      // Set user ID in cart provider
+      await context.read<CartProvider>().setCurrentUserId(
+        userData.email,
+        mergeFromGuest: true,
+      );
+
+      if (!mounted) return;
+
+      // Initialize cart
+      await context.read<CartProvider>().init();
+
+      if (!mounted) return;
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            role == 'admin' ? 'Admin login successful!' : 'Login successful!',
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+        ),
+      );
+
+      // Navigate based on role
+      if (role == 'admin') {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomePage()),
+          (route) => false,
+        );
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Server connection failed. Please check if backend is running at http://localhost:8000',
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
+  // Admin login with dedicated admin API
   Future<void> _onAdminLogin() async {
     final username = _emailController.text.trim();
     final password = _passwordController.text;
+
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -77,165 +171,90 @@ class _LogInState extends State<LogIn> {
       );
       return;
     }
-    final user = UserData(
-      firstName: 'Admin',
-      lastName: '',
-      email: username,
-      phone: '',
-      gender: 'Male',
-    );
-    await AuthSession.saveUserData(user);
-    await AuthSession.setAdmin(true);
-    await AuthSession.setLoggedIn(true);
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
-      (route) => false,
-    );
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Call the admin login API
+      final result = await ApiService.adminLogin(
+        username: username,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      final userMap = result['user'] as Map<String, dynamic>?;
+
+      if (userMap != null) {
+        final userData = UserData(
+          firstName: userMap['firstName'] ?? userMap['full_name'] ?? 'Admin',
+          lastName: userMap['lastName'] ?? userMap['last_name'] ?? '',
+          email: userMap['email'] ?? username,
+          phone: userMap['phone'] ?? userMap['phone_number'] ?? '',
+          gender: userMap['gender'] ?? 'Male',
+        );
+        await AuthSession.saveUserData(userData);
+      }
+
+      // Save token if provided
+      if (result['token'] != null) {
+        await AuthSession.saveToken(result['token'].toString());
+      }
+
+      await AuthSession.setAdmin(true);
+      await AuthSession.setLoggedIn(true);
+
+      if (!mounted) return;
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Admin login successful!'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+        ),
+      );
+
+      // Navigate to admin panel
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
+        (route) => false,
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      String message = e.message;
+      if (e.message.contains('Invalid admin')) {
+        message =
+            'Invalid admin credentials. Use Email: ahnaf@electrocitybd.com, Password: 1234@';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Server connection failed. Start PHP backend: php -S localhost:8000 -t backend/public',
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
-  // Future<void> _onLogin() async {
-  //   if (!_formKey.currentState!.validate()) return;
 
-  //   setState(() => _isLoading = true);
-  //   try {
-  //     final email = _emailController.text.trim();
-  //     final password = _passwordController.text;
-  //     final result = await ApiService.login(email: email, password: password);
-  //     if (!mounted) return;
-
-  //     // Strictly check backend response
-  //     if (result['token'] == null || result['user'] == null) {
-  //       throw ApiException('Invalid email or password.', 401);
-  //     }
-  //     final token = (result['token'] ?? '').toString();
-  //     final userMap = result['user'] as Map<String, dynamic>?;
-  //     if (token.isEmpty || userMap == null) {
-  //       throw ApiException('Invalid email or password.', 401);
-  //     }
-  //     final role = (userMap['role'] ?? '').toString();
-  //     final userData = UserData.fromApiResponse(userMap);
-  //     await AuthSession.saveUserData(userData);
-  //     await AuthSession.setAdmin(role == 'admin');
-  //     try {
-  //       final profile = await ApiService.getProfile();
-  //       final fullUser = UserData.fromApiResponse(profile);
-  //       await AuthSession.updateUserData(fullUser);
-  //     } catch (_) {}
-
-  //     await context.read<CartProvider>().setCurrentUserId(
-  //       userData.email,
-  //       mergeFromGuest: true,
-  //     );
-  //     if (!mounted) return;
-  //     await context.read<CartProvider>().init();
-  //     if (!mounted) return;
-
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(
-  //           role == 'admin' ? 'Admin login successful!' : 'Login successful!',
-  //         ),
-  //         behavior: SnackBarBehavior.floating,
-  //         backgroundColor: Colors.white,
-  //       ),
-  //     );
-  //     if (role == 'admin') {
-  //       Navigator.of(context).pushAndRemoveUntil(
-  //         MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
-  //         (route) => false,
-  //       );
-  //     } else {
-  //       Navigator.of(context).pushAndRemoveUntil(
-  //         MaterialPageRoute(builder: (_) => const HomePage()),
-  //         (route) => false,
-  //       );
-  //     }
-  //   } on ApiException catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(e.message),
-  //         backgroundColor: Colors.red,
-  //         behavior: SnackBarBehavior.floating,
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(
-  //           'Server connection failed. Start PHP backend (php -S localhost:3000 backend/index.php).',
-  //         ),
-  //         backgroundColor: Colors.red,
-  //         behavior: SnackBarBehavior.floating,
-  //       ),
-  //     );
-  //   } finally {
-  //     if (mounted) setState(() => _isLoading = false);
-  //   }
-  // }
-
-  // Future<void> _onAdminLogin() async {
-  //   final username = _emailController.text.trim();
-  //   final password = _passwordController.text;
-  //   if (username.isEmpty || password.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text('Enter admin username and password'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //   setState(() => _isLoading = true);
-  //   try {
-  //     final result = await ApiService.adminLogin(
-  //       username: username,
-  //       password: password,
-  //     );
-  //     if (!mounted) return;
-  //     final userMap = result['user'] as Map<String, dynamic>?;
-  //     if (userMap != null) {
-  //       await AuthSession.saveUserData(UserData.fromApiResponse(userMap));
-  //     }
-  //     await AuthSession.setAdmin(true);
-  //     await AuthSession.setLoggedIn(true);
-  //     if (!mounted) return;
-  //     Navigator.of(context).pushAndRemoveUntil(
-  //       MaterialPageRoute(builder: (_) => const AdminLayoutPage()),
-  //       (route) => false,
-  //     );
-  //   } on ApiException catch (e) {
-  //     if (!mounted) return;
-  //     final msg = e.message.contains('Invalid admin')
-  //         ? 'Invalid admin credentials. (Email: ahnaf@admin.com, Password: 1234@). Use MySQL to check your users table.'
-  //         : 'Invalid email or password.';
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(msg),
-  //         backgroundColor: Colors.red,
-  //         behavior: SnackBarBehavior.floating,
-  //         duration: const Duration(seconds: 5),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text(
-  //           'Server connection failed. Start PHP backend: php -S localhost:3000 backend/index.php',
-  //         ),
-  //         backgroundColor: Colors.red,
-  //         behavior: SnackBarBehavior.floating,
-  //         duration: Duration(seconds: 5),
-  //       ),
-  //     );
-  //   } finally {
-  //     if (mounted) setState(() => _isLoading = false);
-  //   }
-  // }
-
-  // @override
+  @override
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
     final isCompact = r.isSmallMobile || r.isMobile;
@@ -311,7 +330,6 @@ class _LogInState extends State<LogIn> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          // Mobile & Tablet: Short height for Icon only
           height: 150,
           width: double.infinity,
           child: _buildLeftPanel(showText: false),
@@ -409,15 +427,7 @@ class _LogInState extends State<LogIn> {
                   child: SizedBox(
                     height: AppDimensions.buttonHeight(context),
                     child: ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () async {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() => _isLoading = true);
-                                await _loginUser();
-                                setState(() => _isLoading = false);
-                              }
-                            },
+                      onPressed: _isLoading ? null : _onLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFA6E4FF),
                         foregroundColor: Colors.white,
@@ -444,12 +454,11 @@ class _LogInState extends State<LogIn> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // NEW: Admin Login Button
                 Expanded(
                   child: SizedBox(
                     height: AppDimensions.buttonHeight(context),
                     child: ElevatedButton(
-                      onPressed: _onAdminLogin,
+                      onPressed: _isLoading ? null : _onAdminLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                         foregroundColor: Colors.white,
@@ -459,10 +468,19 @@ class _LogInState extends State<LogIn> {
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'Admin Login',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Admin Login',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                     ),
                   ),
                 ),

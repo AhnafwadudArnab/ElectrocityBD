@@ -65,6 +65,7 @@ class AuthSession {
   static const String _loggedInKey = 'electrocity_is_logged_in';
   static const String _userDataKey = 'electrocity_user_data';
   static const String _isAdminKey = 'electrocity_is_admin';
+  static const String _tokenKey = 'electrocity_jwt_token';
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
@@ -122,5 +123,21 @@ class AuthSession {
     await prefs.remove(_loggedInKey);
     await prefs.remove(_userDataKey);
     await prefs.remove(_isAdminKey);
+    await prefs.remove(_tokenKey);
+  }
+
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
+  }
+
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
+  }
+
+  static Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
   }
 }

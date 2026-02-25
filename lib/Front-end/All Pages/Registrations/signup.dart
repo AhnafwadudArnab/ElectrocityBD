@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
+import '../../API/api_service.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
 import '../../utils/auth_session.dart';
 import '../CART/Cart_provider.dart';
-// ...existing code...
 import 'login.dart';
 
 class Signup extends StatefulWidget {
@@ -40,31 +40,94 @@ class _SignupState extends State<Signup> {
     super.dispose();
   }
 
+  // Signup with API
   Future<void> _onSignup() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isLoading = true);
+
     try {
       final name = _nameController.text.trim();
       final parts = name.split(RegExp(r'\s+'));
       final firstName = parts.isNotEmpty ? parts.first : 'User';
       final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
       final email = _emailController.text.trim();
-      final localUser = UserData(
+      final password = _passwordController.text;
+
+      // Call register API
+      final result = await ApiService.register(
         firstName: firstName,
         lastName: lastName,
         email: email,
+        password: password,
         phone: '',
         gender: 'Male',
       );
-      await AuthSession.saveUserData(localUser);
+
+      if (!mounted) return;
+
+      // Check response
+      if (result['token'] == null || result['user'] == null) {
+        throw ApiException('Registration failed. Please try again.', 400);
+      }
+
+      final token = (result['token'] ?? '').toString();
+      final userMap = result['user'] as Map<String, dynamic>?;
+
+      if (token.isEmpty || userMap == null) {
+        throw ApiException('Registration failed. Please try again.', 400);
+      }
+
+      // Create user data from response
+      final userData = UserData(
+        firstName: userMap['firstName'] ?? userMap['full_name'] ?? firstName,
+        lastName: userMap['lastName'] ?? userMap['last_name'] ?? lastName,
+        email: userMap['email'] ?? email,
+        phone: userMap['phone'] ?? userMap['phone_number'] ?? '',
+        gender: userMap['gender'] ?? 'Male',
+      );
+
+      // Save to session
+      await AuthSession.saveUserData(userData);
+      await AuthSession.saveToken(token);
       await AuthSession.setAdmin(false);
+      await AuthSession.setLoggedIn(true);
+
+      // Try to get full profile
+      try {
+        final profile = await ApiService.getProfile();
+        final fullUser = UserData(
+          firstName:
+              profile['firstName'] ??
+              profile['full_name'] ??
+              userData.firstName,
+          lastName:
+              profile['lastName'] ?? profile['last_name'] ?? userData.lastName,
+          email: profile['email'] ?? userData.email,
+          phone: profile['phone'] ?? profile['phone_number'] ?? userData.phone,
+          gender: profile['gender'] ?? userData.gender,
+        );
+        await AuthSession.updateUserData(fullUser);
+      } catch (_) {
+        // Profile fetch failed, continue with basic data
+      }
+
+      // Set user ID in cart
       if (mounted) {
         await context.read<CartProvider>().setCurrentUserId(
-          email,
+          userData.email,
           mergeFromGuest: true,
         );
       }
+
       if (!mounted) return;
+
+      // Initialize cart
+      await context.read<CartProvider>().init();
+
+      if (!mounted) return;
+
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Account created successfully!'),
@@ -72,86 +135,37 @@ class _SignupState extends State<Signup> {
           backgroundColor: Colors.white,
         ),
       );
+
+      // Navigate to home
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
         (route) => false,
       );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Server connection failed. Please check if backend is running.',
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-  // Future<void> _onSignup() async {
-  //   if (!_formKey.currentState!.validate()) return;
-
-  //   setState(() => _isLoading = true);
-  //   try {
-  //     final name = _nameController.text.trim();
-  //     final parts = name.split(RegExp(r'\s+'));
-  //     final firstName = parts.isNotEmpty ? parts.first : 'User';
-  //     final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-  //     final result = await ApiService.register(
-  //       firstName: firstName,
-  //       lastName: lastName,
-  //       email: _emailController.text.trim(),
-  //       password: _passwordController.text,
-  //       phone: '',
-  //       gender: 'Male',
-  //     );
-  //     if (!mounted) return;
-
-  //     // ...existing code...
-  //     if (result['token'] == null || result['user'] == null) {
-  //       throw ApiException('Registration failed. Try again.', 400);
-  //     }
-  //     final token = (result['token'] ?? '').toString();
-  //     final userMap = result['user'] as Map<String, dynamic>?;
-  //     if (token.isEmpty || userMap == null) {
-  //       throw ApiException('Registration failed. Try again.', 400);
-  //     }
-
-  //     try {
-  //       final profile = await ApiService.getProfile();
-  //       final fullUser = UserData.fromApiResponse(profile);
-  //       // ...existing code...
-  //     } catch (_) {}
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text('Account created successfully!'),
-  //         behavior: SnackBarBehavior.floating,
-  //         backgroundColor: Colors.white,
-  //       ),
-  //     );
-  //     Navigator.pushAndRemoveUntil(
-  //       context,
-  //       MaterialPageRoute(builder: (_) => const HomePage()),
-  //       (route) => false,
-  //     );
-  //   } on ApiException catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(e.message),
-  //         backgroundColor: Colors.red,
-  //         behavior: SnackBarBehavior.floating,
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text(
-  //           'Server connection failed.',
-  //         ),
-  //         backgroundColor: Colors.red,
-  //         behavior: SnackBarBehavior.floating,
-  //       ),
-  //     );
-  //   } finally {
-  //     if (mounted) setState(() => _isLoading = false);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -229,12 +243,9 @@ class _SignupState extends State<Signup> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          // For Mobile & Tablet: Only showing icon, so keep the height short
           height: 150,
           width: double.infinity,
-          child: _buildLeftPanel(
-            showText: false,
-          ), // Hide text for Tablet/Mobile
+          child: _buildLeftPanel(showText: false),
         ),
         _buildRightPanel(),
       ],
@@ -332,8 +343,9 @@ class _SignupState extends State<Signup> {
               onTogglePassword: () => setState(
                 () => _obscureConfirmPassword = !_obscureConfirmPassword,
               ),
-              validator: (v) =>
-                  v != _passwordController.text ? 'Mismatch' : null,
+              validator: (v) => v != _passwordController.text
+                  ? 'Passwords do not match'
+                  : null,
             ),
             const SizedBox(height: 15),
             SizedBox(
