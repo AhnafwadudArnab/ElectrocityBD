@@ -194,6 +194,13 @@ CREATE TABLE IF NOT EXISTS trending_products (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS tech_part_products (
+  product_id INT PRIMARY KEY,
+  display_order INT DEFAULT 0,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS reports (
   report_id INT AUTO_INCREMENT PRIMARY KEY,
   admin_id INT,
@@ -202,6 +209,19 @@ CREATE TABLE IF NOT EXISTS reports (
   details TEXT,
   FOREIGN KEY (admin_id) REFERENCES users(user_id)
 );
+
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key VARCHAR(100) PRIMARY KEY,
+  setting_value TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES 
+('section_filter_best_sellers', '{"limit": 10, "sort": "newest"}'),
+('section_filter_trending', '{"limit": 10, "sort": "newest"}'),
+('section_filter_deals', '{"limit": 10, "sort": "newest"}'),
+('section_filter_flash_sale', '{"limit": 10, "sort": "newest"}'),
+('section_filter_tech_part', '{"limit": 10, "sort": "newest"}');
 
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_cart_user ON cart(user_id);

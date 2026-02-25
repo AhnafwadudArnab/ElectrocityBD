@@ -23,26 +23,31 @@ $path = explode('?', $path)[0]; // Remove query params
 
 // Handle static files for /uploads and /assets
 if (preg_match('/^\/(uploads|assets)\//', $path)) {
-    $filePath = __DIR__ . '/..' . $path;
-    if (strpos($path, '/uploads/') === 0) {
-        $filePath = __DIR__ . $path; // uploads is inside backend/
-    }
-    
-    if (file_exists($filePath) && !is_dir($filePath)) {
-        $ext = pathinfo($filePath, PATHINFO_EXTENSION);
-        $mimeTypes = [
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            'css' => 'text/css',
-            'js' => 'application/javascript',
-        ];
-        $contentType = $mimeTypes[strtolower($ext)] ?? 'application/octet-stream';
-        header("Content-Type: $contentType");
-        readfile($filePath);
-        exit;
+    // Prevent directory traversal
+    $safePath = realpath(__DIR__ . ($path[1] === 'u' ? $path : '/..' . $path));
+    $uploadsDir = realpath(__DIR__ . '/uploads');
+    $assetsDir = realpath(__DIR__ . '/../assets');
+
+    if (
+        ($path[1] === 'u' && $safePath && strpos($safePath, $uploadsDir) === 0) ||
+        ($path[1] === 'a' && $safePath && strpos($safePath, $assetsDir) === 0)
+    ) {
+        if (file_exists($safePath) && !is_dir($safePath)) {
+            $ext = pathinfo($safePath, PATHINFO_EXTENSION);
+            $mimeTypes = [
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'css' => 'text/css',
+                'js' => 'application/javascript',
+            ];
+            $contentType = $mimeTypes[strtolower($ext)] ?? 'application/octet-stream';
+            header("Content-Type: $contentType");
+            readfile($safePath);
+            exit;
+        }
     }
 }
 
