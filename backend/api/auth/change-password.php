@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../config/cors.php';
+require_once __DIR__ . '/../middleware/authmiddleware.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 if ($method !== 'PUT') {
@@ -10,7 +11,7 @@ if ($method !== 'PUT') {
     exit;
 }
 
-$u = requireAuth();
+$u = AuthMiddleware::authenticate();
 $data = getJsonBody();
 $current = $data['currentPassword'] ?? '';
 $new = $data['newPassword'] ?? '';
