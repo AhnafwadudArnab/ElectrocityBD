@@ -3,6 +3,7 @@ import 'package:electrocitybd1/Front-end/All%20Pages/Categories%20All/SideCatePa
 import 'package:flutter/material.dart';
 
 import '../../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
+import 'collection_detail_page.dart';
 
 class CollectionsPage extends StatefulWidget {
   const CollectionsPage({super.key});
@@ -16,124 +17,88 @@ class _CollectionsPageState extends State<CollectionsPage> {
 
   final List<Map<String, dynamic>> _gadgetCollections = [
     {
-      'title': 'Charger Fan',
-      'count': 12,
+      'title': 'Fans',
+      'count': 20,
       'icon': Icons.air,
-      'page': HomeComfortUtilityPage(),
+      'slug': 'fans',
     },
     {
-      'title': 'Mini Hand Fan',
-      'count': 8,
-      'icon': Icons.toys,
-      'page': HomeComfortUtilityPage(),
+      'title': 'Cookers',
+      'count': 46,
+      'icon': Icons.soup_kitchen,
+      'slug': 'cookers',
+    },
+    {
+      'title': 'Blenders',
+      'count': 38,
+      'icon': Icons.blender,
+      'slug': 'blenders',
+    },
+    {
+      'title': 'Phone Related',
+      'count': 14,
+      'icon': Icons.phone,
+      'slug': 'phone-related',
+    },
+    {
+      'title': 'Massager Items',
+      'count': 18,
+      'icon': Icons.spa,
+      'slug': 'massager-items',
     },
     {
       'title': 'Trimmer',
       'count': 15,
       'icon': Icons.content_cut,
-      'page': PersonalCareLifestylePage(),
-    },
-    {
-      'title': 'Rice Cooker',
-      'count': 20,
-      'icon': Icons.rice_bowl,
-      'page': KitchenAppliancesPage(),
+      'slug': 'trimmer',
     },
     {
       'title': 'Electric Chula',
       'count': 10,
       'icon': Icons.local_fire_department,
-      'page': KitchenAppliancesPage(),
-    },
-    {
-      'title': 'Telephone Set',
-      'count': 6,
-      'icon': Icons.phone,
-      'page': HomeComfortUtilityPage(),
-    },
-    {
-      'title': 'Sim Telephone',
-      'count': 8,
-      'icon': Icons.phone_android,
-      'page': HomeComfortUtilityPage(),
+      'slug': 'electric-chula',
     },
     {
       'title': 'Iron',
       'count': 18,
       'icon': Icons.iron,
-      'page': HomeComfortUtilityPage(),
-    },
-    {
-      'title': 'Mini Cooker',
-      'count': 14,
-      'icon': Icons.soup_kitchen,
-      'page': KitchenAppliancesPage(),
-    },
-    {
-      'title': 'Hand Blender',
-      'count': 16,
-      'icon': Icons.blender,
-      'page': KitchenAppliancesPage(),
+      'slug': 'iron',
     },
     {
       'title': 'Chopper',
       'count': 12,
       'icon': Icons.cut,
-      'page': KitchenAppliancesPage(),
+      'slug': 'chopper',
     },
     {
       'title': 'Grinder',
       'count': 10,
       'icon': Icons.settings,
-      'page': KitchenAppliancesPage(),
-    },
-    {
-      'title': 'Blender',
-      'count': 22,
-      'icon': Icons.blender_outlined,
-      'page': KitchenAppliancesPage(),
+      'slug': 'grinder',
     },
     {
       'title': 'Kettle',
       'count': 25,
       'icon': Icons.coffee_maker,
-      'page': KitchenAppliancesPage(),
+      'slug': 'kettle',
     },
     {
       'title': 'Hair Dryer',
       'count': 14,
       'icon': Icons.air,
-      'page': PersonalCareLifestylePage(),
+      'slug': 'hair-dryer',
     },
     {
       'title': 'Oven',
       'count': 8,
       'icon': Icons.microwave,
-      'page': KitchenAppliancesPage(),
+      'slug': 'oven',
     },
     {
       'title': 'Air Fryer',
       'count': 18,
       'icon': Icons.kitchen,
-      'page': KitchenAppliancesPage(),
-    },
-    {
-      'title': 'Curry Cooker',
-      'count': 12,
-      'icon': Icons.restaurant,
-      'page': KitchenAppliancesPage(),
-    },
-    {
-      'title': 'Massage Gun',
-      'count': 10,
-      'icon': Icons.spa,
-      'page': PersonalCareLifestylePage(),
-    },
-    {
-      'title': 'Head Massage',
-      'count': 8,
-      'icon': Icons.self_improvement,
-      'page': PersonalCareLifestylePage(),
+      'slug': 'air-fryer',
     },
   ];
 
@@ -161,8 +126,17 @@ class _CollectionsPageState extends State<CollectionsPage> {
     );
   }
 
-  void _navigateToCategory(String title, Widget page) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+  void _navigateToCategory(Map<String, dynamic> collection) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CollectionDetailPage(
+          collectionName: collection['title'],
+          collectionSlug: collection['slug'],
+          icon: collection['icon'],
+        ),
+      ),
+    );
   }
 
   @override
@@ -236,7 +210,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
       width: _tileWidth,
       margin: const EdgeInsets.only(right: 12),
       child: InkWell(
-        onTap: () => _navigateToCategory(c['title'], c['page']),
+        onTap: () => _navigateToCategory(c),
         borderRadius: BorderRadius.circular(8),
         child: Container(
           decoration: BoxDecoration(

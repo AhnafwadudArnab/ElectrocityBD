@@ -5,6 +5,7 @@ import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
+import 'A_collections.dart';
 import 'A_discounts.dart';
 import 'A_featured_brands.dart';
 import 'A_flash_sales.dart';
@@ -25,6 +26,8 @@ Widget? getAdminPage(AdminSidebarItem item) {
       return const AdminOrdersPage(embedded: true);
     case AdminSidebarItem.products:
       return const AdminProductUploadPage(embedded: true);
+    case AdminSidebarItem.collections:
+      return const AdminCollectionsPage(embedded: true);
     case AdminSidebarItem.carts:
       return const AdminCartsPage(embedded: true);
     case AdminSidebarItem.payments:
