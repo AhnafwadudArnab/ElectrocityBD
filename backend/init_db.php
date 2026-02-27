@@ -1,7 +1,7 @@
 <?php
 // Run this file to initialize database with admin user
 
-require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/db.php';
 
 $database = new Database();
 $db = $database->getConnection();
