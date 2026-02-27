@@ -74,11 +74,11 @@ class ProductController {
     }
     
     public function create($data) {
-        $required = ['product_name', 'price', 'stock_quantity'];
+        $required = ['product_name', 'price', 'stock_quantity', 'category_id'];
         foreach ($required as $field) {
             if (!isset($data[$field])) {
                 http_response_code(400);
-                return ['message' => "Missing field: $field"];
+                return ['message' => "Missing required field: $field"];
             }
         }
         
@@ -90,6 +90,24 @@ class ProductController {
         $this->product->stock_quantity = isset($data['stock_quantity']) ? (int)$data['stock_quantity'] : 0;
         $this->product->image_url = $data['image_url'] ?? '';
         
+        // Handle specs if provided
+        if (isset($data['specs']) && is_array($data['specs'])) {
+            $specs = json_encode($data['specs']);
+        } else {
+            $specs = null;
+        }
+        
+        // Debug log
+        error_log("Creating product: " . json_encode([
+            'category_id' => $this->product->category_id,
+            'brand_id' => $this->product->brand_id,
+            'product_name' => $this->product->product_name,
+            'price' => $this->product->price,
+            'stock_quantity' => $this->product->stock_quantity,
+            'image_url' => $this->product->image_url,
+            'specs' => $specs
+        ]));
+        
         if ($this->product->create()) {
             http_response_code(201);
             return [
@@ -98,8 +116,21 @@ class ProductController {
             ];
         }
         
+        // Return detailed error
+        error_log("Failed to create product");
         http_response_code(500);
-        return ['message' => 'Failed to create product'];
+        return [
+            'message' => 'Failed to create product',
+            'error' => 'Database insertion failed',
+            'data' => [
+                'category_id' => $this->product->category_id,
+                'brand_id' => $this->product->brand_id,
+                'product_name' => $this->product->product_name,
+                'price' => $this->product->price,
+                'stock_quantity' => $this->product->stock_quantity,
+                'image_url' => $this->product->image_url
+            ]
+        ];
     }
     
     public function update($id, $data) {

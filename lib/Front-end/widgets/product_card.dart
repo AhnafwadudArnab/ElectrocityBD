@@ -27,7 +27,8 @@ class ProductCard extends StatelessWidget {
     this.discountPercent,
     this.isPreOrder = false,
     this.buttonText = 'Add To Cart',
-    String? badgeTopLeft, required Null Function() onPress,
+    String? badgeTopLeft,
+    required Null Function() onPress,
   });
 
   String _safeProductId() {
@@ -133,7 +134,21 @@ class ProductCard extends StatelessWidget {
                             size: 18,
                             color: isInWishlist ? Colors.red : Colors.grey,
                           ),
-                          onPressed: null,
+                          onPressed: () async {
+                            if (isInWishlist) {
+                              await wishlistProvider.removeFromWishlist(
+                                _safeProductId(),
+                              );
+                            } else {
+                              await wishlistProvider.addToWishlist(
+                                productId: _safeProductId(),
+                                name: title,
+                                price: price,
+                                imageUrl: imageUrl,
+                                category: category ?? 'general',
+                              );
+                            }
+                          },
                         );
                       },
                     ),

@@ -15,11 +15,11 @@ import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
 import 'A_orders.dart';
+import 'A_payments.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 import 'admin_update_product.dart';
-import 'A_payments.dart';
 
 class AdminProductUploadPage extends StatelessWidget {
   final bool embedded;
@@ -232,7 +232,9 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
               if (v == 'Products List') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AdminUpdateProductPage()),
+                  MaterialPageRoute(
+                    builder: (_) => const AdminUpdateProductPage(),
+                  ),
                 );
               } else {
                 setState(() => _selected = v);
@@ -345,7 +347,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   Future<void> _loadCategories() async {
     try {
       // Fetch categories from products endpoint (action=categories)
-      final list = await ApiService.get('/products?action=categories', withAuth: false) as List;
+      final list =
+          await ApiService.get('/products?action=categories', withAuth: false)
+              as List;
       if (mounted) {
         setState(() {
           final raw = list
@@ -389,10 +393,14 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   Future<void> _loadBrands() async {
     try {
       // Fetch brands from products endpoint (action=brands) and de-duplicate by name
-      final list = await ApiService.get('/products?action=brands', withAuth: false) as List;
+      final list =
+          await ApiService.get('/products?action=brands', withAuth: false)
+              as List;
       if (mounted) {
         setState(() {
-          final raw = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          final raw = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
           final byName = <String, Map<String, dynamic>>{};
           for (final b in raw) {
             final id = _intOrNull(b['brand_id']);
@@ -406,11 +414,18 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
             }
           }
           final unique = byName.values.toList()
-            ..sort((a, b) => (a['brand_name'] ?? '').toString().toLowerCase()
-                .compareTo((b['brand_name'] ?? '').toString().toLowerCase()));
+            ..sort(
+              (a, b) => (a['brand_name'] ?? '')
+                  .toString()
+                  .toLowerCase()
+                  .compareTo((b['brand_name'] ?? '').toString().toLowerCase()),
+            );
           _brands = unique;
-          final stillExists = _brands.any((b) => _intOrNull(b['brand_id']) == _selectedBrandId);
-          if (_brands.isNotEmpty && (_selectedBrandId == null || !stillExists)) {
+          final stillExists = _brands.any(
+            (b) => _intOrNull(b['brand_id']) == _selectedBrandId,
+          );
+          if (_brands.isNotEmpty &&
+              (_selectedBrandId == null || !stillExists)) {
             _selectedBrandId = _intOrNull(_brands.first['brand_id']);
           }
         });
@@ -1040,22 +1055,27 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         imageFileName: _selectedFile?.name,
         specs: specs.isEmpty ? null : specs,
       );
-      final productId =
-          _extractProductIdFromResponse(Map<String, dynamic>.from(res));
+      final productId = _extractProductIdFromResponse(
+        Map<String, dynamic>.from(res),
+      );
 
       final sectionKey = _sectionToApiKey[widget.sectionTitle];
       try {
         if (sectionKey != null) {
           await ApiService.updateProductSections(productId, {sectionKey: true});
         } else if (widget.sectionTitle == 'Others' && _showInTechPart) {
-          await ApiService.updateProductSections(productId, {'tech_part': true});
+          await ApiService.updateProductSections(productId, {
+            'tech_part': true,
+          });
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.orange,
-              content: Text('Product created, but section assignment failed: $e'),
+              content: Text(
+                'Product created, but section assignment failed: $e',
+              ),
             ),
           );
         }
@@ -1275,6 +1295,12 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     put('gauge_awg', _gaugeAwgController, number: true);
     put('material', _materialController);
     put('size', _sizeController);
+
+    // Return empty map if no specs are filled
+    if (m.isEmpty) {
+      return {};
+    }
+
     return m;
   }
 }

@@ -11,6 +11,7 @@ class Product {
     public $price;
     public $stock_quantity;
     public $image_url;
+    public $specs;
     
     public function __construct($db) {
         $this->conn = $db;
@@ -178,8 +179,8 @@ class Product {
     
     public function create() {
         $query = "INSERT INTO " . $this->table_name . "
-                  (category_id, brand_id, product_name, description, price, stock_quantity, image_url)
-                  VALUES (:category_id, :brand_id, :product_name, :description, :price, :stock, :image)";
+                  (category_id, brand_id, product_name, description, price, stock_quantity, image_url, specs)
+                  VALUES (:category_id, :brand_id, :product_name, :description, :price, :stock, :image, :specs)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -190,12 +191,20 @@ class Product {
         $stmt->bindParam(":price", $this->price);
         $stmt->bindParam(":stock", $this->stock_quantity);
         $stmt->bindParam(":image", $this->image_url);
+        $stmt->bindParam(":specs", $this->specs);
         
-        if ($stmt->execute()) {
-            $this->product_id = $this->conn->lastInsertId();
-            return true;
+        try {
+            if ($stmt->execute()) {
+                $this->product_id = $this->conn->lastInsertId();
+                error_log("Product created successfully with ID: " . $this->product_id);
+                return true;
+            }
+            error_log("Failed to execute product insert query");
+            return false;
+        } catch (PDOException $e) {
+            error_log("Database error in product creation: " . $e->getMessage());
+            return false;
         }
-        return false;
     }
     
     public function update() {

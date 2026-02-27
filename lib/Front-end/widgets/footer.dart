@@ -367,7 +367,51 @@ Widget _linkColumn(BuildContext context, String title, List<String> links) {
 
 Widget _footerButton(BuildContext context, String text) {
   return TextButton(
-    onPressed: () {},
+    onPressed: () {
+      // Handle different footer link actions
+      switch (text.toLowerCase()) {
+        case 'about us':
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('About Us page coming soon!')),
+          );
+          break;
+        case 'blog':
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Blog coming soon!')));
+          break;
+        case 'contact us':
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Contact: support@electrocitybd.com')),
+          );
+          break;
+        case 'career':
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Career opportunities coming soon!')),
+          );
+          break;
+        case 'my account':
+          Navigator.pushNamed(context, '/profile');
+          break;
+        case 'track order':
+          Navigator.pushNamed(context, '/orders');
+          break;
+        case 'return':
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Return policy page coming soon!')),
+          );
+          break;
+        case 'faq':
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('FAQ page coming soon!')),
+          );
+          break;
+        default:
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('$text page coming soon!')));
+      }
+    },
     style: TextButton.styleFrom(
       foregroundColor: Colors.white,
       padding: EdgeInsets.zero,

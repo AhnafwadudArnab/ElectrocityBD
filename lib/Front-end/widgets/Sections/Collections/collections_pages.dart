@@ -103,7 +103,14 @@ class _CollectionsPageState extends State<CollectionsPage> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CollectionsPage(),
+                    ),
+                  );
+                },
                 child: const Text(
                   'View all collections',
                   style: TextStyle(fontSize: 12),

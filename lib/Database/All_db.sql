@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS products (
   price DECIMAL(10,2) NOT NULL,
   stock_quantity INT DEFAULT 0,
   image_url VARCHAR(255),
+  specs JSON,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
   FOREIGN KEY (brand_id) REFERENCES brands(brand_id) ON DELETE SET NULL
@@ -244,7 +245,14 @@ INSERT IGNORE INTO categories (category_name, category_image) VALUES
 INSERT IGNORE INTO brands (brand_name, brand_logo) VALUES
 ('Philips', 'philips_logo.png'),
 ('Walton', 'walton_logo.png'),
-('Samsung', 'samsung_logo.png');
+('Samsung', 'samsung_logo.png'),
+('LG', 'lg_logo.png'),
+('Sony', 'sony_logo.png'),
+('Panasonic', 'panasonic_logo.png'),
+('Xiaomi', 'xiaomi_logo.png'),
+('Apple', 'apple_logo.png'),
+('HP', 'hp_logo.png'),
+('Dell', 'dell_logo.png');
 
 INSERT IGNORE INTO products (category_id, brand_id, product_name, description, price, stock_quantity, image_url) VALUES
 (1, 1, 'LED Bulb', 'Energy saving LED bulb', 150.00, 100, 'led_bulb.png'),

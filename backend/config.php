@@ -9,7 +9,7 @@ return [
         'charset' => 'utf8mb4',
     ],
     'auth' => [
-        'jwt_secret' => getenv('JWT_SECRET') ?: getenv('ECITY_JWT_SECRET') ?: 'CHANGE_ME_SECRET',
+        'jwt_secret' => getenv('JWT_SECRET') ?: getenv('ECITY_JWT_SECRET') ?: 'ElectrocityBD_Secret_Key_2024',
         'jwt_issuer' => 'electrocitybd',
         'jwt_ttl_seconds' => 60 * 60 * 24,
     ],

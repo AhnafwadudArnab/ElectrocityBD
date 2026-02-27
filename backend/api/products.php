@@ -45,11 +45,19 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     $admin = AuthMiddleware::authenticateAdmin();
-    $data = $_POST;
+    
+    // Handle both JSON and form data
+    $input = file_get_contents('php://input');
+    $data = !empty($input) ? json_decode($input, true) : $_POST;
+    
     if (!empty($_FILES['image'])) {
         $path = saveUploadedImage($_FILES['image']);
         if ($path) $data['image_url'] = $path;
     }
+    
+    // Debug log
+    error_log("Product creation data: " . json_encode($data));
+    
     $created = $product->create($data);
     if (is_array($created) && isset($created['product_id'])) {
         $pid = (int)$created['product_id'];

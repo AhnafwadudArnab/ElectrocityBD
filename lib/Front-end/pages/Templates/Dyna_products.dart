@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../widgets/Sections/BestSellings/ProductData.dart';
+import '../../widgets/Sections/Trendings/trending_all_products.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
@@ -275,13 +276,17 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 : DecorationImage(
                     image: _resolveImageProvider(
                       widget.product.images[_activeImageIndex.clamp(
-                          0, widget.product.images.length - 1)],
+                        0,
+                        widget.product.images.length - 1,
+                      )],
                     ),
                     fit: BoxFit.contain,
                   ),
           ),
           child: widget.product.images.isEmpty
-              ? const Center(child: Icon(Icons.image, size: 80, color: Colors.grey))
+              ? const Center(
+                  child: Icon(Icons.image, size: 80, color: Colors.grey),
+                )
               : null,
         ),
         SizedBox(
@@ -411,21 +416,29 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               ),
             ),
             const SizedBox(width: 8),
-            Builder(builder: (_) {
-              final info = widget.product.additionalInfo;
-              final rStr = info['rating'] ?? info['rating_avg'] ?? info['avgRating'];
-              final cStr = info['reviews'] ?? info['review_count'] ?? info['reviewCount'];
-              final rating = double.tryParse((rStr ?? '').toString());
-              final count = int.tryParse((cStr ?? '').toString());
-              if (rating == null || rating <= 0) return const SizedBox.shrink();
-              return Text(
-                "${rating.toStringAsFixed(1)} ${count != null ? '(${count} reviews)' : ''}".trim(),
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: AppDimensions.smallFont(context),
-                ),
-              );
-            }),
+            Builder(
+              builder: (_) {
+                final info = widget.product.additionalInfo;
+                final rStr =
+                    info['rating'] ?? info['rating_avg'] ?? info['avgRating'];
+                final cStr =
+                    info['reviews'] ??
+                    info['review_count'] ??
+                    info['reviewCount'];
+                final rating = double.tryParse((rStr ?? '').toString());
+                final count = int.tryParse((cStr ?? '').toString());
+                if (rating == null || rating <= 0)
+                  return const SizedBox.shrink();
+                return Text(
+                  "${rating.toStringAsFixed(1)} ${count != null ? '(${count} reviews)' : ''}"
+                      .trim(),
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: AppDimensions.smallFont(context),
+                  ),
+                );
+              },
+            ),
           ],
         ),
         SizedBox(
@@ -950,7 +963,14 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TrendingAllProducts(),
+                      ),
+                    );
+                  },
                   child: Text(
                     "View All",
                     style: TextStyle(
@@ -1069,7 +1089,8 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 children: [
                   if (product.images.isEmpty)
                     const Center(
-                        child: Icon(Icons.image, size: 40, color: Colors.grey)),
+                      child: Icon(Icons.image, size: 40, color: Colors.grey),
+                    ),
                   Positioned(
                     top: 8,
                     right: 8,

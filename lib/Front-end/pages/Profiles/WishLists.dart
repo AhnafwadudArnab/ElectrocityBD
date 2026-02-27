@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
@@ -176,12 +177,19 @@ class _WishlistPageState extends State<WishlistPage> {
                         style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Refresh wishlist
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Wishlist refreshed')),
+                          );
+                        },
                         child: Text(
                           'Wishlist',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: Colors.orange,
                             fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
