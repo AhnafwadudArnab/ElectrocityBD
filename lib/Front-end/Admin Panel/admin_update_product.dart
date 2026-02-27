@@ -1,11 +1,14 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Provider/Admin_product_provider.dart';
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
+import '../utils/constants.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
@@ -14,9 +17,9 @@ import 'A_carts.dart';
 import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
-import 'A_promotions.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 
@@ -33,11 +36,93 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
   bool _loading = true;
   String? _error;
   int _totalDb = 0;
+  static const String _cacheKey = 'admin_db_products_cache';
+  bool _probing = false;
+  String? _probeStatus;
 
   @override
   void initState() {
     super.initState();
     _loadDbProducts();
+  }
+
+  String _effectiveApiBase() {
+    return ApiService.overrideBaseUrl ?? AppConstants.baseUrl;
+  }
+
+  Future<void> _showApiConfigDialog() async {
+    final controller = TextEditingController(text: _effectiveApiBase());
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF151C2C),
+        title: const Text(
+          'Set API Base URL',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'https://your-host/api',
+            hintStyle: TextStyle(color: Colors.white38),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      final v = controller.text.trim();
+      if (!v.startsWith('http')) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.red,
+            content: Text('Enter a valid URL starting with http or https'),
+          ),
+        );
+        return;
+      }
+      ApiService.setBaseUrl(v);
+      setState(() {
+        _probeStatus = null;
+      });
+      await _loadDbProducts();
+    }
+  }
+
+  Future<void> _probeApi() async {
+    setState(() {
+      _probing = true;
+      _probeStatus = null;
+    });
+    try {
+      await ApiService.get('/health', withAuth: false);
+      if (!mounted) return;
+      setState(() {
+        _probeStatus = 'OK';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _probeStatus = 'Fail';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _probing = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadDbProducts() async {
@@ -48,23 +133,57 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
     try {
       final res = await ApiService.getProducts(limit: 200);
       final list = (res['products'] as List<dynamic>?) ?? [];
-      _dbProducts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      _dbProducts = list
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
       _totalDb = (res['total'] as int?) ?? _dbProducts.length;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_cacheKey, jsonEncode(_dbProducts));
+      } catch (_) {}
     } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _dbProducts = [];
-      });
+      bool restored = await _restoreFromCache();
+      if (!restored) {
+        setState(() {
+          _error = e.message;
+          _dbProducts = [];
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = 'Failed to load products. Is the backend running?';
-        _dbProducts = [];
-      });
+      bool restored = await _restoreFromCache();
+      if (!restored) {
+        setState(() {
+          _error = 'Failed to load products. Is the backend running?';
+          _dbProducts = [];
+        });
+      }
     }
     if (mounted) setState(() => _loading = false);
   }
 
-  static void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
+  Future<bool> _restoreFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheKey);
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw) as List<dynamic>;
+        _dbProducts = decoded
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        _totalDb = _dbProducts.length;
+        setState(() {
+          _error = 'Showing cached products (offline)';
+        });
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  static void _navigateFromSidebar(
+    BuildContext context,
+    AdminSidebarItem item,
+  ) {
     if (item == AdminSidebarItem.viewStore) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -114,7 +233,10 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       default:
         return;
     }
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page!));
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => page!),
+    );
   }
 
   @override
@@ -151,6 +273,60 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                       ),
                       Row(
                         children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white12,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'API: ${_effectiveApiBase()}',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton(
+                                  onPressed: _showApiConfigDialog,
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.orange),
+                                    foregroundColor: Colors.orange,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    textStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                  child: const Text('Change'),
+                                ),
+                                const SizedBox(width: 6),
+                                OutlinedButton(
+                                  onPressed: _probing ? null : _probeApi,
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.orange),
+                                    foregroundColor: Colors.orange,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    textStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                  child: Text(
+                                    _probing
+                                        ? 'Probing...'
+                                        : (_probeStatus ?? 'Probe'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.refresh, color: brandOrange),
                             onPressed: _loading ? null : _loadDbProducts,
@@ -159,13 +335,22 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                           TextButton.icon(
                             onPressed: () => Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(builder: (_) => const HomePage()),
+                              MaterialPageRoute(
+                                builder: (_) => const HomePage(),
+                              ),
                               (route) => false,
                             ),
-                            icon: const Icon(Icons.store, color: brandOrange, size: 20),
+                            icon: const Icon(
+                              Icons.store,
+                              color: brandOrange,
+                              size: 20,
+                            ),
                             label: const Text(
                               'Back to Store',
-                              style: TextStyle(color: brandOrange, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                color: brandOrange,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -190,8 +375,16 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                         Expanded(
                           child: TabBarView(
                             children: [
-                              _buildDbProductsList(brandOrange, cardBg),
-                              _buildSectionProductsList(context, brandOrange, cardBg),
+                              _buildDbProductsList(
+                                context,
+                                brandOrange,
+                                cardBg,
+                              ),
+                              _buildSectionProductsList(
+                                context,
+                                brandOrange,
+                                cardBg,
+                              ),
                             ],
                           ),
                         ),
@@ -207,13 +400,64 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
     );
   }
 
-  Widget _buildDbProductsList(Color brandOrange, Color cardBg) {
+  Widget _buildDbProductsList(
+    BuildContext context,
+    Color brandOrange,
+    Color cardBg,
+  ) {
     if (_loading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
       );
     }
-    if (_error != null) {
+    if (_error != null && _dbProducts.isEmpty) {
+      final provider = context.read<AdminProductProvider>();
+      final fallback = <Map<String, dynamic>>[];
+      provider.sectionProducts.forEach((section, list) {
+        for (final p in list) {
+          fallback.add({
+            'product_id': null,
+            'product_name': (p['name'] ?? '').toString(),
+            'price': (p['price'] ?? '').toString(),
+            'image_url': (p['imageUrl'] ?? '').toString(),
+          });
+        }
+      });
+      if (fallback.isNotEmpty) {
+        return Column(
+          children: [
+            Container(
+              width: double.infinity,
+              color: Colors.orange.withOpacity(0.1),
+              padding: const EdgeInsets.all(8),
+              child: const Text(
+                'Backend unavailable — showing products from website sections',
+                style: TextStyle(color: Colors.orange, fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: fallback.length,
+                itemBuilder: (context, index) {
+                  final p = fallback[index];
+                  final name = (p['product_name'] ?? '—').toString();
+                  final price = (p['price'] ?? '').toString();
+                  final imageUrl = (p['image_url'] ?? '').toString();
+                  return _DbProductTile(
+                    productId: null,
+                    name: name,
+                    price: price,
+                    imageUrl: imageUrl,
+                    onDeleted: () {},
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      }
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -256,7 +500,8 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         itemBuilder: (context, index) {
           final p = _dbProducts[index];
           final id = p['product_id'] ?? p['productId'];
-          final name = (p['product_name'] ?? p['productName'] ?? '—').toString();
+          final name = (p['product_name'] ?? p['productName'] ?? '—')
+              .toString();
           final price = (p['price'] ?? 0).toString();
           final imageUrl = (p['image_url'] ?? p['imageUrl'] ?? '').toString();
           return _DbProductTile(
@@ -365,10 +610,15 @@ class _DbProductTile extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: Colors.white12,
           backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-          child: imageUrl.isEmpty ? const Icon(Icons.image, color: Colors.white54) : null,
+          child: imageUrl.isEmpty
+              ? const Icon(Icons.image, color: Colors.white54)
+              : null,
         ),
         title: Text(name, style: const TextStyle(color: Colors.white)),
-        subtitle: Text('৳ $price • ID: $productId', style: const TextStyle(color: Colors.green)),
+        subtitle: Text(
+          '৳ $price • ID: $productId',
+          style: const TextStyle(color: Colors.green),
+        ),
         trailing: productId != null
             ? IconButton(
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
@@ -385,13 +635,19 @@ class _DbProductTile extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF151C2C),
-        title: const Text('Delete product from database?', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Delete product from database?',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'This will remove "$name" from the database. It will no longer appear on the website.',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -404,7 +660,10 @@ class _DbProductTile extends StatelessWidget {
       await ApiService.deleteProduct(productId!);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: Colors.green, content: Text('Product deleted from database')),
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text('Product deleted from database'),
+        ),
       );
       onDeleted();
     } on ApiException catch (e) {
@@ -415,7 +674,10 @@ class _DbProductTile extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: Colors.red, content: Text('Delete failed. Check backend.')),
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Delete failed. Check backend.'),
+        ),
       );
     }
   }
@@ -454,16 +716,28 @@ class _SectionProductTile extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: Colors.white12,
           backgroundImage: hasImageBytes && imageBytes != null
-              ? MemoryImage(Uint8List.fromList(List<int>.from(imageBytes as List)))
+              ? MemoryImage(
+                  Uint8List.fromList(List<int>.from(imageBytes as List)),
+                )
               : (imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null),
           child: (hasImageBytes || imageUrl.isNotEmpty)
               ? null
               : const Icon(Icons.image, color: Colors.white54),
         ),
-        title: Text(name, style: const TextStyle(color: Colors.white, fontSize: 14)),
-        subtitle: Text('৳ $price', style: const TextStyle(color: Colors.green, fontSize: 12)),
+        title: Text(
+          name,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+        subtitle: Text(
+          '৳ $price',
+          style: const TextStyle(color: Colors.green, fontSize: 12),
+        ),
         trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.redAccent,
+            size: 22,
+          ),
           tooltip: 'Remove from website section',
           onPressed: () => _confirmRemove(context, provider),
         ),
@@ -471,18 +745,27 @@ class _SectionProductTile extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmRemove(BuildContext context, AdminProductProvider provider) async {
+  Future<void> _confirmRemove(
+    BuildContext context,
+    AdminProductProvider provider,
+  ) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF151C2C),
-        title: const Text('Remove from section?', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Remove from section?',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Remove "$name" from "$sectionTitle" on the website?',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Remove', style: TextStyle(color: Colors.red)),
@@ -494,7 +777,10 @@ class _SectionProductTile extends StatelessWidget {
       provider.removeProduct(sectionTitle, index);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: Colors.orange, content: Text('Product removed from section')),
+          const SnackBar(
+            backgroundColor: Colors.orange,
+            content: Text('Product removed from section'),
+          ),
         );
       }
     }

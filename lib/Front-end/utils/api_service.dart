@@ -466,6 +466,27 @@ class ApiService {
     await delete('/discounts/$id');
   }
 
+  // ─── Coupon API ───
+  static Future<Map<String, dynamic>?> getActiveCoupon() async {
+    final res = await get('/coupons', withAuth: false) as Map<String, dynamic>;
+    final c = res['active'];
+    if (c is Map<String, dynamic>) return c;
+    return null;
+  }
+
+  static Future<Map<String, dynamic>> setActiveCoupon({
+    required String code,
+    required double percent,
+    String scope = 'cart',
+  }) async {
+    return await post('/coupons', {
+      'code': code,
+      'percent': percent,
+      'scope': scope,
+      'active': true,
+    });
+  }
+
   // ─── Deals of the Day API ───
 
   static Future<List<dynamic>> getDeals() async {

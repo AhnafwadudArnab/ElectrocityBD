@@ -12,8 +12,15 @@ enum PaymentMethod { bkash, nagad }
 
 class PaymentMethodsPage extends StatefulWidget {
   final double totalAmount;
+  final String? couponCode;
+  final double couponDiscount;
 
-  const PaymentMethodsPage({super.key, required this.totalAmount});
+  const PaymentMethodsPage({
+    super.key,
+    required this.totalAmount,
+    this.couponCode,
+    this.couponDiscount = 0.0,
+  });
 
   @override
   State<PaymentMethodsPage> createState() => _PaymentMethodsPageState();
@@ -132,6 +139,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         'delivery_address': deliveryAddress,
         'transaction_id': transactionId,
         'estimated_delivery': estimatedDelivery,
+        if (widget.couponDiscount > 0)
+          'coupon_discount': widget.couponDiscount,
+        if (widget.couponCode != null && widget.couponCode!.isNotEmpty)
+          'coupon_code': widget.couponCode,
         'items': cartProvider.items.map((item) {
           final pid = int.tryParse(item.productId);
           return {

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as ApiService;
 import 'package:provider/provider.dart';
 
-import '../../Dimensions/responsive_dimensions.dart'; // added
+import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
 import '../../utils/auth_session.dart';
 import '../../widgets/footer.dart';
@@ -30,32 +33,57 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     super.dispose();
   }
 
-  void _applyCoupon(double subtotal) {
-    final code = _couponController.text.trim().toUpperCase();
-
-    setState(() {
-      if (code == 'SAVE10') {
-        _isCouponApplied = true;
-        _couponRate = 0.10;
-        _couponMessage = 'Coupon applied: 10% OFF';
-      } else if (code == 'SAVE5') {
-        _isCouponApplied = true;
-        _couponRate = 0.05;
-        _couponMessage = 'Coupon applied: 5% OFF';
+  Future<void> _applyCoupon(double subtotal) async {
+    final input = _couponController.text.trim().toUpperCase();
+    if (input.isEmpty) {
+      setState(() {
+        _isCouponApplied = false;
+        _couponRate = 0;
+        _couponMessage = 'Please enter a coupon code';
+      });
+      return;
+    }
+    try {
+      final active = await getActiveCoupon();
+      final code = (active?['code'] as String?)?.toUpperCase();
+      final percent = (active?['percent'] as num?)?.toDouble() ?? 0.0;
+      if (code != null && code.isNotEmpty && code == input && percent > 0) {
+        setState(() {
+          _isCouponApplied = true;
+          _couponRate = percent / 100.0;
+          _couponMessage = 'Coupon applied: ${percent.toStringAsFixed(0)}% OFF';
+        });
       } else {
+        setState(() {
+          _isCouponApplied = false;
+          _couponRate = 0;
+          _couponMessage = 'Invalid coupon code';
+        });
+      }
+    } catch (e) {
+      setState(() {
         _isCouponApplied = false;
         _couponRate = 0;
-        _couponMessage = code.isEmpty
-            ? 'Please enter a coupon code'
-            : 'Invalid coupon code';
-      }
+        _couponMessage = 'Coupon check failed';
+      });
+    }
+  }
 
-      if (subtotal <= 0) {
-        _isCouponApplied = false;
-        _couponRate = 0;
-        _couponMessage = 'Add products to apply coupon';
+  Future<Map<String, dynamic>?> getActiveCoupon() async {
+    try {
+      final response = await ApiService.get('/coupons/active' as Uri);
+      if (response.statusCode == 200) {
+        final data = response.body.isNotEmpty
+            ? jsonDecode(response.body)
+            : null;
+        if (data != null && data['code'] != null && data['percent'] != null) {
+          return {'code': data['code'], 'percent': data['percent']};
+        }
       }
-    });
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   void _resetCoupon() {
@@ -75,13 +103,22 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     final subtotal = cartProvider.getCartTotal();
     final couponDiscount = subtotal * _couponRate;
     final shippingCost = subtotal >= 5000 ? 0 : 120;
-    final total = subtotal - couponDiscount + shippingCost;
+    final total = (subtotal - couponDiscount + shippingCost).clamp(
+      0,
+      double.infinity,
+    );
 
     if (isLoggedIn) {
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => PaymentMethodsPage(totalAmount: total),
+          builder: (_) => PaymentMethodsPage(
+            totalAmount: total.toDouble(),
+            couponCode: _isCouponApplied
+                ? _couponController.text.trim().toUpperCase()
+                : null,
+            couponDiscount: _isCouponApplied ? couponDiscount : 0.0,
+          ),
         ),
       );
       return;
@@ -295,7 +332,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                     icon: Icons.local_shipping_outlined,
                     color: const Color(0xFF1B4D3E),
                     title: 'Free Shipping',
-                    subtitle: 'Free shipping for order above ৳50',
+                    subtitle: 'Free shipping for order above ৳5000',
                   ),
                   _buildFeatureItem(
                     icon: Icons.payment_outlined,
@@ -368,7 +405,10 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     final subTotal = cart.getCartTotal();
     final shipping = _shippingFee(subTotal);
     final discount = _couponDiscount(subTotal);
-    final total = subTotal + shipping - discount;
+    final total = (subTotal - discount + shipping).clamp(
+      0,
+      double.infinity,
+    ); // fixed order
 
     final cartList = Container(
       padding: const EdgeInsets.all(16),
@@ -458,7 +498,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
       subTotal: subTotal,
       shipping: shipping,
       discount: discount,
-      total: total,
+      total: total.toDouble(),
       fullWidth: isCompact,
       onCheckout: () => _handleCheckout(context),
       onApplyCoupon: () => _applyCoupon(subTotal),
@@ -531,8 +571,9 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
               Expanded(
                 child: TextField(
                   controller: _couponController,
+                  autofocus: false, // safer for scrollable
                   decoration: InputDecoration(
-                    hintText: 'Coupon (SAVE10 / SAVE5)',
+                    hintText: 'Coupon code',
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -542,11 +583,12 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                  enabled: !_isCouponApplied, // Disable editing if applied
                 ),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: onApplyCoupon,
+                onPressed: _isCouponApplied ? null : onApplyCoupon,
                 child: const Text('Apply'),
               ),
             ],
@@ -586,7 +628,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           ),
           const SizedBox(height: 10),
           TextButton(
-            onPressed: _resetCoupon,
+            onPressed: _isCouponApplied ? _resetCoupon : null,
             child: const Text('Clear Coupon'),
           ),
           if (shipping == 0) ...[

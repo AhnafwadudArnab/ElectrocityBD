@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
@@ -33,6 +34,10 @@ class AdminOrdersPage extends StatefulWidget {
 class _AdminOrdersPageState extends State<AdminOrdersPage> {
   String? filterStatus;
   bool showWeekly = false;
+  bool _autoRefresh = false;
+  Timer? _autoTimer;
+  DateTime? _lastUpdated;
+  static const int _refreshIntervalSeconds = 30;
 
   @override
   void initState() {
@@ -40,6 +45,44 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrdersProvider>().init();
     });
+  }
+
+  @override
+  void dispose() {
+    _autoTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh(OrdersProvider ordersProvider) {
+    _autoTimer?.cancel();
+    _autoTimer = Timer.periodic(
+      const Duration(seconds: _refreshIntervalSeconds),
+      (_) async {
+        await ordersProvider.refreshFromApi();
+        if (!mounted) return;
+        setState(() {
+          _lastUpdated = DateTime.now();
+        });
+      },
+    );
+    setState(() {
+      _autoRefresh = true;
+      _lastUpdated = DateTime.now();
+    });
+  }
+
+  void _stopAutoRefresh() {
+    _autoTimer?.cancel();
+    setState(() {
+      _autoRefresh = false;
+    });
+  }
+
+  String _formatTime(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    final s = dt.second.toString().padLeft(2, '0');
+    return '$h:$m:$s';
   }
 
   Widget _buildOrdersContent() {
@@ -322,13 +365,48 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Row(
+                    children: [
+                      const Text(
+                        "Auto Refresh",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      Switch(
+                        value: _autoRefresh,
+                        onChanged: (v) {
+                          if (v) {
+                            _startAutoRefresh(ordersProvider);
+                          } else {
+                            _stopAutoRefresh();
+                          }
+                        },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ],
+                  ),
                   const Spacer(),
+                  if (_lastUpdated != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Text(
+                        "Last updated: ${_formatTime(_lastUpdated!)}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert, color: Colors.grey),
                     onSelected: (value) {
                       if (value == "Refresh") {
-                        ordersProvider.refreshFromApi();
-                        setState(() {});
+                        ordersProvider.refreshFromApi().then((_) {
+                          if (!mounted) return;
+                          setState(() {
+                            _lastUpdated = DateTime.now();
+                          });
+                        });
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text("Orders refreshed!"),
@@ -364,178 +442,194 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: filteredOrders.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await ordersProvider.refreshFromApi();
+                  if (!mounted) return;
+                  setState(() {
+                    _lastUpdated = DateTime.now();
+                  });
+                },
+                child: filteredOrders.isEmpty
+                    ? ListView(
                         children: [
-                          Icon(
-                            Icons.receipt_long_outlined,
-                            size: 64,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            orders.isEmpty
-                                ? 'No orders yet. Orders will appear here when customers place orders.'
-                                : 'No orders match the current filter.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
+                          SizedBox(
+                            height: 300,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.receipt_long_outlined,
+                                    size: 64,
+                                    color: Colors.grey[400],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    orders.isEmpty
+                                        ? 'No orders yet. Orders will appear here when customers place orders.'
+                                        : 'No orders match the current filter.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
-                      ),
-                    )
-                  : ListView.separated(
-                      itemCount: filteredOrders.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final order = filteredOrders[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green[50],
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    order["id"]!,
-                                    style: const TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
+                      )
+                    : ListView.separated(
+                        itemCount: filteredOrders.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final order = filteredOrders[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
                                     ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  order["store"]!,
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  order["method"]!,
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  order["slot"]!,
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  "Date: ${order["created"]}",
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Row(
-                                  children: [
-                                    _statusChip(order["status"]!),
-                                    const SizedBox(width: 8),
-                                    PopupMenuButton<String>(
-                                      tooltip: "Update status",
-                                      onSelected: (value) async {
-                                        final id = int.tryParse(
-                                          order["id"] ?? "",
-                                        );
-                                        if (id == null) return;
-                                        try {
-                                          await ApiService.updateOrderStatus(
-                                            id,
-                                            value,
-                                          );
-                                          await ordersProvider
-                                              .updateOrderStatus(
-                                                order["id"]!,
-                                                value,
-                                              );
-                                          if (!context.mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "Order #${order["id"]} status updated to $value",
-                                              ),
-                                              backgroundColor: Colors.green,
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          if (!context.mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "Failed to update status: $e",
-                                              ),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      itemBuilder: (context) => const [
-                                        PopupMenuItem(
-                                          value: "pending",
-                                          child: Text("Mark as Pending"),
-                                        ),
-                                        PopupMenuItem(
-                                          value: "processing",
-                                          child: Text("Mark as Processing"),
-                                        ),
-                                        PopupMenuItem(
-                                          value: "shipped",
-                                          child: Text("Mark as Shipped"),
-                                        ),
-                                        PopupMenuItem(
-                                          value: "delivered",
-                                          child: Text("Mark as Delivered"),
-                                        ),
-                                        PopupMenuItem(
-                                          value: "cancelled",
-                                          child: Text("Mark as Cancelled"),
-                                        ),
-                                      ],
-                                      icon: const Icon(
-                                        Icons.more_vert,
-                                        size: 20,
-                                        color: Colors.grey,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[50],
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      order["id"]!,
+                                      style: const TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    order["store"]!,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    order["method"]!,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    order["slot"]!,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    "Date: ${order["created"]}",
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Row(
+                                    children: [
+                                      _statusChip(order["status"]!),
+                                      const SizedBox(width: 8),
+                                      PopupMenuButton<String>(
+                                        tooltip: "Update status",
+                                        onSelected: (value) async {
+                                          final id = int.tryParse(
+                                            order["id"] ?? "",
+                                          );
+                                          if (id == null) return;
+                                          try {
+                                            await ApiService.updateOrderStatus(
+                                              id,
+                                              value,
+                                            );
+                                            await ordersProvider
+                                                .updateOrderStatus(
+                                                  order["id"]!,
+                                                  value,
+                                                );
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Order #${order["id"]} status updated to $value",
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Failed to update status: $e",
+                                                ),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        itemBuilder: (context) => const [
+                                          PopupMenuItem(
+                                            value: "pending",
+                                            child: Text("Mark as Pending"),
+                                          ),
+                                          PopupMenuItem(
+                                            value: "processing",
+                                            child: Text("Mark as Processing"),
+                                          ),
+                                          PopupMenuItem(
+                                            value: "shipped",
+                                            child: Text("Mark as Shipped"),
+                                          ),
+                                          PopupMenuItem(
+                                            value: "delivered",
+                                            child: Text("Mark as Delivered"),
+                                          ),
+                                          PopupMenuItem(
+                                            value: "cancelled",
+                                            child: Text("Mark as Cancelled"),
+                                          ),
+                                        ],
+                                        icon: const Icon(
+                                          Icons.more_vert,
+                                          size: 20,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
             ),
           ],
         ),

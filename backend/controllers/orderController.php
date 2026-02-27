@@ -27,6 +27,11 @@ class OrderController {
         }
         
         $total = $cart->getCartTotal($user_id);
+        $couponDiscount = 0.0;
+        if (isset($data['coupon_discount'])) {
+            $couponDiscount = max(0.0, (float)$data['coupon_discount']);
+        }
+        $total = max(0.0, (float)$total - $couponDiscount);
         
         $this->order->user_id = $user_id;
         $this->order->total_amount = $total;

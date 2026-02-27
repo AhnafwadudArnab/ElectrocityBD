@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -40,7 +41,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
         _uploading = true;
       });
       try {
-        final url = Uri.parse('http://localhost:3000/upload-image');
+        final url = Uri.parse('http://localhost:8000/api/upload');
         final request = http.MultipartRequest('POST', url);
         request.files.add(
           await http.MultipartFile.fromPath('image', result.files.single.path!),
@@ -48,12 +49,21 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
         final response = await request.send();
         if (response.statusCode == 200) {
           final respStr = await response.stream.bytesToString();
-          final imgUrl = RegExp(
-            r'"url"\s*:\s*"([^"]+)"',
-          ).firstMatch(respStr)?.group(1);
+          String? imgUrl;
+          try {
+            final map = Map<String, dynamic>.from(jsonDecode(respStr) as Map);
+            final u = map['url']?.toString();
+            if (u != null && u.isNotEmpty) {
+              imgUrl = u;
+            }
+          } catch (_) {
+            imgUrl = RegExp(
+              r'"url"\s*:\s*"([^"]+)"',
+            ).firstMatch(respStr)?.group(1);
+          }
           if (imgUrl != null) {
             setState(() {
-              _heroImageController.text = imgUrl;
+              _heroImageController.text = imgUrl!;
             });
           }
         } else {
@@ -343,7 +353,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                                         path.startsWith('/uploads/')) {
                                       return Image.network(
                                         path.startsWith('/uploads/')
-                                            ? 'http://localhost:3000$path'
+                                            ? 'http://localhost:8000$path'
                                             : path,
                                         fit: BoxFit.contain,
                                         errorBuilder: (_, __, ___) =>
@@ -593,13 +603,78 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                         controller: _midControllers[i],
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'e.g. assets/${i + 1}.png',
+                          hintText:
+                              'e.g. assets/${i + 1}.png or /uploads/xxx.jpg',
                           hintStyle: TextStyle(color: Colors.grey.shade600),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade700),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(
+                              Icons.folder_open,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Pick and upload image',
+                            onPressed: () async {
+                              final result = await FilePicker.platform
+                                  .pickFiles(type: FileType.image);
+                              if (result != null &&
+                                  result.files.single.path != null) {
+                                try {
+                                  final url = Uri.parse(
+                                    'http://localhost:8000/api/upload',
+                                  );
+                                  final request = http.MultipartRequest(
+                                    'POST',
+                                    url,
+                                  );
+                                  request.files.add(
+                                    await http.MultipartFile.fromPath(
+                                      'image',
+                                      result.files.single.path!,
+                                    ),
+                                  );
+                                  final response = await request.send();
+                                  if (response.statusCode == 200) {
+                                    final respStr = await response.stream
+                                        .bytesToString();
+                                    String? imgUrl;
+                                    try {
+                                      final map = Map<String, dynamic>.from(
+                                        jsonDecode(respStr) as Map,
+                                      );
+                                      imgUrl = map['url']?.toString();
+                                    } catch (_) {
+                                      imgUrl = RegExp(
+                                        r'\"url\"\s*:\s*\"([^\"]+)\"',
+                                      ).firstMatch(respStr)?.group(1);
+                                    }
+                                    if (imgUrl != null && imgUrl.isNotEmpty) {
+                                      setState(() {
+                                        _midControllers[i].text = imgUrl!;
+                                      });
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Upload failed'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Upload error: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
                           ),
                         ),
                       ),

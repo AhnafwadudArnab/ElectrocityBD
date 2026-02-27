@@ -45,7 +45,13 @@ function db(): PDO {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ];
-    $pdo = new PDO($dsn, $CONFIG['db']['user'], $CONFIG['db']['pass'], $options);
+    try {
+        $pdo = new PDO($dsn, $CONFIG['db']['user'], $CONFIG['db']['pass'], $options);
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database connection failed']);
+        exit;
+    }
     return $pdo;
 }
 

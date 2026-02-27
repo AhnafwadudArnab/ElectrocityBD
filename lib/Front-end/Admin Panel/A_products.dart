@@ -191,6 +191,7 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
     'Deals of the Day',
     'Flash Sale',
     'Others',
+    'Products List',
   ];
 
   static const Map<String, String> _displayToSection = {
@@ -224,7 +225,14 @@ class _SectionSwitcherViewState extends State<_SectionSwitcherView> {
                 .toList(),
             onChanged: (v) {
               if (v == null) return;
-              setState(() => _selected = v);
+              if (v == 'Products List') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminUpdateProductPage()),
+                );
+              } else {
+                setState(() => _selected = v);
+              }
             },
           ),
           const SizedBox(height: 16),
@@ -274,6 +282,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _gaugeAwgController = TextEditingController();
   final TextEditingController _materialController = TextEditingController();
   final TextEditingController _sizeController = TextEditingController();
+  bool _showInTechPart = true;
 
   static const Map<String, String> _sectionToApiKey = {
     'Best Sellings': 'best_sellers',
@@ -281,6 +290,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     'Trending Items': 'trending',
     'Deals of the Day': 'deals',
     'Tech Part': 'tech_part',
+    // 'Others' intentionally unmapped; optional Tech Part assignment controlled by toggle
   };
 
   int? _intOrNull(dynamic v) {
@@ -303,17 +313,35 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     throw FormatException('Invalid productId: $v');
   }
 
+  int _extractProductIdFromResponse(Map<String, dynamic> res) {
+    final productIdCandidate =
+        res['productId'] ?? res['id'] ?? res['product_id'];
+    try {
+      return _toIntStrict(productIdCandidate);
+    } catch (_) {
+      // Try nested product object
+      final prod = res['product'];
+      if (prod is Map) {
+        final nestedId = prod['product_id'] ?? prod['id'] ?? prod['productId'];
+        return _toIntStrict(nestedId);
+      }
+      rethrow;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _loadBrands();
     // _loadSectionFilter();
+    if (widget.sectionTitle != 'Others') _showInTechPart = false;
   }
 
   Future<void> _loadCategories() async {
     try {
-      final list = await ApiService.getCategories();
+      // Fetch categories from products endpoint (action=categories)
+      final list = await ApiService.get('/products?action=categories', withAuth: false) as List;
       if (mounted) {
         setState(() {
           final raw = list
@@ -356,17 +384,29 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
   Future<void> _loadBrands() async {
     try {
-      final list = await ApiService.get('/brands') as List;
+      // Fetch brands from products endpoint (action=brands) and de-duplicate by name
+      final list = await ApiService.get('/products?action=brands', withAuth: false) as List;
       if (mounted) {
         setState(() {
-          _brands = list
-              .map((e) => Map<String, dynamic>.from(e as Map))
-              .toList();
-          final stillExists = _brands.any(
-            (b) => _intOrNull(b['brand_id']) == _selectedBrandId,
-          );
-          if (_brands.isNotEmpty &&
-              (_selectedBrandId == null || !stillExists)) {
+          final raw = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          final byName = <String, Map<String, dynamic>>{};
+          for (final b in raw) {
+            final id = _intOrNull(b['brand_id']);
+            final name = (b['brand_name'] ?? '').toString().trim();
+            if (id == null || id <= 0 || name.isEmpty) continue;
+            final key = name.toLowerCase();
+            final existing = byName[key];
+            final existingId = _intOrNull(existing?['brand_id']);
+            if (existing == null || (existingId != null && existingId > id)) {
+              byName[key] = {'brand_id': id, 'brand_name': name};
+            }
+          }
+          final unique = byName.values.toList()
+            ..sort((a, b) => (a['brand_name'] ?? '').toString().toLowerCase()
+                .compareTo((b['brand_name'] ?? '').toString().toLowerCase()));
+          _brands = unique;
+          final stillExists = _brands.any((b) => _intOrNull(b['brand_id']) == _selectedBrandId);
+          if (_brands.isNotEmpty && (_selectedBrandId == null || !stillExists)) {
             _selectedBrandId = _intOrNull(_brands.first['brand_id']);
           }
         });
@@ -525,6 +565,26 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
             ],
           ),
           const SizedBox(height: 20),
+          if (widget.sectionTitle == 'Others')
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                children: [
+                  Switch(
+                    value: _showInTechPart,
+                    onChanged: (v) => setState(() => _showInTechPart = v),
+                    activeColor: brandOrange,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Show in Tech Part (home page section)',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ElevatedButton(
             onPressed: _publishing
                 ? null
@@ -941,6 +1001,12 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       );
       return;
     }
+    if (_selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a category.")),
+      );
+      return;
+    }
     if (_selectedFile == null) {
       ScaffoldMessenger.of(
         context,
@@ -970,21 +1036,22 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
         imageFileName: _selectedFile?.name,
         specs: specs.isEmpty ? null : specs,
       );
-      final productId = _toIntStrict(res['productId']);
+      final productId =
+          _extractProductIdFromResponse(Map<String, dynamic>.from(res));
 
       final sectionKey = _sectionToApiKey[widget.sectionTitle];
-      if (sectionKey != null) {
-        await ApiService.updateProductSections(productId, {sectionKey: true});
-      } else {
-        // No backend section for this page (e.g., Collections/Others)
+      try {
+        if (sectionKey != null) {
+          await ApiService.updateProductSections(productId, {sectionKey: true});
+        } else if (widget.sectionTitle == 'Others' && _showInTechPart) {
+          await ApiService.updateProductSections(productId, {'tech_part': true});
+        }
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               backgroundColor: Colors.orange,
-              content: Text(
-                'Created product; this page has no backend section to assign.',
-              ),
-              duration: Duration(seconds: 2),
+              content: Text('Product created, but section assignment failed: $e'),
             ),
           );
         }

@@ -136,6 +136,9 @@ class _MainContentState extends State<_MainContent> {
       if (lower.startsWith('http://') || lower.startsWith('https://')) {
         return NetworkImage(path);
       }
+      if (path.startsWith('/uploads/')) {
+        return NetworkImage('http://localhost:8000$path');
+      }
       return AssetImage(path);
     }
 
@@ -313,9 +316,12 @@ class _MainContentState extends State<_MainContent> {
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
     final bp = context.watch<BannerProvider>();
-    final slides = bp.heroSlides.isNotEmpty ? bp.heroSlides : _defaultSlides;
+    final slides = bp.heroSlides; // no fallback, respect admin-configured empty
     final len = slides.length;
-    final slide = slides[_currentIndex % len];
+    final hasHero = len > 0;
+    final slide = hasHero
+        ? slides[_currentIndex % len]
+        : const {'image': '', 'label': ''};
 
     return Consumer<AdminProductProvider>(
       builder: (context, adminProductProvider, _) {
@@ -336,30 +342,33 @@ class _MainContentState extends State<_MainContent> {
               r.isSmallMobile || r.isMobile
                   ? Column(
                       children: [
-                        /// HERO BANNER
-                        _buildHeroBanner(context, slide, r, slidesLength: len),
-                        const SizedBox(height: 12),
-
-                        /// BEST SELLING (full width on mobile)
+                        if (hasHero) ...[
+                          _buildHeroBanner(
+                            context,
+                            slide,
+                            r,
+                            slidesLength: len,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                         const BestSellingBox(),
                       ],
                     )
                   : Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        /// HERO BANNER
-                        Expanded(
-                          flex: 7,
-                          child: _buildHeroBanner(
-                            context,
-                            slide,
-                            r,
-                            slidesLength: len,
+                        if (hasHero) ...[
+                          Expanded(
+                            flex: 7,
+                            child: _buildHeroBanner(
+                              context,
+                              slide,
+                              r,
+                              slidesLength: len,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        /// BEST SELLING
+                          const SizedBox(width: 12),
+                        ],
                         const SizedBox(width: 300, child: BestSellingBox()),
                       ],
                     ),

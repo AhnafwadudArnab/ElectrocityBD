@@ -9,6 +9,7 @@ import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
+import 'best_selling_all.dart';
 
 class BestSellingBox extends StatefulWidget {
   const BestSellingBox({super.key});
@@ -84,11 +85,28 @@ class _BestSellingBoxState extends State<BestSellingBox> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text(
-            'Best Selling',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Best Selling',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const BestSellingAll(breadcrumbLabel: 'Best Selling'),
+                    ),
+                  );
+                },
+                child: const Text('See All'),
+              ),
+            ],
           ),
         ),
         if (_loading)
