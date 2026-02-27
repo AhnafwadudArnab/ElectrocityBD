@@ -1,16 +1,46 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
-require_once __DIR__ . '/../api/bootstrap.php';
+@ini_set('display_errors', '1');
+@ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 $configured = false;
 $error = '';
 $ok = false;
-if (is_file(__DIR__ . '/../.env')) {
-    $configured = true;
-    try {
-        db();
-        $ok = true;
-    } catch (Throwable $e) {
-        $ok = false;
+$envFile = __DIR__ . '/.env';
+if (basename(__DIR__) !== 'htdocs' && is_file(__DIR__ . '/../.env')) {
+    $envFile = __DIR__ . '/../.env';
+}
+if (is_file($envFile)) {
+    $map = [];
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        $pos = strpos($line, '=');
+        if ($pos === false) continue;
+        $k = trim(substr($line, 0, $pos));
+        $v = trim(substr($line, $pos + 1));
+        $map[$k] = $v;
+    }
+    $host = $map['DB_HOST'] ?? '';
+    $port = $map['DB_PORT'] ?? '3306';
+    $name = $map['DB_NAME'] ?? '';
+    $user = $map['DB_USER'] ?? '';
+    $pass = $map['DB_PASSWORD'] ?? '';
+    if ($host && $name && $user) {
+        try {
+            $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $name);
+            $pdo = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+            $configured = true;
+            $ok = true;
+        } catch (Throwable $e) {
+            $configured = false;
+            $ok = false;
+        }
     }
 }
 if ($configured && $ok) {
@@ -30,6 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'All fields except password are required';
     } else {
         try {
+            if (!extension_loaded('pdo_mysql')) {
+                throw new RuntimeException('pdo_mysql extension is not enabled on server');
+            }
             $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $name);
             $pdo = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -45,16 +78,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $env[] = 'DB_PASSWORD=' . str_replace(["\r","\n"], '', $pass);
             $env[] = 'JWT_SECRET=' . $secret;
             $content = implode(PHP_EOL, $env) . PHP_EOL;
-            file_put_contents(__DIR__ . '/../.env', $content, LOCK_EX);
-            $configured = true;
-            try {
-                db();
-                $ok = true;
-            } catch (Throwable $e) {
-                $ok = false;
+            $envPathPrimary = is_dir(__DIR__ . '/api') ? (__DIR__ . '/.env') : (__DIR__ . '/../.env');
+            $okWrite = @file_put_contents($envPathPrimary, $content, LOCK_EX) !== false;
+            if (!$okWrite) {
+                @file_put_contents(__DIR__ . '/../.env', $content, LOCK_EX);
+                @file_put_contents(__DIR__ . '/.env', $content, LOCK_EX);
             }
+            $configured = true;
+            $ok = true;
         } catch (Throwable $e) {
-            $error = 'Connection failed. Check credentials and host.';
+            $error = 'Connection failed. ' . $e->getMessage();
         }
     }
 }
