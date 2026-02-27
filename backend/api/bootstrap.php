@@ -1,5 +1,29 @@
 <?php
 declare(strict_types=1);
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool {
+        return $needle === '' || strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        if ($needle === '') return true;
+        $len = strlen($needle);
+        return substr($haystack, -$len) === $needle;
+    }
+}
+if (!function_exists('getallheaders')) {
+    function getallheaders(): array {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (strpos($name, 'HTTP_') === 0) {
+                $key = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+                $headers[$key] = $value;
+            }
+        }
+        return $headers;
+    }
+}
 ini_set('display_errors', '0');
 ini_set('display_startup_errors', '0');
 ini_set('html_errors', '0');
@@ -81,9 +105,12 @@ function getJsonBody(): array {
 }
 
 function bearerToken(): ?string {
-    $headers = getallheaders();
+    $headers = function_exists('getallheaders') ? getallheaders() : [];
     $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-    if (stripos($auth, 'Bearer ') === 0) {
+    if (!$auth) {
+        $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    }
+    if ($auth && stripos($auth, 'Bearer ') === 0) {
         return trim(substr($auth, 7));
     }
     return null;

@@ -1,6 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
+    # Security: block access to hidden files (.env, .git, etc.) and config files
+    RewriteRule "(^|/)\." - [F]
+    <FilesMatch "^(config\.php|db\.php|\.env)$">
+        Require all denied
+    </FilesMatch>
+    
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
