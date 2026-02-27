@@ -9,6 +9,15 @@ require_once __DIR__ . '/../config/cors.php';
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $segments = array_values(array_filter(explode('/', trim($path, '/'))));
 
+// Allow direct access to installer if rewrite rules don't catch it
+if (!empty($segments[0]) && $segments[0] === 'install.php') {
+    $installer = __DIR__ . '/install.php';
+    if (is_file($installer)) {
+        require_once $installer;
+        exit;
+    }
+}
+
 if (!empty($segments[0]) && $segments[0] === 'uploads') {
     $local = __DIR__ . $path;
     if (is_file($local)) {
@@ -65,4 +74,3 @@ if ($segments[0] === 'api') {
 
 http_response_code(404);
 echo json_encode(['message' => 'Endpoint not found']);
-?>
