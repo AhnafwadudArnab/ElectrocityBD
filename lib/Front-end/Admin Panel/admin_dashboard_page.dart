@@ -180,9 +180,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 case AdminSidebarItem.deals:
                   page = const AdminDealsPage(embedded: true);
                   break;
-                case AdminSidebarItem.flashSales:
-                  page = const AdminFlashSalesPage(embedded: true);
-                  break;
+                // case AdminSidebarItem.flashSales:
+                //   page = const AdminFlashSalesPage(embedded: true);
+                //   break;
                 case AdminSidebarItem.promotions:
                   page = const AdminPromotionsPage(embedded: true);
                   break;

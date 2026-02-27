@@ -44,6 +44,9 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
+    error_log("POST request to products - Headers: " . json_encode(getallheaders()));
+    error_log("POST request to products - _SERVER HTTP_AUTHORIZATION: " . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'not set'));
+    
     $admin = AuthMiddleware::authenticateAdmin();
     
     // Handle both JSON and form data
