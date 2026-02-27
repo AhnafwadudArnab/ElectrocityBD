@@ -7,6 +7,7 @@
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
+USE `if0_41260555_electrocity_bd`;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 
 START TRANSACTION;
@@ -15,7 +16,6 @@ SET time_zone = "+00:00";
 
 SET FOREIGN_KEY_CHECKS = 0;
 
-use `if0_41235283_electrocity_bd`;
 
 DROP TABLE IF EXISTS `order_items`;
 
