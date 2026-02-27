@@ -249,7 +249,11 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
                                 priceBDT: _parsePrice(p['price']),
                                 images: (p['image_url'] != null && (p['image_url'] as String).isNotEmpty) ? [p['image_url'] as String] : [],
                                 description: p['description'] ?? '',
-                                additionalInfo: {'Brand': p['brand_name'] ?? ''},
+                                additionalInfo: {
+                                  'Brand': p['brand_name'] ?? '',
+                                  if (p['rating_avg'] != null) 'rating': '${p['rating_avg']}',
+                                  if (p['review_count'] != null) 'review_count': '${p['review_count']}',
+                                },
                               );
                               Navigator.push(context, MaterialPageRoute(builder: (_) => UniversalProductDetails(product: pd)));
                             } else {

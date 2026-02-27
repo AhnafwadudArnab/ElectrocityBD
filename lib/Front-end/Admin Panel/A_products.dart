@@ -19,6 +19,7 @@ import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 import 'admin_update_product.dart';
+import 'A_payments.dart';
 
 class AdminProductUploadPage extends StatelessWidget {
   final bool embedded;
@@ -45,6 +46,9 @@ class AdminProductUploadPage extends StatelessWidget {
         break;
       case AdminSidebarItem.orders:
         page = const AdminOrdersPage(embedded: true);
+        break;
+      case AdminSidebarItem.payments:
+        page = const AdminPaymentsPage(embedded: true);
         break;
       case AdminSidebarItem.carts:
         page = const AdminCartsPage(embedded: true);

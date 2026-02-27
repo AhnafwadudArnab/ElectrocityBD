@@ -1,7 +1,6 @@
 import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
@@ -9,7 +8,6 @@ import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
 import '../../footer.dart';
 import '../../header.dart';
-
 class BestSellingAll extends StatefulWidget {
   final String breadcrumbLabel;
   const BestSellingAll({super.key, this.breadcrumbLabel = 'Best Selling'});
@@ -64,6 +62,8 @@ class _BestSellingAllState extends State<BestSellingAll> {
             'category': (p['category_name'] ?? 'General').toString(),
             'image': (p['image_url'] ?? '').toString(),
             'product_id': p['product_id'],
+            'rating': p['rating_avg'],
+            'reviews': p['review_count'],
             'isDb': true,
           },
         )
@@ -105,7 +105,10 @@ class _BestSellingAllState extends State<BestSellingAll> {
       priceBDT: (item['price'] as double),
       images: images,
       description: 'Best selling item',
-      additionalInfo: {},
+      additionalInfo: {
+        if ((item['rating'] ?? '') != '') 'rating': '${item['rating']}',
+        if ((item['reviews'] ?? '') != '') 'review_count': '${item['reviews']}',
+      },
     );
     Navigator.push(
       context,

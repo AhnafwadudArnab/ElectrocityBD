@@ -20,6 +20,7 @@ import 'A_products.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
+import 'A_payments.dart';
 
 class AdminBannersPage extends StatefulWidget {
   final bool embedded;
@@ -188,6 +189,9 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
         break;
       case AdminSidebarItem.products:
         page = const AdminProductUploadPage(embedded: true);
+        break;
+      case AdminSidebarItem.payments:
+        page = const AdminPaymentsPage(embedded: true);
         break;
       case AdminSidebarItem.carts:
         page = const AdminCartsPage(embedded: true);

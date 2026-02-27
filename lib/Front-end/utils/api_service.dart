@@ -99,7 +99,11 @@ class ApiService {
     if (res.statusCode == 401 || res.statusCode == 403) {
       await clearToken();
     }
-    throw ApiException(body['error'] ?? 'Request failed', res.statusCode);
+    if (body is Map) {
+      final err = body['error'] ?? body['message'];
+      throw ApiException(err ?? 'Request failed', res.statusCode);
+    }
+    throw ApiException('Request failed', res.statusCode);
   }
 
   static Future<T> _withReprobeBase<T>(
@@ -464,6 +468,25 @@ class ApiService {
 
   static Future<void> deleteDiscount(int id) async {
     await delete('/discounts/$id');
+  }
+
+  // ─── Ratings API ───
+  static Future<Map<String, dynamic>?> getProductRating(int productId) async {
+    final res = await get('/ratings?product_id=$productId', withAuth: false);
+    if (res is Map<String, dynamic>) return res;
+    return null;
+  }
+
+  static Future<void> setProductRating({
+    required int productId,
+    required double ratingAvg,
+    required int reviewCount,
+  }) async {
+    await post('/ratings', {
+      'product_id': productId,
+      'rating_avg': ratingAvg,
+      'review_count': reviewCount,
+    });
   }
 
   // ─── Coupon API ───

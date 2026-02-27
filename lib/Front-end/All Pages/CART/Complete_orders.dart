@@ -18,7 +18,7 @@ class OrderCompletedPage extends StatelessWidget {
   final String? transactionId;
   final String? estimatedDelivery;
 
-  OrderCompletedPage({
+  const OrderCompletedPage({
     super.key,
     this.orderId,
     this.paymentMethod,

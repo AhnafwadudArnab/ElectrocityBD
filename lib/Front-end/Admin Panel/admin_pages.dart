@@ -13,6 +13,7 @@ import 'A_products.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
+import 'A_payments.dart';
 
 /// Returns the admin page widget for the given sidebar item (embedded mode).
 /// Use this to avoid circular imports between admin pages.
@@ -26,6 +27,8 @@ Widget? getAdminPage(AdminSidebarItem item) {
       return const AdminProductUploadPage(embedded: true);
     case AdminSidebarItem.carts:
       return const AdminCartsPage(embedded: true);
+    case AdminSidebarItem.payments:
+      return const AdminPaymentsPage(embedded: true);
     case AdminSidebarItem.reports:
       return const AdminReportsPage(embedded: true);
     case AdminSidebarItem.discounts:

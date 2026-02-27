@@ -19,6 +19,7 @@ class Product {
     public function getAll($limit = 100, $offset = 0, $category = null, $brand = null) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
                          d.discount_percent, 
+                         pr.rating_avg, pr.review_count,
                          CASE 
                              WHEN d.discount_percent IS NOT NULL 
                              THEN p.price * (1 - d.discount_percent/100)
@@ -28,7 +29,8 @@ class Product {
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
                   LEFT JOIN discounts d ON p.product_id = d.product_id 
-                      AND CURDATE() BETWEEN d.valid_from AND d.valid_to";
+                      AND CURDATE() BETWEEN d.valid_from AND d.valid_to
+                  LEFT JOIN product_ratings pr ON pr.product_id = p.product_id";
         
         $conditions = [];
         $params = [];
@@ -64,6 +66,7 @@ class Product {
     public function getById($id) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
                          d.discount_percent, d.valid_from, d.valid_to,
+                         pr.rating_avg, pr.review_count,
                          CASE 
                              WHEN d.discount_percent IS NOT NULL 
                              THEN p.price * (1 - d.discount_percent/100)
@@ -74,6 +77,7 @@ class Product {
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
                   LEFT JOIN discounts d ON p.product_id = d.product_id 
                       AND CURDATE() BETWEEN d.valid_from AND d.valid_to
+                  LEFT JOIN product_ratings pr ON pr.product_id = p.product_id
                   WHERE p.product_id = :id";
         
         $stmt = $this->conn->prepare($query);

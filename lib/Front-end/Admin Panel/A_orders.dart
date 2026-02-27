@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
@@ -17,6 +17,7 @@ import 'A_carts.dart';
 import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
+import 'A_payments.dart';
 import 'A_products.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
@@ -151,6 +152,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               switch (item) {
                 case AdminSidebarItem.dashboard:
                   page = const AdminDashboardPage(embedded: true);
+                  break;
+                case AdminSidebarItem.payments:
+                  page = const AdminPaymentsPage(embedded: true);
                   break;
                 case AdminSidebarItem.products:
                   page = const AdminProductUploadPage(embedded: true);
@@ -435,7 +439,8 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   _TableHeader("Store", flex: 3),
                   _TableHeader("Method", flex: 2),
                   _TableHeader("Time Slot", flex: 2),
-                  _TableHeader("Created", flex: 3),
+                  _TableHeader("Created", flex: 2),
+                  _TableHeader("Txn ID", flex: 3),
                   _TableHeader("Last Status", flex: 3),
                 ],
               ),
@@ -536,12 +541,24 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                                   ),
                                 ),
                                 Expanded(
-                                  flex: 3,
+                                  flex: 2,
                                   child: Text(
                                     "Date: ${order["created"]}",
                                     style: const TextStyle(
                                       fontSize: 13,
                                       color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    order["transactionId"]?.isNotEmpty == true
+                                        ? order["transactionId"]!
+                                        : "—",
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
                                     ),
                                   ),
                                 ),

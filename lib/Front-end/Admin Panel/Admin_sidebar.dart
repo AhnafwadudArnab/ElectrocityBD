@@ -5,6 +5,7 @@ enum AdminSidebarItem {
   orders,
   carts,
   products,
+  payments,
   banners,
   reports,
   discounts,
@@ -105,6 +106,15 @@ class AdminSidebar extends StatelessWidget {
                     inactiveColor: inactiveGrey,
                   ),
                   // carts menu removed per requirement
+                  _buildSidebarItem(
+                    item: AdminSidebarItem.payments,
+                    icon: Icons.account_balance_wallet_outlined,
+                    label: 'Payments',
+                    onItemSelected: onItemSelected,
+                    activeColor: brandOrange,
+                    activeBg: activeBackground,
+                    inactiveColor: inactiveGrey,
+                  ),
 
                   _buildSidebarItem(
                     item: AdminSidebarItem.reports,

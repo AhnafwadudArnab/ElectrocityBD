@@ -61,29 +61,35 @@ class Order {
                 // Update stock
                 $stock_query = "UPDATE products SET stock_quantity = stock_quantity - :qty
                                WHERE product_id = :product_id";
-                $stock_stmt = $this->conn->prepare($stock_query);
-                $stock_stmt->bindParam(":qty", $item['quantity']);
-                $stock_stmt->bindParam(":product_id", $item['product_id']);
-                $stock_stmt->execute();
+                if ((int)$item['product_id'] > 0) {
+                    $stock_stmt = $this->conn->prepare($stock_query);
+                    $stock_stmt->bindParam(":qty", $item['quantity']);
+                    $stock_stmt->bindParam(":product_id", $item['product_id']);
+                    $stock_stmt->execute();
+                }
                 
                 // Update best_sellers
-                $best_query = "INSERT INTO best_sellers (product_id, sales_count) 
-                               VALUES (:product_id, :qty)
-                               ON DUPLICATE KEY UPDATE 
-                               sales_count = sales_count + :qty, last_updated = NOW()";
-                $best_stmt = $this->conn->prepare($best_query);
-                $best_stmt->bindParam(":product_id", $item['product_id']);
-                $best_stmt->bindParam(":qty", $item['quantity']);
-                $best_stmt->execute();
+                if ((int)$item['product_id'] > 0) {
+                    $best_query = "INSERT INTO best_sellers (product_id, sales_count) 
+                                   VALUES (:product_id, :qty)
+                                   ON DUPLICATE KEY UPDATE 
+                                   sales_count = sales_count + :qty, last_updated = NOW()";
+                    $best_stmt = $this->conn->prepare($best_query);
+                    $best_stmt->bindParam(":product_id", $item['product_id']);
+                    $best_stmt->bindParam(":qty", $item['quantity']);
+                    $best_stmt->execute();
+                }
                 
                 // Update trending score (simple algorithm: +1 for each purchase)
-                $trend_query = "INSERT INTO trending_products (product_id, trending_score) 
-                               VALUES (:product_id, 1)
-                               ON DUPLICATE KEY UPDATE 
-                               trending_score = trending_score + 1, last_updated = NOW()";
-                $trend_stmt = $this->conn->prepare($trend_query);
-                $trend_stmt->bindParam(":product_id", $item['product_id']);
-                $trend_stmt->execute();
+                if ((int)$item['product_id'] > 0) {
+                    $trend_query = "INSERT INTO trending_products (product_id, trending_score) 
+                                   VALUES (:product_id, 1)
+                                   ON DUPLICATE KEY UPDATE 
+                                   trending_score = trending_score + 1, last_updated = NOW()";
+                    $trend_stmt = $this->conn->prepare($trend_query);
+                    $trend_stmt->bindParam(":product_id", $item['product_id']);
+                    $trend_stmt->execute();
+                }
             }
             
             // Clear cart

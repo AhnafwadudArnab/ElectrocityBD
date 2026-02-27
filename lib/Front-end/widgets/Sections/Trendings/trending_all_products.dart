@@ -286,6 +286,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           // Specs can later be mapped from attributes if needed.
           'specs': const <String>[],
           'image': (p['image_url'] ?? '') as String,
+          'rating': p['rating_avg'] ?? p['rating'],
+          'reviews': p['review_count'] ?? p['reviews'],
         };
       }).toList();
       if (mounted) {
@@ -373,6 +375,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
         'Brand': item['brand'] as String,
         'Price': 'Tk ${(item['price'] as double).toStringAsFixed(0)}',
         'Specifications': (item['specs'] as List<String>).join(', '),
+        if ((item['rating'] ?? '') != '') 'rating': '${item['rating']}',
+        if ((item['reviews'] ?? '') != '') 'review_count': '${item['reviews']}',
       },
     );
 

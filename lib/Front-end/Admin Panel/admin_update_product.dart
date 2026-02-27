@@ -22,6 +22,7 @@ import 'A_products.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
+import 'A_payments.dart';
 
 /// Admin page to view and delete specific products (from database and from website sections).
 class AdminUpdateProductPage extends StatefulWidget {
@@ -199,6 +200,9 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         break;
       case AdminSidebarItem.orders:
         page = const AdminOrdersPage();
+        break;
+      case AdminSidebarItem.payments:
+        page = const AdminPaymentsPage();
         break;
       case AdminSidebarItem.products:
         page = const AdminProductUploadPage();
@@ -504,11 +508,15 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
               .toString();
           final price = (p['price'] ?? 0).toString();
           final imageUrl = (p['image_url'] ?? p['imageUrl'] ?? '').toString();
+          final rating = (p['rating_avg'] ?? '').toString();
+          final reviews = (p['review_count'] ?? '').toString();
           return _DbProductTile(
             productId: id is int ? id : int.tryParse(id?.toString() ?? ''),
             name: name,
             price: price,
             imageUrl: imageUrl,
+            rating: rating.isNotEmpty ? rating : null,
+            reviews: reviews.isNotEmpty ? reviews : null,
             onDeleted: () {
               _dbProducts.removeAt(index);
               setState(() {});
@@ -588,12 +596,16 @@ class _DbProductTile extends StatelessWidget {
   final String price;
   final String imageUrl;
   final VoidCallback onDeleted;
+  final String? rating;
+  final String? reviews;
 
   const _DbProductTile({
     required this.productId,
     required this.name,
     required this.price,
     required this.imageUrl,
+    this.rating,
+    this.reviews,
     required this.onDeleted,
   });
 
@@ -616,18 +628,84 @@ class _DbProductTile extends StatelessWidget {
         ),
         title: Text(name, style: const TextStyle(color: Colors.white)),
         subtitle: Text(
-          '৳ $price • ID: $productId',
+          '৳ $price • ID: $productId${(rating != null && rating!.isNotEmpty) ? ' • ★ ${rating}' : ''}${(reviews != null && reviews!.isNotEmpty) ? ' (${reviews})' : ''}',
           style: const TextStyle(color: Colors.green),
         ),
-        trailing: productId != null
-            ? IconButton(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (productId != null)
+              IconButton(
+                icon: const Icon(Icons.star_rate, color: Colors.amber),
+                tooltip: 'Edit rating',
+                onPressed: () => _editRating(context, productId!),
+              ),
+            if (productId != null)
+              IconButton(
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
                 tooltip: 'Delete from database',
                 onPressed: () => _confirmDelete(context),
-              )
-            : const SizedBox.shrink(),
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _editRating(BuildContext context, int pid) async {
+    final rCtrl = TextEditingController(text: rating ?? '');
+    final cCtrl = TextEditingController(text: reviews ?? '');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF151C2C),
+        title: const Text('Update Rating', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: rCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Average rating (0-5)',
+                hintStyle: TextStyle(color: Colors.white24),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: cCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Review count',
+                hintStyle: TextStyle(color: Colors.white24),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      final avg = double.tryParse(rCtrl.text.trim()) ?? 0;
+      final cnt = int.tryParse(cCtrl.text.trim()) ?? 0;
+      try {
+        await ApiService.setProductRating(productId: pid, ratingAvg: avg, reviewCount: cnt);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(backgroundColor: Colors.green, content: Text('Rating updated')),
+        );
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(backgroundColor: Colors.red, content: Text('Failed to update rating')),
+        );
+      }
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

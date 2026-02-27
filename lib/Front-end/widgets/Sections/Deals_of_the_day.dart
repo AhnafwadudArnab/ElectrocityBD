@@ -80,7 +80,12 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       priceBDT: price,
       images: imageUrl.isNotEmpty ? [imageUrl] : [],
       description: p['description'] ?? '',
-      additionalInfo: {'Brand': p['brand_name'] ?? '', 'Old Price': '৳${oldPrice.toStringAsFixed(0)}'},
+      additionalInfo: {
+        'Brand': p['brand_name'] ?? '',
+        'Old Price': '৳${oldPrice.toStringAsFixed(0)}',
+        if (p['rating_avg'] != null) 'rating': '${p['rating_avg']}',
+        if (p['review_count'] != null) 'review_count': '${p['review_count']}',
+      },
     );
   }
 

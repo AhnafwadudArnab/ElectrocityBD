@@ -411,13 +411,21 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              "4.5 (128 reviews)",
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: AppDimensions.smallFont(context),
-              ),
-            ),
+            Builder(builder: (_) {
+              final info = widget.product.additionalInfo;
+              final rStr = info['rating'] ?? info['rating_avg'] ?? info['avgRating'];
+              final cStr = info['reviews'] ?? info['review_count'] ?? info['reviewCount'];
+              final rating = double.tryParse((rStr ?? '').toString());
+              final count = int.tryParse((cStr ?? '').toString());
+              if (rating == null || rating <= 0) return const SizedBox.shrink();
+              return Text(
+                "${rating.toStringAsFixed(1)} ${count != null ? '(${count} reviews)' : ''}".trim(),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: AppDimensions.smallFont(context),
+                ),
+              );
+            }),
           ],
         ),
         SizedBox(

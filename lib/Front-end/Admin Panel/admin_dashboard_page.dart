@@ -17,6 +17,7 @@ import 'A_orders.dart';
 import 'A_products.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
+import 'A_payments.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   /// When true, only the content is shown (no sidebar). Used inside AdminLayoutPage.
@@ -163,6 +164,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   break;
                 case AdminSidebarItem.products:
                   page = const AdminProductUploadPage(embedded: true);
+                  break;
+                case AdminSidebarItem.payments:
+                  page = const AdminPaymentsPage(embedded: true);
                   break;
                 case AdminSidebarItem.carts:
                   page = const AdminCartsPage(embedded: true);

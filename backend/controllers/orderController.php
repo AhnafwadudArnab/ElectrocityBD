@@ -17,16 +17,44 @@ class OrderController {
             return ['message' => 'Payment method and delivery address required'];
         }
         
-        // Get cart items
-        $cart = new Cart($this->db);
-        $cart_items = $cart->getUserCart($user_id);
-        
-        if (empty($cart_items)) {
-            http_response_code(400);
-            return ['message' => 'Cart is empty'];
+        // Prefer items provided by client; fallback to server cart
+        $cart_items = [];
+        $total = 0.0;
+        if (isset($data['items']) && is_array($data['items']) && count($data['items']) > 0) {
+            foreach ($data['items'] as $it) {
+                $pid = isset($it['product_id']) ? (int)$it['product_id'] : 0;
+                $name = ($it['product_name'] ?? $it['name'] ?? '');
+                $qty = (int)($it['quantity'] ?? 1);
+                $price = (float)($it['price'] ?? 0);
+                $disc = isset($it['discounted_price']) ? (float)$it['discounted_price'] : null;
+                $img = ($it['image_url'] ?? $it['imageUrl'] ?? '');
+                if ($qty <= 0) continue;
+                $cart_items[] = [
+                    'product_id' => $pid, // 0 allowed for non-DB items
+                    'product_name' => $name,
+                    'quantity' => $qty,
+                    'price' => $price,
+                    'discounted_price' => $disc,
+                    'image_url' => $img,
+                ];
+                $line = ($disc !== null ? $disc : $price) * $qty;
+                $total += $line;
+            }
+            if (empty($cart_items)) {
+                http_response_code(400);
+                return ['message' => 'No valid items in request'];
+            }
+        } else {
+            // Fallback: use server-side cart
+            $cart = new Cart($this->db);
+            $cart_items = $cart->getUserCart($user_id);
+            if (empty($cart_items)) {
+                http_response_code(400);
+                return ['message' => 'Cart is empty'];
+            }
+            $total = $cart->getCartTotal($user_id);
         }
         
-        $total = $cart->getCartTotal($user_id);
         $couponDiscount = 0.0;
         if (isset($data['coupon_discount'])) {
             $couponDiscount = max(0.0, (float)$data['coupon_discount']);
@@ -41,9 +69,12 @@ class OrderController {
         $this->order->estimated_delivery = $data['estimated_delivery'] ?? '7-10 business days';
         
         if ($this->order->create($cart_items)) {
+            $orderId = $this->order->order_id;
+            $code = 'EC-' . date('Ymd') . '-' . $orderId;
             return [
                 'message' => 'Order created successfully',
-                'order_id' => $this->order->order_id
+                'order_id' => $orderId,
+                'order_code' => $code,
             ];
         }
         

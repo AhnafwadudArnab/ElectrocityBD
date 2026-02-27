@@ -14,6 +14,7 @@ import 'A_products.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
 import '../pages/home_page.dart';
+import 'A_payments.dart';
 
 class AdminLayoutPage extends StatefulWidget {
   const AdminLayoutPage({super.key});
@@ -61,6 +62,8 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
         return const AdminOrdersPage(embedded: true);
       case AdminSidebarItem.products:
         return const AdminProductUploadPage(embedded: true);
+      case AdminSidebarItem.payments:
+        return const AdminPaymentsPage(embedded: true);
       case AdminSidebarItem.reports:
         return const AdminReportsPage(embedded: true);
       case AdminSidebarItem.discounts:
