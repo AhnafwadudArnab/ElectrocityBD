@@ -311,16 +311,26 @@ class _BestSellingBoxState extends State<BestSellingBox> {
               ) ??
               0.0)
         : product.priceBDT;
-    final productImage = isFromAdmin
-        ? (product['image']?.bytes != null
-              ? MemoryImage(product['image'].bytes!)
-              : (product['imageUrl'] != null &&
-                        (product['imageUrl'] as String).isNotEmpty
-                    ? NetworkImage(product['imageUrl'] as String)
-                    : null))
-        : (product.images.isNotEmpty
-              ? NetworkImage(product.images.first)
-              : null);
+    
+    // Get image URL or bytes
+    String? imageUrl;
+    dynamic imageBytes;
+    
+    if (isFromAdmin) {
+      // Check for imageUrl first (from server)
+      if (product['imageUrl'] != null && (product['imageUrl'] as String).isNotEmpty) {
+        imageUrl = product['imageUrl'] as String;
+      }
+      // Fallback to image bytes (from file picker)
+      if (imageUrl == null && product['image']?.bytes != null) {
+        imageBytes = product['image'].bytes;
+      }
+    } else {
+      // Sample product
+      if (product.images.isNotEmpty) {
+        imageUrl = product.images.first;
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -347,11 +357,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
               name: productName,
               category: 'Best Selling',
               priceBDT: productPrice,
-              images:
-                  product['imageUrl'] != null &&
-                      (product['imageUrl'] as String).isNotEmpty
-                  ? [product['imageUrl'] as String]
-                  : [],
+              images: imageUrl != null ? [imageUrl] : [],
               description: product['desc'] ?? '',
               additionalInfo: {'Category': product['category'] ?? ''},
             );
@@ -373,13 +379,22 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                 width: 60,
                 height: 60,
                 color: Colors.grey[200],
-                child: productImage != null
-                    ? Image(
-                        image: productImage as ImageProvider<Object>,
+                child: imageUrl != null
+                    ? ImageResolver.image(
+                        imageUrl: imageUrl,
+                        width: 60,
+                        height: 60,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.image),
                       )
-                    : const Icon(Icons.image, color: Colors.grey),
+                    : imageBytes != null
+                        ? Image.memory(
+                            imageBytes,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Colors.grey),
+                          )
+                        : const Icon(Icons.image, color: Colors.grey),
               ),
             ),
             const SizedBox(width: 12),

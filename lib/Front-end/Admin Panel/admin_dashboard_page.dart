@@ -10,6 +10,7 @@ import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
+import 'A_collections.dart';
 import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
@@ -163,6 +164,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   break;
                 case AdminSidebarItem.products:
                   page = const AdminProductUploadPage(embedded: true);
+                  break;
+                case AdminSidebarItem.collections:
+                  page = const AdminCollectionsPage(embedded: true);
                   break;
                 case AdminSidebarItem.payments:
                   page = const AdminPaymentsPage(embedded: true);

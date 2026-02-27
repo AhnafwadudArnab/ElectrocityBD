@@ -463,6 +463,31 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               fontWeight: FontWeight.bold,
             ),
           ),
+          if (widget.sectionTitle == 'Best Sellings')
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Note: A maximum of 4 items can be displayed in this section',
+                      style: TextStyle(
+                        color: Colors.orange.shade200,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1084,6 +1109,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       final serverProduct = (res['product'] is Map)
           ? Map<String, dynamic>.from(res['product'])
           : null;
+      
+      // Get image URL from server response
+      String? imageUrl;
+      if (serverProduct != null && serverProduct['image_url'] != null) {
+        imageUrl = serverProduct['image_url'].toString();
+      }
+      
       final productData = serverProduct != null
           ? {
               "id": "server_$productId",
@@ -1091,8 +1123,8 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               "price": (serverProduct['price'] ?? '').toString(),
               "desc": (serverProduct['description'] ?? '').toString(),
               "category": (serverProduct['category_name'] ?? '').toString(),
-              "imageUrl": (serverProduct['image_url'] ?? '').toString(),
-              "image": null,
+              "imageUrl": imageUrl ?? '',
+              "image": _selectedFile,
             }
           : {
               "name": _nameController.text.trim(),
@@ -1107,7 +1139,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                 return '';
               }(),
               "image": _selectedFile,
-              "imageUrl": null,
+              "imageUrl": imageUrl ?? '',
             };
       provider.addProduct(widget.sectionTitle, productData);
 

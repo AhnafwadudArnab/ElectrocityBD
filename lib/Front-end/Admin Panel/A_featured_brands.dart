@@ -44,12 +44,40 @@ class _AdminFeatureBrandsPageState extends State<AdminFeatureBrandsPage> {
     _synced = true;
     for (final c in _brandControllers) { c.dispose(); }
     _brandControllers.clear();
-    for (final logo in bp.featuredBrands) {
-      _brandControllers.add(TextEditingController(text: logo));
+    
+    // Default brand names if no data from provider
+    final defaultBrands = [
+      'Philips',
+      'Samsung',
+      'Walton',
+      'LG',
+      'Sony',
+      'Panasonic',
+      'Hitachi',
+      'Sharp',
+      'Toshiba',
+      'Haier',
+      'TCL',
+      'Xiaomi',
+    ];
+    
+    if (bp.featuredBrands.isEmpty) {
+      // Use default brands
+      for (int i = 0; i < defaultBrands.length; i++) {
+        _brandControllers.add(TextEditingController(text: defaultBrands[i]));
+      }
+    } else {
+      // Use provider data
+      for (final logo in bp.featuredBrands) {
+        _brandControllers.add(TextEditingController(text: logo));
+      }
     }
-    while (_brandControllers.length < 8) {
+    
+    // Ensure minimum 12 slots
+    while (_brandControllers.length < 12) {
       _brandControllers.add(TextEditingController());
     }
+    
     if (bp.midBanners.isNotEmpty) {
       _midControllers[0].text = bp.midBanners[0]['img'] ?? '';
       if (bp.midBanners.length > 1) _midControllers[1].text = bp.midBanners[1]['img'] ?? '';

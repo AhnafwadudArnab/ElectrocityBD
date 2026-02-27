@@ -1,15 +1,67 @@
 import 'package:flutter/material.dart';
+import '../pages/home_page.dart';
+import 'Admin_sidebar.dart';
+import 'admin_pages.dart';
 
-class AdminCollectionsPage extends StatefulWidget {
+class AdminCollectionsPage extends StatelessWidget {
   final bool embedded;
 
   const AdminCollectionsPage({super.key, this.embedded = false});
 
+  static void _navigateFromSidebar(
+    BuildContext context,
+    AdminSidebarItem item,
+  ) {
+    if (item == AdminSidebarItem.collections) return;
+    if (item == AdminSidebarItem.viewStore) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+      return;
+    }
+    final page = getAdminPage(item);
+    if (page != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+      );
+    }
+  }
+
   @override
-  State<AdminCollectionsPage> createState() => _AdminCollectionsPageState();
+  Widget build(BuildContext context) {
+    const Color darkBg = Color(0xFF0B121E);
+
+    if (embedded) {
+      return Container(
+        color: darkBg,
+        child: const _CollectionsContent(),
+      );
+    }
+    return Scaffold(
+      backgroundColor: darkBg,
+      body: Row(
+        children: [
+          AdminSidebar(
+            selected: AdminSidebarItem.collections,
+            onItemSelected: (item) => _navigateFromSidebar(context, item),
+          ),
+          const Expanded(child: _CollectionsContent()),
+        ],
+      ),
+    );
+  }
 }
 
-class _AdminCollectionsPageState extends State<AdminCollectionsPage> {
+class _CollectionsContent extends StatefulWidget {
+  const _CollectionsContent();
+
+  @override
+  State<_CollectionsContent> createState() => _CollectionsContentState();
+}
+class _CollectionsContentState extends State<_CollectionsContent> {
   List<Map<String, dynamic>> _collections = [];
   bool _isLoading = true;
   String? _selectedCollectionId;

@@ -125,16 +125,6 @@ class AdminSidebar extends StatelessWidget {
                     activeBg: activeBackground,
                     inactiveColor: inactiveGrey,
                   ),
-
-                  _buildSidebarItem(
-                    item: AdminSidebarItem.reports,
-                    icon: Icons.analytics_outlined,
-                    label: 'Reports',
-                    onItemSelected: onItemSelected,
-                    activeColor: brandOrange,
-                    activeBg: activeBackground,
-                    inactiveColor: inactiveGrey,
-                  ),
                   _buildSidebarItem(
                     item: AdminSidebarItem.discounts,
                     icon: Icons.confirmation_number_outlined,
@@ -193,6 +183,15 @@ class AdminSidebar extends StatelessWidget {
                     item: AdminSidebarItem.viewStore,
                     icon: Icons.store_outlined,
                     label: 'View Store',
+                    onItemSelected: onItemSelected,
+                    activeColor: brandOrange,
+                    activeBg: activeBackground,
+                    inactiveColor: inactiveGrey,
+                  ),
+                  _buildSidebarItem(
+                    item: AdminSidebarItem.reports,
+                    icon: Icons.analytics_outlined,
+                    label: 'Reports',
                     onItemSelected: onItemSelected,
                     activeColor: brandOrange,
                     activeBg: activeBackground,

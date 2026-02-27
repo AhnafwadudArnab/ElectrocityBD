@@ -38,7 +38,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   bool _autoRefresh = false;
   Timer? _autoTimer;
   DateTime? _lastUpdated;
-  static const int _refreshIntervalSeconds = 30;
+  static const int _refreshIntervalSeconds = 8;
 
   @override
   void initState() {
