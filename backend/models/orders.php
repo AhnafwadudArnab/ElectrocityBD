@@ -58,10 +58,10 @@ class Order {
                     throw new Exception("Failed to create order items");
                 }
                 
-                // Update stock
-                $stock_query = "UPDATE products SET stock_quantity = stock_quantity - :qty
-                               WHERE product_id = :product_id";
-                if ((int)$item['product_id'] > 0) {
+                // Update stock only if product_id is valid
+                if (isset($item['product_id']) && (int)$item['product_id'] > 0) {
+                    $stock_query = "UPDATE products SET stock_quantity = stock_quantity - :qty
+                                   WHERE product_id = :product_id AND stock_quantity >= :qty";
                     $stock_stmt = $this->conn->prepare($stock_query);
                     $stock_stmt->bindParam(":qty", $item['quantity']);
                     $stock_stmt->bindParam(":product_id", $item['product_id']);
@@ -92,15 +92,18 @@ class Order {
                 }
             }
             
-            // Clear cart
-            $cart = new Cart($this->conn);
-            $cart->clearCart($this->user_id);
+            // Clear cart - use direct query instead of Cart class to avoid dependency issues
+            $clear_query = "DELETE FROM cart WHERE user_id = :user_id";
+            $clear_stmt = $this->conn->prepare($clear_query);
+            $clear_stmt->bindParam(":user_id", $this->user_id);
+            $clear_stmt->execute();
             
             $this->conn->commit();
             return true;
             
         } catch (Exception $e) {
             $this->conn->rollBack();
+            error_log("Order creation failed: " . $e->getMessage());
             return false;
         }
     }
@@ -118,7 +121,18 @@ class Order {
         $stmt->bindParam(':user_id', $user_id);
         $stmt->execute();
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Get items for each order
+        foreach ($orders as &$order) {
+            $item_query = "SELECT * FROM order_items WHERE order_id = :order_id";
+            $item_stmt = $this->conn->prepare($item_query);
+            $item_stmt->bindParam(':order_id', $order['order_id']);
+            $item_stmt->execute();
+            $order['items'] = $item_stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $orders;
     }
     
     public function getOrderDetails($order_id, $user_id = null) {
@@ -163,7 +177,7 @@ class Order {
     }
     
     public function getAllOrders($limit = 100, $offset = 0) {
-        $query = "SELECT o.*, u.full_name, u.email
+        $query = "SELECT o.*, u.full_name, u.email, u.phone_number
                   FROM " . $this->table_name . " o
                   JOIN users u ON o.user_id = u.user_id
                   ORDER BY o.order_date DESC
@@ -174,7 +188,18 @@ class Order {
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Get items for each order
+        foreach ($orders as &$order) {
+            $item_query = "SELECT * FROM order_items WHERE order_id = :order_id";
+            $item_stmt = $this->conn->prepare($item_query);
+            $item_stmt->bindParam(':order_id', $order['order_id']);
+            $item_stmt->execute();
+            $order['items'] = $item_stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $orders;
     }
 }
 ?>

@@ -15,33 +15,125 @@ class _CollectionsPageState extends State<CollectionsPage> {
   final ScrollController _scrollController = ScrollController();
 
   final List<Map<String, dynamic>> _gadgetCollections = [
-    // Kitchen Essentials
     {
-      'title': 'Kitchen Appliances',
-      'count': 7,
-      'icon': Icons.kitchen,
-      'page': KitchenAppliancesPage(), // Replace with actual page widget
+      'title': 'Charger Fan',
+      'count': 12,
+      'icon': Icons.air,
+      'page': HomeComfortUtilityPage(),
     },
-    // Food Prep & Processing
     {
-      'title': 'Food Processing',
-      'count': 4,
+      'title': 'Mini Hand Fan',
+      'count': 8,
+      'icon': Icons.toys,
+      'page': HomeComfortUtilityPage(),
+    },
+    {
+      'title': 'Trimmer',
+      'count': 15,
+      'icon': Icons.content_cut,
+      'page': PersonalCareLifestylePage(),
+    },
+    {
+      'title': 'Rice Cooker',
+      'count': 20,
+      'icon': Icons.rice_bowl,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Electric Chula',
+      'count': 10,
+      'icon': Icons.local_fire_department,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Telephone Set',
+      'count': 6,
+      'icon': Icons.phone,
+      'page': HomeComfortUtilityPage(),
+    },
+    {
+      'title': 'Sim Telephone',
+      'count': 8,
+      'icon': Icons.phone_android,
+      'page': HomeComfortUtilityPage(),
+    },
+    {
+      'title': 'Iron',
+      'count': 18,
+      'icon': Icons.iron,
+      'page': HomeComfortUtilityPage(),
+    },
+    {
+      'title': 'Mini Cooker',
+      'count': 14,
+      'icon': Icons.soup_kitchen,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Hand Blender',
+      'count': 16,
       'icon': Icons.blender,
-      'page': KitchenAppliancesPage(), // Replace with actual page widget
+      'page': KitchenAppliancesPage(),
     },
-    // Personal Care & Wellness
     {
-      'title': 'Personal Care',
-      'count': 4,
+      'title': 'Chopper',
+      'count': 12,
+      'icon': Icons.cut,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Grinder',
+      'count': 10,
+      'icon': Icons.settings,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Blender',
+      'count': 22,
+      'icon': Icons.blender_outlined,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Kettle',
+      'count': 25,
+      'icon': Icons.coffee_maker,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Hair Dryer',
+      'count': 14,
+      'icon': Icons.air,
+      'page': PersonalCareLifestylePage(),
+    },
+    {
+      'title': 'Oven',
+      'count': 8,
+      'icon': Icons.microwave,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Air Fryer',
+      'count': 18,
+      'icon': Icons.kitchen,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Curry Cooker',
+      'count': 12,
+      'icon': Icons.restaurant,
+      'page': KitchenAppliancesPage(),
+    },
+    {
+      'title': 'Massage Gun',
+      'count': 10,
+      'icon': Icons.spa,
+      'page': PersonalCareLifestylePage(),
+    },
+    {
+      'title': 'Head Massage',
+      'count': 8,
       'icon': Icons.self_improvement,
-      'page': PersonalCareLifestylePage(), // Replace with actual page widget
-    },
-    // Home Utilities
-    {
-      'title': 'Home Utilities',
-      'count': 5,
-      'icon': Icons.home_repair_service,
-      'page': HomeComfortUtilityPage(), // Replace with actual page widget
+      'page': PersonalCareLifestylePage(),
     },
   ];
 
