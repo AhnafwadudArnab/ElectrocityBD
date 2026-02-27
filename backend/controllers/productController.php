@@ -162,4 +162,3 @@ class ProductController {
         return ['message' => 'Failed to delete product'];
     }
 }
-?>

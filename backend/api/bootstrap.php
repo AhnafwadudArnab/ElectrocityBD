@@ -1,5 +1,9 @@
 <?php
 declare(strict_types=1);
+
+// Set Content-Type header early to ensure JSON responses
+header('Content-Type: application/json');
+
 if (!function_exists('str_starts_with')) {
     function str_starts_with(string $haystack, string $needle): bool {
         return $needle === '' || strncmp($haystack, $needle, strlen($needle)) === 0;
@@ -73,7 +77,7 @@ function db(): PDO {
         $pdo = new PDO($dsn, $CONFIG['db']['user'], $CONFIG['db']['pass'], $options);
     } catch (Throwable $e) {
         http_response_code(500);
-        echo json_encode(['message' => 'Database connection failed']);
+        echo json_encode(['message' => 'Database connection failed'], JSON_UNESCAPED_UNICODE);
         exit;
     }
     return $pdo;
@@ -87,6 +91,8 @@ function baseHeaders(): void {
 }
 
 function jsonResponse($data, int $code = 200): void {
+    // Clean output buffer to prevent any accidental output from corrupting JSON
+    if (ob_get_level() > 0) ob_clean();
     http_response_code($code);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;

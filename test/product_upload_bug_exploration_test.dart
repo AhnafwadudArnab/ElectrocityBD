@@ -4,17 +4,6 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
-
-/// **Validates: Requirements 2.1, 2.4**
-/// 
-/// Bug Condition Exploration Test - Property 1: Fault Condition
-/// 
-/// This test explores the bug condition where product upload with image file
-/// returns invalid JSON from the backend. This test is EXPECTED TO FAIL on
-/// unfixed code - failure confirms the bug exists.
-/// 
-/// The test encodes the expected behavior: backend SHALL return valid, parseable
-/// JSON for all product creation requests with images.
 void main() {
   const base = 'http://127.0.0.1:8000/api';
   String? adminToken;
@@ -71,6 +60,8 @@ void main() {
       request.fields['description'] = 'Test product for bug exploration';
       request.fields['price'] = '99.99';
       request.fields['stock_quantity'] = '10';
+      request.fields['category_id'] = '1'; // Add category_id
+      request.fields['brand_id'] = '1'; // Add brand_id
       
       // Add image file
       request.files.add(
@@ -152,6 +143,8 @@ void main() {
       request.fields['description'] = 'Test product with larger image';
       request.fields['price'] = '149.99';
       request.fields['stock_quantity'] = '5';
+      request.fields['category_id'] = '1';
+      request.fields['brand_id'] = '1';
       
       request.files.add(
         http.MultipartFile.fromBytes(
@@ -199,6 +192,8 @@ void main() {
       request.fields['description'] = 'Test with émojis 🔥 and spëcial çhars';
       request.fields['price'] = '199.99';
       request.fields['stock_quantity'] = '3';
+      request.fields['category_id'] = '1';
+      request.fields['brand_id'] = '1';
       
       request.files.add(
         http.MultipartFile.fromBytes(

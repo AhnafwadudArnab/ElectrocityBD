@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Start output buffering to capture any accidental output
 header('Content-Type: application/json');
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/../config/cors.php';
@@ -44,9 +45,6 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
-    error_log("POST request to products - Headers: " . json_encode(getallheaders()));
-    error_log("POST request to products - _SERVER HTTP_AUTHORIZATION: " . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'not set'));
-    
     $admin = AuthMiddleware::authenticateAdmin();
     
     // Handle both JSON and form data
@@ -68,7 +66,21 @@ if ($method === 'POST') {
         $created['productId'] = $pid;
         $created['product'] = $product->getById($pid);
     }
-    echo json_encode($created);
+    ob_clean(); // Discard any accidental output before sending JSON
+    
+    // Validate JSON encoding before sending response
+    $json = json_encode($created);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("JSON encoding error in product creation: " . json_last_error_msg());
+        error_log("Failed to encode data: " . print_r($created, true));
+        http_response_code(500);
+        echo json_encode(['error' => 'Internal server error']);
+        ob_end_flush();
+        exit;
+    }
+    
+    echo $json;
+    ob_end_flush();
     exit;
 }
 

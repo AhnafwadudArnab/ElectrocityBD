@@ -296,8 +296,8 @@ class OrdersProvider extends ChangeNotifier {
 
       _isInitialized = true;
     } catch (e) {
-      _setError('Failed to initialize orders: $e');
-      // Try local storage as fallback
+      // Silently fall back to local storage without showing error
+      print('Failed to initialize orders: $e');
       await _loadFromLocal();
     } finally {
       _setLoading(false);
@@ -435,7 +435,7 @@ class OrdersProvider extends ChangeNotifier {
     clearError();
 
     try {
-      final list = await ApiService.getOrders();
+      final list = await ApiService.getOrders(admin: true);
 
       if (list is! List) {
         throw OrdersProviderException('Invalid API response format');
@@ -456,12 +456,10 @@ class OrdersProvider extends ChangeNotifier {
       notifyListeners();
       await _persist();
     } catch (e) {
-      if (e is ApiException && (e.statusCode == 401 || e.statusCode == 403)) {
-        await _loadFromLocal();
-        _setError('Admin login required to fetch orders from server');
-      } else {
-        _setError('Failed to refresh orders: $e');
-      }
+      // Silently fall back to local storage without showing error
+      await _loadFromLocal();
+      print('Failed to refresh orders from API: $e');
+      // Don't set error to avoid showing warning banner
     } finally {
       _setLoading(false);
     }

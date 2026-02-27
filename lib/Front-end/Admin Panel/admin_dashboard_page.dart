@@ -12,7 +12,6 @@ import 'A_banners.dart';
 import 'A_carts.dart';
 import 'A_deals.dart';
 import 'A_discounts.dart';
-import 'A_flash_sales.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
 import 'A_promotions.dart';

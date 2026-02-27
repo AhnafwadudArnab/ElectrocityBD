@@ -6,14 +6,16 @@ class AuthMiddleware {
     public static function authenticate() {
         $headers = getallheaders();
         
-        if (!isset($headers['Authorization'])) {
+        // Check both capitalized and lowercase versions
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        
+        if (!$authHeader) {
             http_response_code(401);
             echo json_encode(['message' => 'No token provided']);
             exit;
         }
         
-        $auth_header = $headers['Authorization'];
-        $token = str_replace('Bearer ', '', $auth_header);
+        $token = str_replace('Bearer ', '', $authHeader);
         
         $user_data = JWT::verify($token);
         

@@ -18,20 +18,40 @@ class Product {
     }
     
     public function getAll($limit = 100, $offset = 0, $category = null, $brand = null) {
-        $query = "SELECT p.*, c.category_name, b.brand_name,
-                         d.discount_percent, 
-                         pr.rating_avg, pr.review_count,
-                         CASE 
-                             WHEN d.discount_percent IS NOT NULL 
-                             THEN p.price * (1 - d.discount_percent/100)
-                             ELSE p.price 
-                         END as discounted_price
-                  FROM " . $this->table_name . " p
-                  LEFT JOIN categories c ON p.category_id = c.category_id
-                  LEFT JOIN brands b ON p.brand_id = b.brand_id
-                  LEFT JOIN discounts d ON p.product_id = d.product_id 
-                      AND CURDATE() BETWEEN d.valid_from AND d.valid_to
-                  LEFT JOIN product_ratings pr ON pr.product_id = p.product_id";
+        // Check if product_ratings table exists
+        $tablesQuery = "SHOW TABLES LIKE 'product_ratings'";
+        $tablesStmt = $this->conn->query($tablesQuery);
+        $hasRatingsTable = $tablesStmt->rowCount() > 0;
+        
+        if ($hasRatingsTable) {
+            $query = "SELECT p.*, c.category_name, b.brand_name,
+                             d.discount_percent, 
+                             pr.rating_avg, pr.review_count,
+                             CASE 
+                                 WHEN d.discount_percent IS NOT NULL 
+                                 THEN p.price * (1 - d.discount_percent/100)
+                                 ELSE p.price 
+                             END as discounted_price
+                      FROM " . $this->table_name . " p
+                      LEFT JOIN categories c ON p.category_id = c.category_id
+                      LEFT JOIN brands b ON p.brand_id = b.brand_id
+                      LEFT JOIN discounts d ON p.product_id = d.product_id 
+                          AND CURDATE() BETWEEN d.valid_from AND d.valid_to
+                      LEFT JOIN product_ratings pr ON pr.product_id = p.product_id";
+        } else {
+            $query = "SELECT p.*, c.category_name, b.brand_name,
+                             d.discount_percent,
+                             CASE 
+                                 WHEN d.discount_percent IS NOT NULL 
+                                 THEN p.price * (1 - d.discount_percent/100)
+                                 ELSE p.price 
+                             END as discounted_price
+                      FROM " . $this->table_name . " p
+                      LEFT JOIN categories c ON p.category_id = c.category_id
+                      LEFT JOIN brands b ON p.brand_id = b.brand_id
+                      LEFT JOIN discounts d ON p.product_id = d.product_id 
+                          AND CURDATE() BETWEEN d.valid_from AND d.valid_to";
+        }
         
         $conditions = [];
         $params = [];
@@ -65,21 +85,42 @@ class Product {
     }
     
     public function getById($id) {
-        $query = "SELECT p.*, c.category_name, b.brand_name,
-                         d.discount_percent, d.valid_from, d.valid_to,
-                         pr.rating_avg, pr.review_count,
-                         CASE 
-                             WHEN d.discount_percent IS NOT NULL 
-                             THEN p.price * (1 - d.discount_percent/100)
-                             ELSE p.price 
-                         END as discounted_price
-                  FROM " . $this->table_name . " p
-                  LEFT JOIN categories c ON p.category_id = c.category_id
-                  LEFT JOIN brands b ON p.brand_id = b.brand_id
-                  LEFT JOIN discounts d ON p.product_id = d.product_id 
-                      AND CURDATE() BETWEEN d.valid_from AND d.valid_to
-                  LEFT JOIN product_ratings pr ON pr.product_id = p.product_id
-                  WHERE p.product_id = :id";
+        // Check if product_ratings table exists
+        $tablesQuery = "SHOW TABLES LIKE 'product_ratings'";
+        $tablesStmt = $this->conn->query($tablesQuery);
+        $hasRatingsTable = $tablesStmt->rowCount() > 0;
+        
+        if ($hasRatingsTable) {
+            $query = "SELECT p.*, c.category_name, b.brand_name,
+                             d.discount_percent, d.valid_from, d.valid_to,
+                             pr.rating_avg, pr.review_count,
+                             CASE 
+                                 WHEN d.discount_percent IS NOT NULL 
+                                 THEN p.price * (1 - d.discount_percent/100)
+                                 ELSE p.price 
+                             END as discounted_price
+                      FROM " . $this->table_name . " p
+                      LEFT JOIN categories c ON p.category_id = c.category_id
+                      LEFT JOIN brands b ON p.brand_id = b.brand_id
+                      LEFT JOIN discounts d ON p.product_id = d.product_id 
+                          AND CURDATE() BETWEEN d.valid_from AND d.valid_to
+                      LEFT JOIN product_ratings pr ON pr.product_id = p.product_id
+                      WHERE p.product_id = :id";
+        } else {
+            $query = "SELECT p.*, c.category_name, b.brand_name,
+                             d.discount_percent, d.valid_from, d.valid_to,
+                             CASE 
+                                 WHEN d.discount_percent IS NOT NULL 
+                                 THEN p.price * (1 - d.discount_percent/100)
+                                 ELSE p.price 
+                             END as discounted_price
+                      FROM " . $this->table_name . " p
+                      LEFT JOIN categories c ON p.category_id = c.category_id
+                      LEFT JOIN brands b ON p.brand_id = b.brand_id
+                      LEFT JOIN discounts d ON p.product_id = d.product_id 
+                          AND CURDATE() BETWEEN d.valid_from AND d.valid_to
+                      WHERE p.product_id = :id";
+        }
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
@@ -179,7 +220,7 @@ class Product {
     
     public function create() {
         $query = "INSERT INTO " . $this->table_name . "
-                  (category_id, brand_id, product_name, description, price, stock_quantity, image_url, specs)
+                  (category_id, brand_id, product_name, description, price, stock_quantity, image_url, specs_json)
                   VALUES (:category_id, :brand_id, :product_name, :description, :price, :stock, :image, :specs)";
         
         $stmt = $this->conn->prepare($query);
@@ -239,4 +280,3 @@ class Product {
         return $stmt->execute();
     }
 }
-?>

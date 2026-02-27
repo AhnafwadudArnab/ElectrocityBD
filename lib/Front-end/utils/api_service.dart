@@ -70,24 +70,53 @@ class ApiService {
   // ─── Generic HTTP Methods ───
 
   static dynamic _tryJsonDecode(String text) {
+    // Trim whitespace and check for empty response
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) {
+      throw ApiException('Empty response from server', 0);
+    }
+
+    // Validate that response starts with valid JSON characters
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+      // Include actual response content for debugging (limit to 200 chars)
+      final preview = trimmed.length > 200 
+          ? '${trimmed.substring(0, 200)}...' 
+          : trimmed;
+      throw ApiException(
+        'Invalid response format (expected JSON): $preview',
+        0,
+      );
+    }
+
     try {
-      return jsonDecode(text);
-    } catch (_) {
-      final a = text.indexOf('{');
-      final b = text.lastIndexOf('}');
+      return jsonDecode(trimmed);
+    } catch (e) {
+      // Try to extract JSON from response that may have extra content
+      final a = trimmed.indexOf('{');
+      final b = trimmed.lastIndexOf('}');
       if (a >= 0 && b >= a) {
-        final slice = text.substring(a, b + 1);
+        final slice = trimmed.substring(a, b + 1);
         try {
           return jsonDecode(slice);
         } catch (_) {}
       }
-      final c = text.indexOf('[');
-      final d = text.lastIndexOf(']');
+      final c = trimmed.indexOf('[');
+      final d = trimmed.lastIndexOf(']');
       if (c >= 0 && d >= c) {
-        final slice = text.substring(c, d + 1);
-        return jsonDecode(slice);
+        final slice = trimmed.substring(c, d + 1);
+        try {
+          return jsonDecode(slice);
+        } catch (_) {}
       }
-      throw const FormatException('Invalid JSON');
+      
+      // Include actual response content for debugging (limit to 200 chars)
+      final preview = trimmed.length > 200 
+          ? '${trimmed.substring(0, 200)}...' 
+          : trimmed;
+      throw ApiException(
+        'Failed to parse JSON response: $preview',
+        0,
+      );
     }
   }
 
@@ -356,12 +385,30 @@ class ApiService {
 
       final streamed = await request.send();
       final res = await http.Response.fromStream(streamed);
-      final body = _tryJsonDecode(res.body);
+      
+      // Trim and validate response body before parsing
+      final body = res.body.trim();
+      if (body.isEmpty) {
+        throw ApiException('Empty response from server', res.statusCode);
+      }
+      
+      // Check if response starts with valid JSON
+      if (!body.startsWith('{') && !body.startsWith('[')) {
+        final preview = body.length > 200 
+            ? '${body.substring(0, 200)}...' 
+            : body;
+        throw ApiException(
+          'Invalid response format (expected JSON): $preview',
+          res.statusCode,
+        );
+      }
+      
+      final decoded = _tryJsonDecode(body);
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        return body is Map<String, dynamic> ? body : {'data': body};
+        return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
       }
       throw ApiException(
-        body is Map ? (body['error'] ?? 'Request failed') : 'Request failed',
+        decoded is Map ? (decoded['error'] ?? 'Request failed') : 'Request failed',
         res.statusCode,
       );
     }
@@ -414,8 +461,9 @@ class ApiService {
 
   // ─── Orders API ───
 
-  static Future<List<dynamic>> getOrders() async {
-    return await get('/orders') as List<dynamic>;
+  static Future<List<dynamic>> getOrders({bool admin = false}) async {
+    final endpoint = admin ? '/orders?admin=true' : '/orders';
+    return await get(endpoint) as List<dynamic>;
   }
 
   static Future<Map<String, dynamic>> placeOrder(
