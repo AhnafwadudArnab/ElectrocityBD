@@ -7,8 +7,20 @@ import '../../widgets/header.dart';
 
 String _defaultDeliveryDate() {
   final d = DateTime.now().add(const Duration(days: 5));
-  const months = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
 
@@ -30,6 +42,17 @@ class OrderCompletedPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
     final isCompact = r.isSmallMobile || r.isMobile || r.isTablet;
+    final maxWidth = r.value(
+      smallMobile: 360.0,
+      mobile: 420.0,
+      tablet: 640.0,
+      smallDesktop: 760.0,
+      desktop: 860.0,
+    );
+    final pagePad = EdgeInsets.symmetric(
+      horizontal: AppDimensions.padding(context),
+      vertical: AppDimensions.padding(context) * 0.8,
+    );
 
     return Scaffold(
       appBar: const Header(),
@@ -112,155 +135,79 @@ class OrderCompletedPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 40),
-
-            // Success Message
-            Container(
-              width: 60,
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Color(0xFFB8860B),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check, color: Colors.white, size: 32),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Your order is completed!',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Thank you. Your Order has been received.',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-
-            // Order Info Bar
-            Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context),
-              ),
-              padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context),
-                vertical: 20,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1B4D3E),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: isCompact
-                  ? SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 820),
-                        child: SizedBox(
-                          width: 820,
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                child: _infoBlock(
-                                  'Order ID',
-                                  orderId ?? '#EC-${DateTime.now().millisecondsSinceEpoch}',
-                                ),
-                              ),
-                              SizedBox(
-                                width: double.infinity,
-                                child: _infoBlock(
-                                  'Payment Method',
-                                  paymentMethod ?? 'Not specified',
-                                ),
-                              ),
-                              SizedBox(
-                                width: double.infinity,
-                                child: _infoBlock(
-                                  'Transaction ID',
-                                  transactionId ?? '—',
-                                ),
-                              ),
-                              SizedBox(
-                                width: double.infinity,
-                                child: _infoBlock(
-                                  'Estimated Delivery Date',
-                                  estimatedDelivery ?? _defaultDeliveryDate(),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: const Color(0xFF1B4D3E),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Download Invoice',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
+            Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Padding(
+                  padding: pagePad,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFB8860B),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 32,
                         ),
                       ),
-                    )
-                  : Column(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: _infoBlock(
-                            'Order ID',
-                            orderId ?? '#EC-${DateTime.now().millisecondsSinceEpoch}',
-                          ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Your order is completed!',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: _infoBlock(
-                            'Payment Method',
-                            paymentMethod ?? 'Not specified',
-                          ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Thank you. Your Order has been received.',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 20,
                         ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: _infoBlock(
-                            'Transaction ID',
-                            transactionId ?? '—',
-                          ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B4D3E),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: _infoBlock(
-                            'Estimated Delivery Date',
-                            estimatedDelivery ?? _defaultDeliveryDate(),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFF1B4D3E),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text(
-                            'Download Invoice',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
-                    ),
+                        child: isCompact
+                            ? SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    minWidth: 820,
+                                  ),
+                                  child: SizedBox(
+                                    width: 820,
+                                    child: _orderInfoColumn(
+                                      orderId: orderId,
+                                      paymentMethod: paymentMethod,
+                                      transactionId: transactionId,
+                                      estimatedDelivery: estimatedDelivery,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : _orderInfoColumn(
+                                orderId: orderId,
+                                paymentMethod: paymentMethod,
+                                transactionId: transactionId,
+                                estimatedDelivery: estimatedDelivery,
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             // Features Section
@@ -319,6 +266,56 @@ class OrderCompletedPage extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _orderInfoColumn({
+    required String? orderId,
+    required String? paymentMethod,
+    required String? transactionId,
+    required String? estimatedDelivery,
+  }) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: _infoBlock(
+            'Order ID',
+            orderId ?? '#EC-${DateTime.now().millisecondsSinceEpoch}',
+          ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: _infoBlock('Payment Method', paymentMethod ?? 'Not specified'),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: _infoBlock('Transaction ID', transactionId ?? '—'),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: _infoBlock(
+            'Estimated Delivery Date',
+            estimatedDelivery ?? _defaultDeliveryDate(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: () {},
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF1B4D3E),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          child: const Text(
+            'Download Invoice',
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ],
