@@ -1,11 +1,19 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    Options -Indexes
+    RewriteBase /
+    DirectoryIndex public/index.php
     
     # Security: block access to hidden files (.env, .git, etc.) and config files
     RewriteRule "(^|/)\." - [F]
     <FilesMatch "^(config\.php|db\.php|\.env)$">
         Require all denied
     </FilesMatch>
+    
+    RewriteRule ^install\.php$ public/install.php [L]
+    # Ensure /api/* always goes to front controller even if /api is a real directory
+    RewriteRule ^api(/.*)?$ public/index.php [L]
+    RewriteRule ^$ public/index.php [L]
     
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
