@@ -44,6 +44,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   DateTime? _pickedFrom;
   DateTime? _pickedTo;
   Timer? _timer;
+  bool _applyToAll = false;
 
   @override
   void initState() {
@@ -376,7 +377,9 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
                     ),
                     children: [
                       _tableCell(
-                        (d['product_name'] ?? '').toString(),
+                        ((d['scope']?.toString() ?? '').toLowerCase() == 'all')
+                            ? 'All Products'
+                            : (d['product_name'] ?? '').toString(),
                         isBold: false,
                       ),
                       _tableCell(
@@ -463,8 +466,27 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
             ),
           ),
           const SizedBox(height: 24),
-          _inputLabel("Product ID"),
-          _darkField("e.g. 1", controller: _productIdController),
+          Row(
+            children: [
+              Switch(
+                value: _applyToAll,
+                onChanged: (v) => setState(() => _applyToAll = v),
+                activeColor: brandOrange,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  "Apply to all products",
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+            ],
+          ),
+          if (!_applyToAll) ...[
+            const SizedBox(height: 12),
+            _inputLabel("Product ID"),
+            _darkField("e.g. 1", controller: _productIdController),
+          ],
           const SizedBox(height: 20),
           _inputLabel("Discount %"),
           _darkField("e.g. 10", controller: _percentController),
@@ -554,15 +576,18 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
   }
 
   Future<void> _createDiscount() async {
-    final productId = int.tryParse(_productIdController.text.trim());
-    if (productId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Enter a valid product ID"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+    int? productId;
+    if (!_applyToAll) {
+      productId = int.tryParse(_productIdController.text.trim());
+      if (productId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Enter a valid product ID"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
     final percent = double.tryParse(_percentController.text.trim());
     if (percent == null || percent <= 0 || percent > 100) {
@@ -575,8 +600,7 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
       return;
     }
     try {
-      await ApiService.createDiscount({
-        'product_id': productId,
+      final payload = <String, dynamic>{
         'discount_percent': percent,
         'valid_from': _validFromController.text.trim().isEmpty
             ? null
@@ -584,11 +608,19 @@ class _AdminDiscountPageState extends State<AdminDiscountPage> {
         'valid_to': _validToController.text.trim().isEmpty
             ? null
             : _validToController.text.trim(),
-      });
+      };
+      if (_applyToAll) {
+        payload['scope'] = 'all';
+      } else {
+        payload['scope'] = 'product';
+        payload['product_id'] = productId;
+      }
+      await ApiService.createDiscount(payload);
       _productIdController.clear();
       _percentController.clear();
       _validFromController.clear();
       _validToController.clear();
+      setState(() => _applyToAll = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
