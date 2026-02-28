@@ -56,7 +56,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
   Future<void> _loadDealsFromDb() async {
     try {
-      final res = await ApiService.getProducts(section: 'deals', limit: 20);
+      final res = await ApiService.getProducts(section: 'deals', category: 'Deals of the Day', limit: 20);
       final list = (res['products'] as List<dynamic>?) ?? [];
       if (mounted) setState(() => _dbDeals = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
     } catch (_) {}

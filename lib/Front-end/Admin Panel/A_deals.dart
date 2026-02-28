@@ -90,7 +90,10 @@ class _AdminDealsPageState extends State<AdminDealsPage> {
     setState(() => _loading = true);
     try {
       final deals = await ApiService.getDeals();
-      final productsRes = await ApiService.getProducts(limit: 500);
+      final productsRes = await ApiService.getProducts(
+        limit: 500,
+        category: 'all',
+      );
       final products =
           (productsRes['products'] as List<dynamic>?)
               ?.cast<Map<String, dynamic>>() ??

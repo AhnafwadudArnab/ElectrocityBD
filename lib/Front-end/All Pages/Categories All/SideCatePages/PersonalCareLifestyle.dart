@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
@@ -9,6 +8,7 @@ import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
 import '../../../widgets/footer.dart';
 import '../../../widgets/header.dart';
+import '../../CART/Cart_provider.dart';
 
 class PersonalCareLifestylePage extends StatefulWidget {
   final String breadcrumbLabel;
@@ -47,25 +47,31 @@ class _PersonalCareLifestylePageState extends State<PersonalCareLifestylePage> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(categoryId: 2, limit: 50);
+      final res = await ApiService.getProducts(
+        category: 'Personal Care',
+        categoryId: 2,
+        limit: 50,
+      );
       final list = (res['products'] as List<dynamic>?) ?? [];
-      if (mounted) setState(() {
-        _dbProducts = list.map((e) {
-          final p = e as Map<String, dynamic>;
-          return <String, Object>{
-            'title': p['product_name'] ?? '',
-            'price': _parsePrice(p['price']),
-            'subCat': p['category_name'] ?? '',
-            'brand': p['brand_name'] ?? 'Brand',
-            'specs': '',
-            'image': p['image_url'] ?? '',
-          };
-        }).toList();
-      });
+      if (mounted)
+        setState(() {
+          _dbProducts = list.map((e) {
+            final p = e as Map<String, dynamic>;
+            return <String, Object>{
+              'title': p['product_name'] ?? '',
+              'price': _parsePrice(p['price']),
+              'subCat': p['category_name'] ?? '',
+              'brand': p['brand_name'] ?? 'Brand',
+              'specs': '',
+              'image': p['image_url'] ?? '',
+            };
+          }).toList();
+        });
     } catch (_) {}
   }
 
-  List<Map<String, Object>> get _products => _dbProducts.isNotEmpty ? _dbProducts : _fallbackProducts;
+  List<Map<String, Object>> get _products =>
+      _dbProducts.isNotEmpty ? _dbProducts : _fallbackProducts;
 
   final List<Map<String, Object>> _fallbackProducts = [
     {
@@ -114,7 +120,13 @@ class _PersonalCareLifestylePageState extends State<PersonalCareLifestylePage> {
   Widget build(BuildContext context) {
     final r = AppResponsive.of(context);
     final isNarrow = r.isSmallMobile || r.isMobile;
-    final gridCount = r.value(smallMobile: 2, mobile: 2, tablet: 3, smallDesktop: 4, desktop: 4);
+    final gridCount = r.value(
+      smallMobile: 2,
+      mobile: 2,
+      tablet: 3,
+      smallDesktop: 4,
+      desktop: 4,
+    );
 
     return Scaffold(
       appBar: const Header(),

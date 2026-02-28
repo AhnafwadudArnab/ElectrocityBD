@@ -45,23 +45,36 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(section: 'flash_sale', limit: 60);
+      final res = await ApiService.getProducts(
+        section: 'flash_sale',
+        category: 'Flash Sale',
+        limit: 60,
+      );
       final list = (res['products'] as List<dynamic>?) ?? [];
-      if (mounted) setState(() => _dbProducts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+      if (mounted)
+        setState(
+          () => _dbProducts = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList(),
+        );
     } catch (_) {}
   }
 
   List<Map<String, Object>> _convertDbProducts() {
-    return _dbProducts.map((p) => <String, Object>{
-      'title': p['product_name'] ?? '',
-      'price': _parsePrice(p['price']),
-      'category': p['category_name'] ?? 'General',
-      'brand': p['brand_name'] ?? '',
-      'specs': const <String>[],
-      'image': p['image_url'] ?? '',
-      'isDb': true,
-      'product_id': p['product_id'],
-    }).toList();
+    return _dbProducts
+        .map(
+          (p) => <String, Object>{
+            'title': p['product_name'] ?? '',
+            'price': _parsePrice(p['price']),
+            'category': p['category_name'] ?? 'General',
+            'brand': p['brand_name'] ?? '',
+            'specs': const <String>[],
+            'image': p['image_url'] ?? '',
+            'isDb': true,
+            'product_id': p['product_id'],
+          },
+        )
+        .toList();
   }
 
   // স্যাম্পল প্রোডাক্ট (ডিফল্ট)
@@ -98,8 +111,8 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   ) {
     return adminProducts.map((p) {
       final price = _parsePrice(p['price']);
-      final imageUrl = p['imageUrl'] != null &&
-              (p['imageUrl'] as String).isNotEmpty
+      final imageUrl =
+          p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty
           ? p['imageUrl'] as String
           : '';
 
@@ -125,10 +138,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       );
     }
     if (raw['image']?.bytes != null) {
-      return Image.memory(
-        raw['image'].bytes!,
-        fit: BoxFit.contain,
-      );
+      return Image.memory(raw['image'].bytes!, fit: BoxFit.contain);
     }
     final url = raw['imageUrl'] as String?;
     if (url != null && url.isNotEmpty) {
@@ -149,8 +159,12 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
   // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
   List<Map<String, Object>> _allProducts(BuildContext context) {
-    final adminProducts = Provider.of<AdminProductProvider>(context).getProductsBySection("Flash Sale");
-    final adminConverted = _convertAdminProducts(adminProducts).map((e) => Map<String, Object>.from(e)).toList();
+    final adminProducts = Provider.of<AdminProductProvider>(
+      context,
+    ).getProductsBySection("Flash Sale");
+    final adminConverted = _convertAdminProducts(
+      adminProducts,
+    ).map((e) => Map<String, Object>.from(e)).toList();
     final dbConverted = _convertDbProducts();
     return [...dbConverted, ...adminConverted, ..._sampleProducts];
   }
@@ -216,7 +230,11 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     final images = imageStr.isNotEmpty ? [imageStr] : <String>[];
 
     final product = ProductData(
-      id: isDb ? '${item['product_id']}' : (isAdmin ? 'admin_flash_$index' : '${item['title']}_${item['price']}'),
+      id: isDb
+          ? '${item['product_id']}'
+          : (isAdmin
+                ? 'admin_flash_$index'
+                : '${item['title']}_${item['price']}'),
       name: item['title'] as String,
       category: item['category'] as String,
       priceBDT: item['price'] as double,
@@ -522,11 +540,11 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                             fit: BoxFit.contain,
                           )
                         : isAdmin
-                            ? _buildAdminImage(item)
-                            : Image.asset(
-                                item['image'] as String,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
+                        ? _buildAdminImage(item)
+                        : Image.asset(
+                            item['image'] as String,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[300],
                                 child: const Icon(Icons.image_not_supported),

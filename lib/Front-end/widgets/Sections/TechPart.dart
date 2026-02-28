@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
-import '../../pages/Templates/all_products_template.dart';
 import '../../Provider/Admin_product_provider.dart';
+import '../../pages/Templates/all_products_template.dart';
 import '../../utils/api_service.dart';
 import '../../utils/image_resolver.dart';
 
@@ -25,9 +25,18 @@ class _TechpartState extends State<Techpart> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(section: 'tech_part', limit: 20);
+      final res = await ApiService.getProducts(
+        section: 'tech_part',
+        category: 'Tech Part',
+        limit: 20,
+      );
       final list = (res['products'] as List<dynamic>?) ?? [];
-      if (mounted) setState(() => _dbProducts = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+      if (mounted)
+        setState(
+          () => _dbProducts = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList(),
+        );
     } catch (_) {}
   }
 
@@ -118,20 +127,28 @@ class _TechpartState extends State<Techpart> {
     }).toList();
   }
 
-  List<Map<String, dynamic>> _convertDbProducts(List<Map<String, dynamic>> list) {
-    return list.map((p) => {
-      'name': p['product_name'] ?? '',
-      'price': '৳${_parsePrice(p['price']).toStringAsFixed(0)}',
-      'rating': 4,
-      'image': p['image_url'] as String? ?? '',
-      'isDb': true,
-      'product_id': p['product_id'],
-    }).toList();
+  List<Map<String, dynamic>> _convertDbProducts(
+    List<Map<String, dynamic>> list,
+  ) {
+    return list
+        .map(
+          (p) => {
+            'name': p['product_name'] ?? '',
+            'price': '৳${_parsePrice(p['price']).toStringAsFixed(0)}',
+            'rating': 4,
+            'image': p['image_url'] as String? ?? '',
+            'isDb': true,
+            'product_id': p['product_id'],
+          },
+        )
+        .toList();
   }
 
   // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
   List<Map<String, dynamic>> _allProducts(BuildContext context) {
-    final adminProducts = context.read<AdminProductProvider>().getProductsBySection("Tech Part");
+    final adminProducts = context
+        .read<AdminProductProvider>()
+        .getProductsBySection("Tech Part");
     final adminConverted = _convertAdminProducts(adminProducts);
     final dbConverted = _convertDbProducts(_dbProducts);
     return [...dbConverted, ...adminConverted, ...sampleProducts];
@@ -175,7 +192,11 @@ class _TechpartState extends State<Techpart> {
         name: product['name'] as String,
         category: 'Tech Part',
         priceBDT: _parsePrice(product['price']),
-        images: (product['image'] != null && (product['image'] as String).isNotEmpty) ? [product['image'] as String] : [],
+        images:
+            (product['image'] != null &&
+                (product['image'] as String).isNotEmpty)
+            ? [product['image'] as String]
+            : [],
         description: 'Tech part from our latest collection.',
         additionalInfo: {'Rating': '${product['rating'] ?? 4}'},
       );
@@ -185,7 +206,8 @@ class _TechpartState extends State<Techpart> {
     if (isAdmin) {
       final adminData = product['adminData'] as Map<String, dynamic>;
       final price = _parsePrice(adminData['price']);
-      final adminImages = adminData['imageUrl'] != null &&
+      final adminImages =
+          adminData['imageUrl'] != null &&
               (adminData['imageUrl'] as String).isNotEmpty
           ? [adminData['imageUrl'] as String]
           : <String>[];
@@ -382,12 +404,16 @@ class _TechpartState extends State<Techpart> {
                             fit: BoxFit.cover,
                           )
                         : isAdmin
-                            ? _buildAdminProductImage(product)
-                            : Image.asset(
-                                imagePath!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Icon(Icons.monitor, size: 100, color: Colors.grey[300]),
-                              ),
+                        ? _buildAdminProductImage(product)
+                        : Image.asset(
+                            imagePath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.monitor,
+                              size: 100,
+                              color: Colors.grey[300],
+                            ),
+                          ),
                   ),
                   if (isAdmin)
                     Positioned(

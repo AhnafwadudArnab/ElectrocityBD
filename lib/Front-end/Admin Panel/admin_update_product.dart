@@ -18,11 +18,11 @@ import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
 import 'A_orders.dart';
+import 'A_payments.dart';
 import 'A_products.dart';
 import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
-import 'A_payments.dart';
 
 /// Admin page to view and delete specific products (from database and from website sections).
 class AdminUpdateProductPage extends StatefulWidget {
@@ -132,7 +132,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       _error = null;
     });
     try {
-      final res = await ApiService.getProducts(limit: 200);
+      final res = await ApiService.getProducts(limit: 200, category: 'all');
       final list = (res['products'] as List<dynamic>?) ?? [];
       _dbProducts = list
           .map((e) => Map<String, dynamic>.from(e as Map))

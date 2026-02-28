@@ -1,7 +1,14 @@
+import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../All Pages/CART/Cart_provider.dart';
+import '../../../Dimensions/responsive_dimensions.dart';
+import '../../../Provider/Admin_product_provider.dart';
+import '../../../pages/Templates/Dyna_products.dart';
 import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
+import '../../../widgets/Sections/BestSellings/ProductData.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -23,16 +30,17 @@ class CollectionDetailPage extends StatefulWidget {
 
 class _CollectionDetailPageState extends State<CollectionDetailPage> {
   List<Map<String, dynamic>> _products = [];
+  List<Map<String, dynamic>> _dbProducts = [];
   bool _isLoading = true;
   String? _error;
-  
+
   // Filter state
   String? _selectedCategory;
-  
+
   // Pagination
   int _currentPage = 1;
   int _itemsPerPage = 12;
-  int get _totalPages => (_products.length / _itemsPerPage).ceil();
+  int get _totalPages => (_allProducts.length / _itemsPerPage).ceil();
 
   @override
   void initState() {
@@ -47,14 +55,18 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     });
 
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // final data = await ApiService.getCollectionProducts(widget.collectionSlug);
+      // Load products from API based on collection
+      final res = await ApiService.getProducts(
+        category: widget.collectionSlug,
+        limit: 100,
+      );
       
-      // For now, load sample products
-      await Future.delayed(const Duration(milliseconds: 500));
+      final list = (res['products'] as List<dynamic>? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
       
       setState(() {
-        _products = _getSampleProducts();
+        _dbProducts = list;
         _isLoading = false;
       });
     } catch (e) {
@@ -65,25 +77,104 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     }
   }
 
+  List<Map<String, dynamic>> get _allProducts {
+    final admin = context.read<AdminProductProvider>().getProductsBySection(
+      widget.collectionName,
+    );
+    
+    final adminMapped = admin
+        .map(
+          (p) => {
+            'title': (p['name'] ?? '').toString(),
+            'price': _parsePrice(p['price']),
+            'category': (p['category'] ?? 'General').toString(),
+            'image': (p['imageUrl'] ?? '').toString(),
+            'isAdmin': true,
+          },
+        )
+        .toList();
+    
+    final dbMapped = _dbProducts
+        .map(
+          (p) => {
+            'title': (p['product_name'] ?? '').toString(),
+            'price': _parsePrice(p['price']),
+            'category': (p['category_name'] ?? 'General').toString(),
+            'image': (p['image_url'] ?? '').toString(),
+            'product_id': p['product_id'],
+            'rating': p['rating_avg'],
+            'reviews': p['review_count'],
+            'stock': p['stock_quantity'],
+            'isDb': true,
+          },
+        )
+        .toList();
+    
+    // Filter by selected category if any
+    final combined = [...dbMapped, ...adminMapped];
+    if (_selectedCategory != null) {
+      return combined.where((p) => p['category'] == _selectedCategory).toList();
+    }
+    return combined;
+  }
+
+  static double _parsePrice(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString().replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+  }
+
   List<Map<String, dynamic>> _getSampleProducts() {
     // Sample products - replace with actual API data
-    return List.generate(30, (index) => {
-      'product_id': index + 1,
-      'product_name': '${widget.collectionName} ${index + 1}',
-      'price': (1000 + (index * 500)).toDouble(),
-      'image_url': '/assets/prod/product_${index + 1}.jpg',
-      'stock_quantity': 10 + index,
-      'category_name': widget.collectionName,
-      'brand_name': 'Brand ${index % 3 + 1}',
-    });
+    return List.generate(
+      30,
+      (index) => {
+        'product_id': index + 1,
+        'product_name': '${widget.collectionName} ${index + 1}',
+        'price': (1000 + (index * 500)).toDouble(),
+        'image_url': '/assets/prod/product_${index + 1}.jpg',
+        'stock_quantity': 10 + index,
+        'category_name': widget.collectionName,
+        'brand_name': 'Brand ${index % 3 + 1}',
+      },
+    );
   }
-  
+
   List<Map<String, dynamic>> get _paginatedProducts {
     final startIndex = (_currentPage - 1) * _itemsPerPage;
     final endIndex = startIndex + _itemsPerPage;
-    return _products.sublist(
+    final products = _allProducts;
+    return products.sublist(
       startIndex,
-      endIndex > _products.length ? _products.length : endIndex,
+      endIndex > products.length ? products.length : endIndex,
+    );
+  }
+
+  void _openProductDetails(Map<String, dynamic> item, int index) {
+    final isDb = item['isDb'] == true;
+    final images = ((item['image'] ?? '') as String).isNotEmpty
+        ? [item['image'] as String]
+        : <String>[];
+    
+    final product = ProductData(
+      id: isDb ? '${item['product_id']}' : 'admin_${widget.collectionSlug}_$index',
+      name: item['title'] as String,
+      category: (item['category'] ?? 'General') as String,
+      priceBDT: (item['price'] as double),
+      images: images,
+      description: '${widget.collectionName} product',
+      additionalInfo: {
+        if ((item['rating'] ?? '') != '') 'rating': '${item['rating']}',
+        if ((item['reviews'] ?? '') != '') 'review_count': '${item['reviews']}',
+        if ((item['stock'] ?? '') != '') 'stock': '${item['stock']}',
+      },
+    );
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UniversalProductDetails(product: product),
+      ),
     );
   }
 
@@ -99,21 +190,20 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Left Sidebar - Filters
-                Container(
-                  width: 280,
-                  color: Colors.white,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Categories Filter
-                        _buildCategoriesFilter(),
-                      ],
+                Center(
+                  child: Container(
+                    width: 280,
+                    color: Colors.white,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [_buildCategoriesFilter()],
+                      ),
                     ),
                   ),
                 ),
-                
+
                 // Right Side - Products Grid
                 Expanded(
                   child: _isLoading
@@ -124,8 +214,8 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                           ),
                         )
                       : _error != null
-                          ? _buildErrorState()
-                          : _buildProductsGrid(),
+                      ? _buildErrorState()
+                      : _buildProductsGrid(),
                 ),
               ],
             ),
@@ -139,54 +229,66 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   Widget _buildCategoriesFilter() {
     // Get categories based on collection
     final categories = _getCategoriesForCollection();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 80),
         const Text(
           'Categories',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        ...categories.map((cat) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: InkWell(
-            onTap: () {
-              setState(() {
-                _selectedCategory = _selectedCategory == cat ? null : cat;
-                _loadProducts();
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              decoration: BoxDecoration(
-                color: _selectedCategory == cat ? Colors.red.shade50 : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    cat,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: _selectedCategory == cat ? Colors.red : Colors.black,
-                      fontWeight: _selectedCategory == cat ? FontWeight.w600 : FontWeight.normal,
+        ...categories.map(
+          (cat) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = _selectedCategory == cat ? null : cat;
+                  _loadProducts();
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: _selectedCategory == cat
+                      ? Colors.red.shade50
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      cat,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _selectedCategory == cat
+                            ? Colors.red
+                            : Colors.black,
+                        fontWeight: _selectedCategory == cat
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '(${_getCountForCategory(cat)})',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
+                    const Spacer(),
+                    Text(
+                      '(${_getCountForCategory(cat)})',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        )),
+        ),
       ],
     );
   }
-  
+
   List<String> _getCategoriesForCollection() {
     // Return categories based on collection name
     switch (widget.collectionSlug) {
@@ -204,9 +306,8 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
         return [widget.collectionName];
     }
   }
-  
+
   int _getCountForCategory(String category) {
-    // TODO: Get actual count from database
     return 9;
   }
 
@@ -218,59 +319,34 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
           // Header with view toggle and sort
           Row(
             children: [
-              // Collection Title
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(widget.icon, size: 24, color: Colors.red),
-                    const SizedBox(width: 12),
-                    Text(
-                      widget.collectionName,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // View Toggle
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.grid_view, size: 20),
-                      onPressed: () {},
-                      color: Colors.red,
-                    ),
-                    Container(width: 1, height: 24, color: Colors.grey[300]),
-                    IconButton(
-                      icon: const Icon(Icons.list, size: 20),
-                      onPressed: () {},
-                      color: Colors.grey,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              
+              const SizedBox(width: 50),
+
               // Results count
               Text(
-                'Showing ${(_currentPage - 1) * _itemsPerPage + 1} - ${(_currentPage - 1) * _itemsPerPage + _paginatedProducts.length} of ${_products.length} result',
+                'Showing ${(_currentPage - 1) * _itemsPerPage + 1} - ${(_currentPage - 1) * _itemsPerPage + _paginatedProducts.length} of ${_allProducts.length} result',
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
-              const SizedBox(width: 24),
-              
+              SizedBox(width: 350),
+              // Collection Title with Icon on left
+              Icon(widget.icon, size: 24, color: Colors.red),
+              const SizedBox(width: 12),
+              Text(
+                widget.collectionName,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              Spacer(),
               // Sort dropdown
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: Colors.grey[300] ?? Colors.grey),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -282,17 +358,24 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     const SizedBox(width: 8),
                     const Text(
                       'Alphabetically, A-Z',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey[600]),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 20,
+                      color: Colors.grey[600],
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          
+
           // Products Grid
           GridView.builder(
             shrinkWrap: true,
@@ -304,9 +387,10 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
               mainAxisSpacing: 16,
             ),
             itemCount: _paginatedProducts.length,
-            itemBuilder: (context, index) => _buildProductCard(_paginatedProducts[index]),
+            itemBuilder: (context, index) =>
+                _buildProductCard(_paginatedProducts[index], index),
           ),
-          
+
           // Pagination
           const SizedBox(height: 32),
           Row(
@@ -336,17 +420,23 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: _currentPage == pageNum ? Colors.red : Colors.transparent,
+                      color: _currentPage == pageNum
+                          ? Colors.red
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: _currentPage == pageNum ? Colors.red : Colors.grey[300]!,
+                        color: _currentPage == pageNum
+                            ? Colors.red
+                            : Colors.grey[300]!,
                       ),
                     ),
                     child: Center(
                       child: Text(
                         '$pageNum',
                         style: TextStyle(
-                          color: _currentPage == pageNum ? Colors.white : Colors.black,
+                          color: _currentPage == pageNum
+                              ? Colors.white
+                              : Colors.black,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -363,7 +453,9 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         });
                       }
                     : null,
-                color: _currentPage < _totalPages ? Colors.grey : Colors.grey[300],
+                color: _currentPage < _totalPages
+                    ? Colors.grey
+                    : Colors.grey[300],
               ),
             ],
           ),
@@ -400,77 +492,78 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: const Color.fromARGB(255, 187, 108, 108),
-          width: 1,
+  Widget _buildProductCard(Map<String, dynamic> product, int index) {
+    return InkWell(
+      onTap: () => _openProductDetails(product, index),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: const Color.fromARGB(255, 187, 108, 108),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image
-          Expanded(
-            child: Center(
-              child: product['image_url'] != null
-                  ? ImageResolver.image(
-                      imageUrl: product['image_url'],
-                      fit: BoxFit.cover,
-                    )
-                  : Icon(
-                      Icons.shopping_bag_outlined,
-                      size: 100,
-                      color: Colors.grey[300],
-                    ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            Expanded(
+              child: Center(
+                child: (product['image'] ?? '').toString().isNotEmpty
+                    ? ImageResolver.image(
+                        imageUrl: product['image'],
+                        fit: BoxFit.cover,
+                      )
+                    : Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 100,
+                        color: Colors.grey[300],
+                      ),
+              ),
             ),
-          ),
 
-          // Product Details
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Name
-                Text(
-                  product['product_name'] ?? 'Product',
-                  style: const TextStyle(
-                    fontSize: 14,
+            // Product Details
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Product Name
+                  Text(
+                    product['title'] ?? 'Product',
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                
-                // Star Rating
-                Row(
-                  children: List.generate(
-                    5,
-                    (i) => Icon(
-                      Icons.star,
-                      size: 12,
-                      color: i < 4 ? Colors.orange : Colors.grey[300],
+                  const SizedBox(height: 4),
+
+                  // Star Rating
+                  Row(
+                    children: List.generate(
+                      5,
+                      (i) => Icon(
+                        Icons.star,
+                        size: 12,
+                        color: i < 4 ? Colors.orange : Colors.grey[300],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                
-                // Price
-                Text(
-                  '৳${product['price']?.toStringAsFixed(0) ?? '0'}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  const SizedBox(height: 8),
+
+                  // Price
+                  Text(
+                    '৳${(product['price'] as double).toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

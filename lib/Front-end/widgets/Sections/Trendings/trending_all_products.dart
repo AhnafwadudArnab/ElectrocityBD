@@ -265,7 +265,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   void initState() {
     super.initState();
     _priceRange = const RangeValues(_priceMin, _priceMax);
-     _fetchProductsFromBackend();
+    _fetchProductsFromBackend();
   }
 
   Future<void> _fetchProductsFromBackend() async {
@@ -274,22 +274,28 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       _loadError = null;
     });
     try {
-      final res = await ApiService.getProducts(section: 'trending', sort: 'newest', limit: 60);
+      final res = await ApiService.getProducts(
+        section: 'trending',
+        category: 'all',
+        sort: 'newest',
+        limit: 60,
+      );
       final list = (res['products'] as List<dynamic>? ?? [])
           .map<Map<String, Object>>((raw) {
-        final p = raw as Map<String, dynamic>;
-        return {
-          'title': (p['product_name'] ?? '') as String,
-          'price': _parsePrice(p['price']),
-          'category': (p['category_name'] ?? 'General') as String,
-          'brand': (p['brand_name'] ?? '') as String,
-          // Specs can later be mapped from attributes if needed.
-          'specs': const <String>[],
-          'image': (p['image_url'] ?? '') as String,
-          'rating': p['rating_avg'] ?? p['rating'],
-          'reviews': p['review_count'] ?? p['reviews'],
-        };
-      }).toList();
+            final p = raw as Map<String, dynamic>;
+            return {
+              'title': (p['product_name'] ?? '') as String,
+              'price': _parsePrice(p['price']),
+              'category': (p['category_name'] ?? 'General') as String,
+              'brand': (p['brand_name'] ?? '') as String,
+              // Specs can later be mapped from attributes if needed.
+              'specs': const <String>[],
+              'image': (p['image_url'] ?? '') as String,
+              'rating': p['rating_avg'] ?? p['rating'],
+              'reviews': p['review_count'] ?? p['reviews'],
+            };
+          })
+          .toList();
       if (mounted) {
         setState(() {
           _dbProducts = list;
@@ -658,10 +664,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 width: double.infinity,
-                child: ImageResolver.image(
-                  imageUrl: image,
-                  fit: BoxFit.cover,
-                ),
+                child: ImageResolver.image(imageUrl: image, fit: BoxFit.cover),
               ),
             ),
             Padding(

@@ -32,6 +32,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     try {
       final res = await ApiService.getProducts(
         section: 'best_sellers',
+        category: 'Best Selling',
         limit: 10,
       );
       final list = (res['products'] as List<dynamic>?) ?? [];
@@ -64,19 +65,39 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     if (!_loading) {
       const int maxItems = 4;
       if (useDb) {
-        final count = _dbProducts.length < maxItems ? _dbProducts.length : maxItems;
+        final count = _dbProducts.length < maxItems
+            ? _dbProducts.length
+            : maxItems;
         for (int i = 0; i < count; i++) {
           listTiles.add(_buildTileFromDb(context, _dbProducts[i], i));
         }
       } else if (hasAdmin) {
-        final count = adminProducts.length < maxItems ? adminProducts.length : maxItems;
+        final count = adminProducts.length < maxItems
+            ? adminProducts.length
+            : maxItems;
         for (int i = 0; i < count; i++) {
-          listTiles.add(_buildBestSellingTile(context, adminProducts[i], index: i, isFromAdmin: true));
+          listTiles.add(
+            _buildBestSellingTile(
+              context,
+              adminProducts[i],
+              index: i,
+              isFromAdmin: true,
+            ),
+          );
         }
       } else {
-        final count = sampleProducts.length < maxItems ? sampleProducts.length : maxItems;
+        final count = sampleProducts.length < maxItems
+            ? sampleProducts.length
+            : maxItems;
         for (int i = 0; i < count; i++) {
-          listTiles.add(_buildBestSellingTile(context, sampleProducts[i], index: i, isFromAdmin: false));
+          listTiles.add(
+            _buildBestSellingTile(
+              context,
+              sampleProducts[i],
+              index: i,
+              isFromAdmin: false,
+            ),
+          );
         }
       }
     }
@@ -311,14 +332,15 @@ class _BestSellingBoxState extends State<BestSellingBox> {
               ) ??
               0.0)
         : product.priceBDT;
-    
+
     // Get image URL or bytes
     String? imageUrl;
     dynamic imageBytes;
-    
+
     if (isFromAdmin) {
       // Check for imageUrl first (from server)
-      if (product['imageUrl'] != null && (product['imageUrl'] as String).isNotEmpty) {
+      if (product['imageUrl'] != null &&
+          (product['imageUrl'] as String).isNotEmpty) {
         imageUrl = product['imageUrl'] as String;
       }
       // Fallback to image bytes (from file picker)
@@ -387,14 +409,15 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                         fit: BoxFit.cover,
                       )
                     : imageBytes != null
-                        ? Image.memory(
-                            imageBytes,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Colors.grey),
-                          )
-                        : const Icon(Icons.image, color: Colors.grey),
+                    ? Image.memory(
+                        imageBytes,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.image, color: Colors.grey),
+                      )
+                    : const Icon(Icons.image, color: Colors.grey),
               ),
             ),
             const SizedBox(width: 12),

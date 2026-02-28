@@ -1,12 +1,13 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../All Pages/CART/Cart_provider.dart';
 import '../../../Dimensions/responsive_dimensions.dart';
+import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
-import '../../../Provider/Admin_product_provider.dart';
 import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
 import 'Flash_sale_all.dart';
@@ -46,7 +47,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(section: 'flash_sale', limit: 20);
+      final res = await ApiService.getProducts(section: 'flash_sale', category: 'Flash Sale', limit: 20);
       final list = (res['products'] as List<dynamic>?) ?? [];
       final maps = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       if (mounted) {

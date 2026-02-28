@@ -313,7 +313,7 @@ class ApiService {
     String? sort,
     String? section,
     int limit = 50,
-    int offset = 0,
+    int offset = 0, required String category,
   }) async {
     String query = '?limit=$limit&offset=$offset';
     if (categoryId != null) query += '&category_id=$categoryId';
