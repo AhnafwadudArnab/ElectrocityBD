@@ -10,7 +10,13 @@ import 'Front-end/Provider/Orders_provider.dart';
 import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 import 'Front-end/utils/api_service.dart';
 
-void main() {
+void main() async {
+  // Force API base URL for web platform
+  if (kIsWeb) {
+    ApiService.setBaseUrl('http://localhost:8000/api');
+    print('🌐 Running on Web - API URL set to: http://localhost:8000/api');
+  }
+  
   runApp(
     MultiProvider(
       providers: [
@@ -37,30 +43,38 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Future<void> _initApiBase() async {
     if (kIsWeb) {
+      // Check if API URL is already set (from main.dart)
+      if (ApiService.overrideBaseUrl != null && 
+          ApiService.overrideBaseUrl!.contains('localhost:8000')) {
+        print('✓ Using pre-configured API URL: ${ApiService.overrideBaseUrl}');
+        return; // Don't override the URL set in main()
+      }
+      
       final apiOverride = Uri.base.queryParameters['api'];
       if (apiOverride != null && apiOverride.startsWith('http')) {
         ApiService.setBaseUrl(apiOverride);
       } else {
-        final origin = Uri.base.origin;
-        ApiService.setBaseUrl('$origin/api');
-      }
-      // Also try common fallbacks if health fails
-      try {
-        await ApiService.get('/health', withAuth: false);
-      } catch (_) {
-        final candidates = <String>[
-          '${Uri.base.origin}/api',
-          'http://localhost:3002/api',
-          'http://localhost:3001/api',
-          'http://localhost:3000/api',
-        ];
-        for (final base in candidates) {
-          try {
-            ApiService.setBaseUrl(base);
-            await ApiService.get('/health', withAuth: false);
-            break;
-          } catch (_) {
-            continue;
+        // Try localhost:8000 first (PHP backend)
+        try {
+          ApiService.setBaseUrl('http://localhost:8000/api');
+          await ApiService.get('/health', withAuth: false);
+          print('✓ Connected to PHP backend at http://localhost:8000/api');
+          return;
+        } catch (_) {
+          // Fallback to other ports
+          final candidates = <String>[
+            'http://localhost:3002/api',
+            'http://localhost:3001/api',
+            'http://localhost:3000/api',
+          ];
+          for (final base in candidates) {
+            try {
+              ApiService.setBaseUrl(base);
+              await ApiService.get('/health', withAuth: false);
+              break;
+            } catch (_) {
+              continue;
+            }
           }
         }
       }
@@ -68,7 +82,9 @@ class _MyAppState extends State<MyApp> {
     }
     // Non-web: try common localhost ports
     final candidates = <String>[
-      'http://10.0.2.2:3002/api', // Android emulator
+      'http://localhost:8000/api', // PHP backend
+      'http://10.0.2.2:8000/api', // Android emulator
+      'http://10.0.2.2:3002/api',
       'http://10.0.2.2:3001/api',
       'http://10.0.2.2:3000/api',
       'http://localhost:3002/api',

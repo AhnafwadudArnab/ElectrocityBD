@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +15,9 @@ class ApiService {
   
   static void setBaseUrl(String url) {
     overrideBaseUrl = url;
-    print('API Base URL set to: $url');
+    if (kDebugMode) {
+      print('API Base URL set to: $url');
+    }
   }
   
   static Future<String?> _reprobeBase() async {
@@ -32,21 +35,31 @@ class ApiService {
       'http://127.0.0.1:3000/api',
     }.toList();
     
-    print('Probing for backend API...');
+    if (kDebugMode) {
+      print('Probing for backend API...');
+    }
     for (final base in candidates) {
       try {
-        print('Trying: $base/health');
+        if (kDebugMode) {
+          print('Trying: $base/health');
+        }
         final res = await http.get(Uri.parse('$base/health'));
         if (res.statusCode >= 200 && res.statusCode < 400) {
-          print('✓ Backend found at: $base');
+          if (kDebugMode) {
+            print('✓ Backend found at: $base');
+          }
           return base;
         }
       } catch (e) {
-        print('✗ Failed to connect to $base: $e');
+        if (kDebugMode) {
+          print('✗ Failed to connect to $base: $e');
+        }
         continue;
       }
     }
-    print('⚠ No backend found, using default: ${AppConstants.baseUrl}');
+    if (kDebugMode) {
+      print('⚠ No backend found, using default: ${AppConstants.baseUrl}');
+    }
     return AppConstants.baseUrl; // Return default instead of null
   }
 
@@ -167,12 +180,16 @@ class ApiService {
 
     try {
       final currentBase = _apiBase();
-      print('Using API base: $currentBase');
+      if (kDebugMode) {
+        print('Using API base: $currentBase');
+      }
       return await _try(currentBase);
     } catch (e) {
-      print('API call failed, reprobing backend: $e');
+      if (kDebugMode) {
+        print('API call failed, reprobing backend: $e');
+      }
       final base = await _reprobeBase();
-      setBaseUrl(base);
+      setBaseUrl(base!);
       return await _try(base);
     }
   }
