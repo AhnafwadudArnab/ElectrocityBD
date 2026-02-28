@@ -1,8 +1,4 @@
-import 'package:electrocitybd1/Front-end/All%20Pages/Categories%20All/SideCatePages/HomeComfortUtils.dart';
-import 'package:electrocitybd1/Front-end/All%20Pages/Categories%20All/SideCatePages/KitchenAppliances.dart';
 import 'package:flutter/material.dart';
-
-import '../../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import 'collection_detail_page.dart';
 
 class CollectionsPage extends StatefulWidget {

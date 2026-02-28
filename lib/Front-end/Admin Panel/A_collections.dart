@@ -213,150 +213,155 @@ class _CollectionsContentState extends State<_CollectionsContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: Row(
-          children: [
-            // Left side - Collections list
-            Expanded(
-              flex: 2,
-              child: Container(
-                color: Colors.white,
-                child: Column(
-                  children: [
-                    // Header
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          bottom: BorderSide(color: Colors.grey[200]!),
+    return Container(
+      color: const Color(0xFFF7F8FA),
+      child: Row(
+        children: [
+          // Left side - Collections list
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey[200]!),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Collections',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Text(
-                            'Collections',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        const Spacer(),
+                        ElevatedButton.icon(
+                          onPressed: _showAddCollectionDialog,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Collection'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
                           ),
-                          const Spacer(),
-                          ElevatedButton.icon(
-                            onPressed: _showAddCollectionDialog,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Add Collection'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    
-                    // Collections list
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: _collections.length,
-                              itemBuilder: (context, index) {
-                                final collection = _collections[index];
-                                final isSelected = _selectedCollectionId == collection['id'];
-                                
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  color: isSelected ? Colors.red.shade50 : Colors.white,
-                                  child: ListTile(
-                                    leading: Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: isSelected ? Colors.red : Colors.grey[100],
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Icon(
-                                        _getIconData(collection['icon']),
-                                        color: isSelected ? Colors.white : Colors.grey[600],
-                                      ),
+                  ),
+                  
+                  // Collections list
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _collections.length,
+                            itemBuilder: (context, index) {
+                              final collection = _collections[index];
+                              final isSelected = _selectedCollectionId == collection['id'];
+                              
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                color: isSelected ? Colors.red.shade50 : Colors.white,
+                                child: ListTile(
+                                  leading: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? Colors.red : Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    title: Text(
-                                      collection['name'],
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: isSelected ? Colors.red : Colors.black,
-                                      ),
+                                    child: Icon(
+                                      _getIconData(collection['icon']),
+                                      color: isSelected ? Colors.white : Colors.grey[600],
                                     ),
-                                    subtitle: Text(
-                                      '${collection['itemCount']} items • ${(collection['items'] as List).length} categories',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Switch(
-                                          value: collection['isActive'],
-                                          onChanged: (value) {
-                                            setState(() {
-                                              collection['isActive'] = value;
-                                            });
-                                          },
-                                          activeColor: Colors.green,
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.edit, size: 20),
-                                          onPressed: () => _showEditCollectionDialog(collection),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                                          onPressed: () => _deleteCollection(collection['id']),
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedCollectionId = collection['id'];
-                                      });
-                                    },
                                   ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
+                                  title: Text(
+                                    collection['name'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected ? Colors.red : Colors.black,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '${collection['itemCount']} items • ${(collection['items'] as List).length} categories',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Switch(
+                                        value: collection['isActive'],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            collection['isActive'] = value;
+                                          });
+                                        },
+                                        activeColor: Colors.green,
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, size: 20),
+                                        onPressed: () => _showEditCollectionDialog(collection),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                                        onPressed: () => _deleteCollection(collection['id']),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCollectionId = collection['id'];
+                                    });
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ),
             ),
-            
-            // Right side - Collection items detail
-            Expanded(
-              flex: 3,
-              child: _selectedCollectionId == null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.category_outlined, size: 64, color: Colors.grey[300]),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Select a collection to view items',
-                            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    )
-                  : _buildCollectionDetail(),
-            ),
-          ],
-        ),
+          ),
+          
+          // Right side - Collection items detail
+          Expanded(
+            flex: 3,
+            child: _selectedCollectionId == null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.category_outlined, size: 64, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Select a collection to view items',
+                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _buildCollectionDetail(),
+                        const SizedBox(height: 24),
+                        _buildProductUploadCard(),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -369,6 +374,7 @@ class _CollectionsContentState extends State<_CollectionsContent> {
     return Container(
       color: const Color(0xFFF7F8FA),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header
           Container(
@@ -430,8 +436,10 @@ class _CollectionsContentState extends State<_CollectionsContent> {
           ),
           
           // Items list
-          Expanded(
+          Container(
+            constraints: const BoxConstraints(maxHeight: 300),
             child: ListView.builder(
+              shrinkWrap: true,
               padding: const EdgeInsets.all(24),
               itemCount: (collection['items'] as List).length,
               itemBuilder: (context, index) {
@@ -740,6 +748,310 @@ class _CollectionsContentState extends State<_CollectionsContent> {
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductUploadCard() {
+    final collection = _collections.firstWhere(
+      (c) => c['id'] == _selectedCollectionId,
+    );
+    
+    final productNameController = TextEditingController();
+    final priceController = TextEditingController();
+    final stockController = TextEditingController();
+    final descriptionController = TextEditingController();
+    String? selectedCategory;
+
+    return Container(
+      margin: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.upload_file,
+                  color: Colors.orange,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Upload to: ${collection['name']}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Note: A maximum of 4 items can be displayed in this section',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left side - Form fields
+              Expanded(
+                flex: 2,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: productNameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Product Name',
+                        labelStyle: TextStyle(color: Colors.grey[400]),
+                        filled: true,
+                        fillColor: const Color(0xFF1E2A3A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: priceController,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Price (BDT)',
+                        labelStyle: TextStyle(color: Colors.grey[400]),
+                        filled: true,
+                        fillColor: const Color(0xFF1E2A3A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: stockController,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Stock Quantity',
+                        labelStyle: TextStyle(color: Colors.grey[400]),
+                        filled: true,
+                        fillColor: const Color(0xFF1E2A3A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descriptionController,
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Full Description',
+                        labelStyle: TextStyle(color: Colors.grey[400]),
+                        filled: true,
+                        fillColor: const Color(0xFF1E2A3A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Category Dropdown
+                    StatefulBuilder(
+                      builder: (context, setDropdownState) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E2A3A),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: selectedCategory,
+                              hint: Text(
+                                'Category',
+                                style: TextStyle(color: Colors.grey[400]),
+                              ),
+                              isExpanded: true,
+                              dropdownColor: const Color(0xFF1E2A3A),
+                              style: const TextStyle(color: Colors.white),
+                              items: (collection['items'] as List<dynamic>)
+                                  .map((item) => DropdownMenuItem<String>(
+                                        value: item.toString(),
+                                        child: Text(item.toString()),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setDropdownState(() {
+                                  selectedCategory = value;
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Brand Dropdown
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E2A3A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: null,
+                          hint: Text(
+                            'Philips',
+                            style: TextStyle(color: Colors.grey[400]),
+                          ),
+                          isExpanded: true,
+                          dropdownColor: const Color(0xFF1E2A3A),
+                          style: const TextStyle(color: Colors.white),
+                          items: ['Philips', 'Samsung', 'LG', 'Sony']
+                              .map((brand) => DropdownMenuItem<String>(
+                                    value: brand,
+                                    child: Text(brand),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {},
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(width: 24),
+              
+              // Right side - Image upload
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E2A3A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey[700]!,
+                          width: 2,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate_outlined,
+                              size: 64,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Click to upload image',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Publish Button
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {
+                // TODO: Implement product upload
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Product will be uploaded to ${collection['name']}',
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Publish to Best Sellings',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),

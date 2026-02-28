@@ -11,30 +11,43 @@ class ApiService {
   static const String _tokenKey = 'electrocity_jwt_token';
   static String? _cachedToken;
   static String? overrideBaseUrl;
-  static void setBaseUrl(String url) => overrideBaseUrl = url;
+  
+  static void setBaseUrl(String url) {
+    overrideBaseUrl = url;
+    print('API Base URL set to: $url');
+  }
+  
   static Future<String?> _reprobeBase() async {
     final candidates = <String>{
       if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty)
         overrideBaseUrl!,
       AppConstants.baseUrl,
       'http://localhost:8000/api',
+      'http://127.0.0.1:8000/api',
       'http://localhost:3002/api',
       'http://localhost:3001/api',
       'http://localhost:3000/api',
-      'http://127.0.0.1:8000/api',
       'http://127.0.0.1:3002/api',
       'http://127.0.0.1:3001/api',
       'http://127.0.0.1:3000/api',
     }.toList();
+    
+    print('Probing for backend API...');
     for (final base in candidates) {
       try {
+        print('Trying: $base/health');
         final res = await http.get(Uri.parse('$base/health'));
-        if (res.statusCode >= 200 && res.statusCode < 400) return base;
-      } catch (_) {
+        if (res.statusCode >= 200 && res.statusCode < 400) {
+          print('✓ Backend found at: $base');
+          return base;
+        }
+      } catch (e) {
+        print('✗ Failed to connect to $base: $e');
         continue;
       }
     }
-    return null;
+    print('⚠ No backend found, using default: ${AppConstants.baseUrl}');
+    return AppConstants.baseUrl; // Return default instead of null
   }
 
   // ─── Token Management ───
@@ -153,14 +166,14 @@ class ApiService {
     }
 
     try {
-      return await _try(_apiBase());
-    } catch (_) {
+      final currentBase = _apiBase();
+      print('Using API base: $currentBase');
+      return await _try(currentBase);
+    } catch (e) {
+      print('API call failed, reprobing backend: $e');
       final base = await _reprobeBase();
-      if (base != null) {
-        setBaseUrl(base);
-        return await _try(base);
-      }
-      rethrow;
+      setBaseUrl(base);
+      return await _try(base);
     }
   }
 

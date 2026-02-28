@@ -57,11 +57,21 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
         category: widget.collectionSlug,
         limit: 100,
       );
-      
-      final list = (res['products'] as List<dynamic>? ?? [])
+
+      // Handle both Map and List responses
+      List<dynamic> productsList;
+      if (res is Map<String, dynamic>) {
+        productsList = (res['products'] as List<dynamic>? ?? []);
+      } else if (res is List) {
+        productsList = List<dynamic>.from(res as Iterable<dynamic>);
+      } else {
+        productsList = [];
+      }
+
+      final list = productsList
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      
+
       setState(() {
         _dbProducts = list;
         _isLoading = false;
@@ -78,7 +88,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     final admin = context.read<AdminProductProvider>().getProductsBySection(
       widget.collectionName,
     );
-    
+
     final adminMapped = admin
         .map(
           (p) => {
@@ -90,7 +100,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
           },
         )
         .toList();
-    
+
     final dbMapped = _dbProducts
         .map(
           (p) => {
@@ -106,7 +116,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
           },
         )
         .toList();
-    
+
     // Filter by selected category if any
     final combined = [...dbMapped, ...adminMapped];
     if (_selectedCategory != null) {
@@ -118,7 +128,8 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   static double _parsePrice(dynamic v) {
     if (v == null) return 0;
     if (v is num) return v.toDouble();
-    return double.tryParse(v.toString().replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    return double.tryParse(v.toString().replaceAll(RegExp(r'[^0-9.]'), '')) ??
+        0;
   }
 
   List<Map<String, dynamic>> _getSampleProducts() {
@@ -152,9 +163,11 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     final images = ((item['image'] ?? '') as String).isNotEmpty
         ? [item['image'] as String]
         : <String>[];
-    
+
     final product = ProductData(
-      id: isDb ? '${item['product_id']}' : 'admin_${widget.collectionSlug}_$index',
+      id: isDb
+          ? '${item['product_id']}'
+          : 'admin_${widget.collectionSlug}_$index',
       name: item['title'] as String,
       category: (item['category'] ?? 'General') as String,
       priceBDT: (item['price'] as double),
@@ -166,7 +179,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
         if ((item['stock'] ?? '') != '') 'stock': '${item['stock']}',
       },
     );
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -491,9 +504,11 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
 
   Widget _buildProductCard(Map<String, dynamic> product, int index) {
     final stock = product['stock'] ?? 0;
-    final stockQuantity = stock is int ? stock : (stock is String ? int.tryParse(stock.toString()) ?? 0 : 0);
+    final stockQuantity = stock is int
+        ? stock
+        : (stock is String ? int.tryParse(stock.toString()) ?? 0 : 0);
     final isInStock = stockQuantity > 0;
-    
+
     return InkWell(
       onTap: () => _openProductDetails(product, index),
       child: Container(
@@ -529,7 +544,10 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: isInStock ? Colors.green : Colors.red,
                         borderRadius: BorderRadius.circular(4),
@@ -585,15 +603,12 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  
+
                   // Stock Quantity
                   if (isInStock)
                     Text(
                       '$stockQuantity items available',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                     )
                   else
                     Text(
