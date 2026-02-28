@@ -262,6 +262,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
+  final TextEditingController _stockController = TextEditingController(text: '0');
   final TextEditingController _minPriceController = TextEditingController();
   final TextEditingController _maxPriceController = TextEditingController();
   final TextEditingController _limitController = TextEditingController(
@@ -502,6 +503,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     _customTextField(
                       _priceController,
                       "Price (BDT)",
+                      fieldBg,
+                      isNumber: true,
+                    ),
+                    const SizedBox(height: 12),
+                    _customTextField(
+                      _stockController,
+                      "Stock Quantity",
                       fieldBg,
                       isNumber: true,
                     ),
@@ -822,6 +830,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   ) {
     final nameC = TextEditingController(text: '${p['name']}');
     final priceC = TextEditingController(text: '${p['price']}');
+    final stockC = TextEditingController(text: '${p['stock'] ?? 0}');
     final descC = TextEditingController(text: '${p['desc']}');
     String category = p['category'] ?? 'Home Utility';
     PlatformFile? pickedFile;
@@ -861,6 +870,19 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                         style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           labelText: 'Price (BDT)',
+                          labelStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: stockC,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Stock Quantity',
                           labelStyle: TextStyle(color: Colors.white54),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Colors.white24),
@@ -961,6 +983,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
                     final Map<String, dynamic> data = {
                       'name': nameC.text.trim(),
                       'price': priceC.text.trim(),
+                      'stock': int.tryParse(stockC.text.trim()) ?? 0,
                       'desc': descC.text.trim(),
                       'category': category,
                       'imageUrl': pickedFile == null
@@ -1068,11 +1091,12 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
     setState(() => _publishing = true);
     try {
       final specs = _buildSpecsForSelectedCategory();
+      final stockQty = int.tryParse(_stockController.text.trim()) ?? 0;
       final res = await ApiService.createProductWithImage(
         product_name: _nameController.text.trim(),
         description: _descController.text.trim(),
         price: price,
-        stock_quantity: 0,
+        stock_quantity: stockQty,
         category_id: _intOrNull(_selectedCategoryId),
         brand_id: _intOrNull(_selectedBrandId),
         image_url: null,
@@ -1145,6 +1169,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
 
       _nameController.clear();
       _priceController.clear();
+      _stockController.clear();
       _descController.clear();
       _imageUrlController.clear();
       _modelController.clear();

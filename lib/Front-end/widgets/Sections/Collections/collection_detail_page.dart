@@ -493,6 +493,10 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product, int index) {
+    final stock = product['stock'] ?? 0;
+    final stockQuantity = stock is int ? stock : (stock is String ? int.tryParse(stock.toString()) ?? 0 : 0);
+    final isInStock = stockQuantity > 0;
+    
     return InkWell(
       onTap: () => _openProductDetails(product, index),
       child: Container(
@@ -507,19 +511,43 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
+            // Product Image with Stock Badge
             Expanded(
-              child: Center(
-                child: (product['image'] ?? '').toString().isNotEmpty
-                    ? ImageResolver.image(
-                        imageUrl: product['image'],
-                        fit: BoxFit.cover,
-                      )
-                    : Icon(
-                        Icons.shopping_bag_outlined,
-                        size: 100,
-                        color: Colors.grey[300],
+              child: Stack(
+                children: [
+                  Center(
+                    child: (product['image'] ?? '').toString().isNotEmpty
+                        ? ImageResolver.image(
+                            imageUrl: product['image'],
+                            fit: BoxFit.cover,
+                          )
+                        : Icon(
+                            Icons.shopping_bag_outlined,
+                            size: 100,
+                            color: Colors.grey[300],
+                          ),
+                  ),
+                  // Stock Badge
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isInStock ? Colors.green : Colors.red,
+                        borderRadius: BorderRadius.circular(4),
                       ),
+                      child: Text(
+                        isInStock ? 'In Stock' : 'Stock Out',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -557,6 +585,27 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  
+                  // Stock Quantity
+                  if (isInStock)
+                    Text(
+                      '$stockQuantity items available',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    )
+                  else
+                    Text(
+                      'Out of stock',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red[600],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
