@@ -7,8 +7,6 @@ import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
 import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import '../../Dimensions/responsive_dimensions.dart';
-import '../../pages/Templates/all_products_template.dart';
-import '../../pages/Templates/latest_arrival_page.dart';
 import '../../utils/auth_session.dart';
 import '../Sections/Flash Sale/Flash_sale_all.dart';
 
@@ -88,13 +86,6 @@ class _SidebarState extends State<Sidebar> {
             // 🏷️ PROMO CARD
             _buildLivePromoCard(primaryRed),
 
-            const SizedBox(height: 24),
-
-            // 🆕 LATEST ARRIVALS (website-style)
-            _buildLatestArrivalsHeader(),
-            const SizedBox(height: 14),
-            _buildProductMiniList(primaryRed),
-
             const SizedBox(height: 20),
 
             // ⚙️ SERVICE ASSURANCES (dark grey block)
@@ -167,19 +158,6 @@ class _SidebarState extends State<Sidebar> {
             padding: EdgeInsets.zero,
           ),
       ],
-    );
-  }
-
-  /// Website-style header for LATEST ARRIVALS (lighter, uppercase)
-  Widget _buildLatestArrivalsHeader() {
-    return Text(
-      'LATEST ARRIVALS',
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: Colors.grey.shade500,
-        letterSpacing: 1.4,
-      ),
     );
   }
 
@@ -276,124 +254,6 @@ class _SidebarState extends State<Sidebar> {
           ),
         );
       },
-    );
-  }
-
-  static double _parsePrice(dynamic v) {
-    if (v == null) return 0.0;
-    if (v is num) return v.toDouble();
-    if (v is String) return double.tryParse(v) ?? 0.0;
-    return 0.0;
-  }
-
-  Widget _buildProductMiniList(Color accent) {
-    const imgPath = "assets/flash";
-    final products = [
-      {
-        'name': 'Circular Saw',
-        'price': 7200.0,
-        'category': 'Power Tools',
-        'brand': 'Brand A',
-        'specs': ['Corded', 'Laser Guide'],
-        'img': "$imgPath/Circular Saw.jpg",
-        'description': 'A powerful circular saw for cutting wood.',
-        'additionalInfo': {},
-      },
-      {
-        'name': 'Orbital Sander',
-        'price': 3800.0,
-        'category': 'Power Tools',
-        'brand': 'Brand B',
-        'specs': ['Cordless', 'LED Light', 'Ergonomic Grip'],
-        'img': "$imgPath/Orbital Sander.jpg",
-        'description': 'Smooth finish orbital sander.',
-        'additionalInfo': {},
-      },
-      {
-        'name': 'Rotary Hammer Drill',
-        'price': 6500.0,
-        'category': 'Power Tools',
-        'brand': 'Brand A',
-        'specs': ['Corded', 'Variable Speed', 'Ergonomic Grip'],
-        'img': "$imgPath/Rotary Hammer Drill.jpg",
-        'description': 'Heavy-duty rotary hammer drill.',
-        'additionalInfo': {},
-      }
-    ];
-
-    return Column(
-      children: products.map((p) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 18),
-          child: InkWell(
-            onTap: () {
-              final productData = ProductData(
-                id: p['name'] as String,
-                name: p['name'] as String,
-                category: p['category'] as String? ?? '',
-                priceBDT: _parsePrice(p['price']),
-                images: [p['img'] as String],
-                description: p['description'] as String? ?? '',
-                additionalInfo: Map<String, String>.from(
-                  p['additionalInfo'] as Map<dynamic, dynamic>? ?? {},
-                ),
-              );
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => LatestArrivalPage(product: productData),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Image.asset(
-                    p['img'] as String,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 56,
-                      height: 56,
-                      color: Colors.grey.shade200,
-                      child: Icon(Icons.image_not_supported, color: Colors.grey.shade400),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        p['name'] as String,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Tk ${_parsePrice(p['price']).toStringAsFixed(0)}',
-                        style: TextStyle(
-                          color: accent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
