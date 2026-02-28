@@ -2,13 +2,10 @@ import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.d
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../All Pages/CART/Cart_provider.dart';
-import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../utils/api_service.dart';
 import '../../../utils/image_resolver.dart';
-import '../../../widgets/Sections/BestSellings/ProductData.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -607,7 +604,6 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

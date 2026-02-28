@@ -1145,6 +1145,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
               "id": "server_$productId",
               "name": (serverProduct['product_name'] ?? '').toString(),
               "price": (serverProduct['price'] ?? '').toString(),
+              "stock": serverProduct['stock_quantity'] ?? 0,
               "desc": (serverProduct['description'] ?? '').toString(),
               "category": (serverProduct['category_name'] ?? '').toString(),
               "imageUrl": imageUrl ?? '',
@@ -1153,6 +1154,7 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
           : {
               "name": _nameController.text.trim(),
               "price": _priceController.text.trim(),
+              "stock": int.tryParse(_stockController.text.trim()) ?? 0,
               "desc": _descController.text.trim(),
               "category": () {
                 for (final c in _categories) {
