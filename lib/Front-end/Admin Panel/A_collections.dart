@@ -1166,15 +1166,56 @@ class _CollectionsContentState extends State<_CollectionsContent> {
             height: 50,
             child: ElevatedButton(
               onPressed: () {
-                // TODO: Implement product upload
+                // Validate inputs
+                if (productNameController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter product name'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                
+                if (priceController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter price'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                
+                if (_selectedImageBytes == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please select an image'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                
+                // TODO: Implement product upload to backend
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Product will be uploaded to ${collection['name']}',
+                      'Product "${productNameController.text}" will be uploaded to ${collection['name']}',
                     ),
                     backgroundColor: Colors.green,
                   ),
                 );
+                
+                // Clear form
+                productNameController.clear();
+                priceController.clear();
+                stockController.clear();
+                descriptionController.clear();
+                setState(() {
+                  _selectedImageBytes = null;
+                  _selectedImageName = null;
+                });
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
