@@ -55,6 +55,11 @@ class ProductController {
         return $this->product->getFlashSale($limit);
     }
     
+    public function getTechPart($data) {
+        $limit = $data['limit'] ?? 10;
+        return $this->product->getTechPart($limit);
+    }
+    
     public function search($data) {
         if (!isset($data['q']) || empty($data['q'])) {
             return [];

@@ -57,8 +57,20 @@ class Product {
         $params = [];
         
         if ($category) {
-            $conditions[] = "p.category_id = :category";
-            $params[':category'] = $category;
+            // Support both category_id (integer) and collection slug (string)
+            if (is_numeric($category)) {
+                $conditions[] = "p.category_id = :category";
+                $params[':category'] = $category;
+            } else {
+                // Try to find products by collection slug
+                $conditions[] = "p.product_id IN (
+                    SELECT cp.product_id 
+                    FROM collection_products cp
+                    JOIN collections col ON cp.collection_id = col.collection_id
+                    WHERE col.slug = :category_slug
+                )";
+                $params[':category_slug'] = $category;
+            }
         }
         
         if ($brand) {
@@ -193,6 +205,23 @@ class Product {
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
                   WHERE fs.active = 1 AND fs.end_time >= NOW()
                   ORDER BY fs.end_time ASC
+                  LIMIT :limit";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function getTechPart($limit = 10) {
+        $query = "SELECT p.*, c.category_name, b.brand_name,
+                         tp.display_order
+                  FROM products p
+                  JOIN tech_part_products tp ON p.product_id = tp.product_id
+                  LEFT JOIN categories c ON p.category_id = c.category_id
+                  LEFT JOIN brands b ON p.brand_id = b.brand_id
+                  ORDER BY tp.display_order ASC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);

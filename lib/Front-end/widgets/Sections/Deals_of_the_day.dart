@@ -43,10 +43,24 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
   Future<void> _loadDealsFromDb() async {
     try {
-      final res = await ApiService.getProducts(section: 'deals', category: 'Deals of the Day', limit: 20);
-      final list = (res['products'] as List<dynamic>?) ?? [];
-      if (mounted) setState(() => _dbDeals = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
-    } catch (_) {}
+      // Use deals API endpoint directly
+      final res = await ApiService.get('/deals', withAuth: false);
+      
+      List<dynamic> dealsList;
+      if (res is Map<String, dynamic>) {
+        dealsList = (res['products'] as List<dynamic>? ?? res['deals'] as List<dynamic>? ?? []);
+      } else if (res is List) {
+        dealsList = res;
+      } else {
+        dealsList = [];
+      }
+      
+      if (mounted) {
+        setState(() => _dbDeals = dealsList.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+      }
+    } catch (e) {
+      print('Error loading deals: $e');
+    }
   }
 
   Future<void> _loadTimerFromApi() async {
@@ -255,14 +269,14 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                   for (var i = 0; i < _dbDeals.length; i++) {
                     final p = _dbDeals[i];
                     final priceVal = _parsePrice(p['price']);
-                    final oldPriceVal = priceVal * 1.15;
+                    final dealPrice = _parsePrice(p['deal_price'] ?? p['price']);
                     final imageUrl = p['image_url'] as String? ?? '';
                     final productData = _buildProductDataFromDb(p, i);
                     cards.add(_productCard(
                       brand: p['brand_name'] ?? 'Deal',
                       title: p['product_name'] ?? '',
-                      price: '৳${priceVal.toStringAsFixed(0)}',
-                      oldPrice: '৳${oldPriceVal.toStringAsFixed(0)}',
+                      price: '৳${dealPrice.toStringAsFixed(0)}',
+                      oldPrice: '৳${priceVal.toStringAsFixed(0)}',
                       imagePath: '',
                       onTap: () => _openDetails(productData),
                       imageWidget: imageUrl.isNotEmpty
@@ -272,7 +286,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                         await context.read<CartProvider>().addToCart(
                           productId: productData.id,
                           name: productData.name,
-                          price: productData.priceBDT,
+                          price: dealPrice,
                           imageUrl: productData.images.isNotEmpty ? productData.images.first : '',
                           category: productData.category,
                         );

@@ -29,6 +29,9 @@ if ($method === 'GET') {
             case 'flash-sale':
                 echo json_encode($product->getFlashSale($_GET));
                 exit;
+            case 'tech-part':
+                echo json_encode($product->getTechPart($_GET));
+                exit;
             case 'search':
                 echo json_encode($product->search($_GET));
                 exit;

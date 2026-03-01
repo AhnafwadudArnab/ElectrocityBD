@@ -15,7 +15,7 @@ void main() {
       productId: 'p-1',
       name: 'Phone',
       price: 1000,
-      imageUrl: 'assets/Products/1.png',
+      imageUrl: 'assets/prod/1.png',
       category: 'Electronics',
       quantity: 2,
     );

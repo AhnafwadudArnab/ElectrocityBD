@@ -41,13 +41,13 @@ class _TechpartState extends State<Techpart> {
   }
 
   static const List<String> _techImages = [
-    'assets/Products/1.png',
-    'assets/Products/2.jpg',
-    'assets/Products/3.jpg',
-    'assets/Products/4.jpg',
-    'assets/Products/5.jpg',
-    'assets/Products/6.jpg',
-    'assets/Products/7.png',
+    'assets/prod/6.png',
+    'assets/prod/7.png',
+    'assets/prod/8.png',
+    'assets/prod/9.png',
+    'assets/prod/01.png',
+    'assets/prod/09.png',
+    'assets/prod/99.png',
   ];
 
   @override

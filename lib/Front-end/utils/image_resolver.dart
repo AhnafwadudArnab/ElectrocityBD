@@ -19,6 +19,12 @@ class ImageResolver {
   /// Resolve to a full network URL if backend returned a relative path (e.g. /uploads/...).
   static String _resolveNetworkUrl(String imageUrl) {
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    
+    // If it's a Flutter asset path (starts with /assets/ or assets/), convert to asset: prefix
+    if (imageUrl.startsWith('/assets/') || imageUrl.startsWith('assets/')) {
+      return imageUrl; // Will be handled as asset below
+    }
+    
     if (imageUrl.startsWith('/')) return AppConstants.baseUrlImages + imageUrl;
     return AppConstants.baseUrlImages + '/' + imageUrl;
   }
@@ -26,6 +32,15 @@ class ImageResolver {
   static ImageProvider imageProvider(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) return const AssetImage('assets/images/placeholder.png');
     if (isAssetUrl(imageUrl)) return AssetImage(assetPath(imageUrl));
+    
+    // Handle Flutter asset paths from database
+    if (imageUrl.startsWith('/assets/')) {
+      return AssetImage(imageUrl.substring(1)); // Remove leading /
+    }
+    if (imageUrl.startsWith('assets/')) {
+      return AssetImage(imageUrl);
+    }
+    
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return NetworkImage(imageUrl);
     return NetworkImage(_resolveNetworkUrl(imageUrl));
   }
@@ -49,6 +64,27 @@ class ImageResolver {
         errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
       );
     }
+    
+    // Handle Flutter asset paths from database
+    if (imageUrl.startsWith('/assets/')) {
+      return Image.asset(
+        imageUrl.substring(1), // Remove leading /
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
+      );
+    }
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
+      );
+    }
+    
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return Image.network(
         imageUrl,

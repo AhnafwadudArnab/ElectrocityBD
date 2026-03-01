@@ -337,21 +337,26 @@ class ApiService {
   // ─── Products API ───
 
   /// [section] = best_sellers | trending | deals | flash_sale | tech_part for homepage sections
-  static Future<Map<String, dynamic>> getProducts({
+  static Future<dynamic> getProducts({
     int? categoryId,
+    String? category,
     String? search,
     String? sort,
     String? section,
     int limit = 50,
-    int offset = 0, required String category,
+    int offset = 0,
   }) async {
     String query = '?limit=$limit&offset=$offset';
     if (categoryId != null) query += '&category_id=$categoryId';
+    if (category != null && category.isNotEmpty) query += '&category=$category';
     if (search != null && search.isNotEmpty) query += '&search=$search';
     if (sort != null) query += '&sort=$sort';
     if (section != null && section.isNotEmpty) query += '&section=$section';
-    return await get('/products$query', withAuth: false)
-        as Map<String, dynamic>;
+    
+    final response = await get('/products$query', withAuth: false);
+    
+    // Return as-is (can be List or Map)
+    return response;
   }
 
   static Future<void> updateProductSections(

@@ -71,35 +71,35 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
   // স্যাম্পল প্রোডাক্ট (ডিফল্ট)
   final List<FlashSaleItem> sampleProducts = [
     FlashSaleItem(
-      image: 'assets/Products/1.png',
+      image: 'assets/flash/av.jpg',
       title: 'Product 1',
       originalPrice: 1500,
       discountedPrice: 999,
       timeRemaining: '02:12:34',
     ),
     FlashSaleItem(
-      image: 'assets/Products/2.jpg',
+      image: 'assets/flash/handmixxer.jpg',
       title: 'Product 2',
       originalPrice: 2000,
       discountedPrice: 1299,
       timeRemaining: '01:45:20',
     ),
     FlashSaleItem(
-      image: 'assets/Products/3.jpg',
+      image: 'assets/flash/kennede.jpg',
       title: 'Product 3',
       originalPrice: 1200,
       discountedPrice: 799,
       timeRemaining: '03:30:15',
     ),
     FlashSaleItem(
-      image: 'assets/Products/4.jpg',
+      image: 'assets/flash/miyoko_kettle.jpg',
       title: 'Product 4',
       originalPrice: 1800,
       discountedPrice: 1199,
       timeRemaining: '02:00:45',
     ),
     FlashSaleItem(
-      image: 'assets/Products/5.jpg',
+      image: 'assets/flash/nima_grinder.jpg',
       title: 'Product 5',
       originalPrice: 1600,
       discountedPrice: 999,

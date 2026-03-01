@@ -30,20 +30,27 @@ class _BestSellingBoxState extends State<BestSellingBox> {
 
   Future<void> _loadFromDb() async {
     try {
-      final res = await ApiService.getProducts(
-        section: 'best_sellers',
-        category: 'Best Selling',
-        limit: 10,
-      );
-      final list = (res['products'] as List<dynamic>?) ?? [];
+      // Use best-sellers action endpoint
+      final res = await ApiService.get('/products?action=best-sellers&limit=10', withAuth: false);
+      
+      List<dynamic> productsList;
+      if (res is Map<String, dynamic>) {
+        productsList = (res['products'] as List<dynamic>? ?? []);
+      } else if (res is List) {
+        productsList = res;
+      } else {
+        productsList = [];
+      }
+      
       if (mounted)
         setState(() {
-          _dbProducts = list
+          _dbProducts = productsList
               .map((e) => Map<String, dynamic>.from(e as Map))
               .toList();
           _loading = false;
         });
-    } catch (_) {
+    } catch (e) {
+      print('Error loading best sellers: $e');
       if (mounted)
         setState(() {
           _loading = false;
