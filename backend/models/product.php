@@ -131,7 +131,7 @@ class Product {
     
     public function getBestSellers($limit = 10) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
-                         bs.sales_count
+                         bs.sales_count, bs.selling_point, bs.sales_strategy
                   FROM products p
                   JOIN best_sellers bs ON p.product_id = bs.product_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
@@ -184,7 +184,8 @@ class Product {
     public function getFlashSale($limit = 10) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
                          fs.title as flash_sale_title,
-                         fs.end_time
+                         fs.end_time,
+                         fsp.flash_price
                   FROM products p
                   JOIN flash_sale_products fsp ON p.product_id = fsp.product_id
                   JOIN flash_sales fs ON fsp.flash_sale_id = fs.flash_sale_id

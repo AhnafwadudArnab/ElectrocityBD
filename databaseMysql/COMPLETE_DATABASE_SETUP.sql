@@ -198,6 +198,7 @@ CREATE TABLE IF NOT EXISTS flash_sales (
 CREATE TABLE IF NOT EXISTS flash_sale_products (
   flash_sale_id INT,
   product_id INT,
+  flash_price DECIMAL(10,2),
   PRIMARY KEY (flash_sale_id, product_id),
   FOREIGN KEY (flash_sale_id) REFERENCES flash_sales(flash_sale_id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
@@ -250,12 +251,25 @@ CREATE TABLE IF NOT EXISTS deals_of_the_day (
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Deals Timer Configuration (Admin can control countdown)
+CREATE TABLE IF NOT EXISTS deals_timer (
+  timer_id INT AUTO_INCREMENT PRIMARY KEY,
+  days INT DEFAULT 3,
+  hours INT DEFAULT 11,
+  minutes INT DEFAULT 15,
+  seconds INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------------
 -- 17. Best sellers / Trending
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS best_sellers (
   product_id INT PRIMARY KEY,
   sales_count INT DEFAULT 0,
+  selling_point TEXT,
+  sales_strategy VARCHAR(255),
   last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -395,17 +409,17 @@ ON DUPLICATE KEY UPDATE category_name=VALUES(category_name);
 -- Brands
 -- ---------------------------------------------------------------------------
 INSERT INTO brands (brand_id, brand_name, brand_logo) VALUES
-(1, 'Philips', '/assets/brands/philips_logo.png'),
+(1, 'Philips', '/assets/Brand Logo/images (1).png'),
 (2, 'Walton', '/assets/Brand Logo/walton.png'),
-(3, 'Samsung', '/assets/brands/samsung_logo.png'),
+(3, 'Samsung', '/assets/Brand Logo/images (2).png'),
 (4, 'LG', '/assets/Brand Logo/LG.png'),
-(5, 'Sony', '/assets/brands/sony_logo.png'),
+(5, 'Sony', '/assets/Brand Logo/images (3).png'),
 (6, 'Gree', '/assets/Brand Logo/Gree.png'),
 (7, 'Jamuna', '/assets/Brand Logo/jamuna.jpg'),
 (8, 'Panasonic', '/assets/Brand Logo/panasonnic.png'),
 (9, 'Singer', '/assets/Brand Logo/singer.png'),
 (10, 'Vision', '/assets/Brand Logo/vision.jpg')
-ON DUPLICATE KEY UPDATE brand_name=VALUES(brand_name);
+ON DUPLICATE KEY UPDATE brand_name=VALUES(brand_name), brand_logo=VALUES(brand_logo);
 
 -- ---------------------------------------------------------------------------
 -- Products (Deals of the Day products with real data)
@@ -413,11 +427,11 @@ ON DUPLICATE KEY UPDATE brand_name=VALUES(brand_name);
 INSERT INTO products (product_id, category_id, brand_id, product_name, description, price, stock_quantity, image_url) VALUES
 -- Deals of the Day Products (Products 1-18)
 (1, 1, 2, 'Miyako Curry Cooker 5.5L', 'Family Reliable: 5.5L large capacity, non-stick coating, and automatic cooking mode. Best for cooking large portions of curry or rice for big families in one go.', 2500.00, 15, '/assets/Deals of the Day/miyoko.jpg'),
-(2, 6, 2, 'Nima 2-in-1 Grinder 400W', 'Budget Friendly: 450W powerful motor, stainless steel blades, suitable for dry and wet grinding. The most popular choice for grinding spices or coffee quickly at a low price.', 1200.00, 25, '/assets/Deals of the Day/nima grinder.jpg'),
-(3, 1, 2, 'Miyako Kettle 180 PS 1.8L', 'Quick Solution: 1.8L capacity, auto-shutoff feature (turns off automatically when water boils). The best choice for getting hot water for tea or coffee in just a few minutes.', 1500.00, 30, '/assets/Deals of the Day/miyoko kettle.jpg'),
-(4, 2, 3, 'Sokany Hair Dryer HS-3820', 'Perfect Look: 2000-2200W power, hot and cold air options, includes concentrator nozzle. Affordable and durable for achieving a salon-style hair drying experience at home.', 1800.00, 20, '/assets/Deals of the Day/sokany dyer.jpg'),
+(2, 6, 2, 'Nima 2-in-1 Grinder 400W', 'Budget Friendly: 450W powerful motor, stainless steel blades, suitable for dry and wet grinding. The most popular choice for grinding spices or coffee quickly at a low price.', 1450.00, 25, '/assets/Deals of the Day/nima grinder.jpg'),
+(3, 1, 2, 'Miyako Kettle 180 PS 1.8L', 'Quick Solution: 1.8L capacity, auto-shutoff feature (turns off automatically when water boils). The best choice for getting hot water for tea or coffee in just a few minutes.', 1450.00, 30, '/assets/Deals of the Day/miyoko kettle.jpg'),
+(4, 2, 3, 'Sokany Hair Dryer HS-3820', 'Perfect Look: 2000-2200W power, hot and cold air options, includes concentrator nozzle. Affordable and durable for achieving a salon-style hair drying experience at home.', 1180.00, 20, '/assets/Deals of the Day/sokany dyer.jpg'),
 (5, 3, 2, 'Kennede Charger Fan 2912', 'Load-shedding Master: 12-inch size, rechargeable battery, 5–6 hours backup, and built-in LED light. Your best friend during summer days due to its long-lasting battery backup.', 2200.00, 18, '/assets/Deals of the Day/kennede charger fan.jpg'),
-(6, 1, 2, 'Miyako Pink Panther Blender 750W', 'All-in-One: 750W copper motor, 3 stainless steel jars, overload protection. Perfect for everything from making juice to grinding spice pastes.', 3500.00, 12, '/assets/Deals of the Day/pinkPanther blender.jpg'),
+(6, 1, 2, 'Miyako Pink Panther Blender 750W', 'All-in-One: 750W copper motor, 3 stainless steel jars, overload protection. Perfect for everything from making juice to grinding spice pastes.', 4050.00, 12, '/assets/Deals of the Day/pinkPanther blender.jpg'),
 (7, 1, 2, 'NOHA Hotel King Blender 1050W', 'For Heavy Users: 1050W high-power motor, heavy-duty blades, anti-jam design. Extremely durable for those who require heavy blending every single day.', 4500.00, 10, '/assets/Deals of the Day/noha hot king.jpg'),
 (8, 1, 2, 'AV Sandwich Maker 296', 'Instant Breakfast: Non-stick grill plates, fast heating technology, and easy to clean. An essential for modern kitchens to quickly prepare breakfast or tiffins.', 1400.00, 22, '/assets/Deals of the Day/av sandwich maker.jpg'),
 (9, 1, 2, 'Miyako 25L Electric Oven', 'For Baking Lovers: 25L size, timer and temperature control, baking and grilling facilities. The best entry-level oven for baking cakes or making roasted chicken.', 5500.00, 8, '/assets/Deals of the Day/miyoko 25l oven.jpg'),
@@ -444,7 +458,26 @@ INSERT INTO products (product_id, category_id, brand_id, product_name, descripti
 (24, 4, 3, 'Samsung T7 Portable SSD 1TB', 'Ultra-fast portable SSD with USB 3.2 Gen 2, read speeds up to 1050 MB/s. Compact and durable design.', 12000.00, 18, '/assets/Products/4.jpg'),
 (25, 4, 5, 'Corsair K95 RGB Platinum Mechanical Gaming Keyboard', 'Cherry MX Speed switches, per-key RGB backlighting, dedicated media controls. Premium gaming keyboard.', 18000.00, 12, '/assets/Products/5.jpg'),
 (26, 4, 5, 'Razer DeathAdder V2 Pro Wireless Gaming Mouse', '20K DPI optical sensor, 70-hour battery life, ergonomic design. Professional gaming mouse.', 10500.00, 15, '/assets/Products/6.jpg'),
-(27, 4, 3, 'Dell UltraSharp U2723QE 27 Inch 4K Monitor', '4K UHD resolution, IPS Black technology, USB-C connectivity. Professional-grade color accuracy.', 35000.00, 8, '/assets/Products/7.png')
+(27, 4, 3, 'Dell UltraSharp U2723QE 27 Inch 4K Monitor', '4K UHD resolution, IPS Black technology, USB-C connectivity. Professional-grade color accuracy.', 35000.00, 8, '/assets/Products/7.png'),
+
+-- Kennede & Defender Charger Fan Collection (28-36)
+(28, 3, 2, 'Kennede Charger Fan 2412', '12-inch rechargeable fan with LED light, 4-6 hours backup. Compact and portable design for load-shedding.', 1800.00, 20, '/assets/Collections/Kennede & Defender Charger Fan/2412.png'),
+(29, 3, 2, 'Kennede Charger Fan 2916', '16-inch powerful rechargeable fan with 6-8 hours backup. High-speed motor with adjustable height.', 2400.00, 18, '/assets/Collections/Kennede & Defender Charger Fan/2916.jpg'),
+(30, 3, 2, 'Kennede Charger Fan 2926', '16-inch premium rechargeable fan with remote control, 8-10 hours backup. Multiple speed settings.', 2800.00, 15, '/assets/Collections/Kennede & Defender Charger Fan/2926.jpg'),
+(31, 3, 2, 'Kennede Charger Fan 2936S', '16-inch super powerful fan with solar charging option, 10-12 hours backup. Eco-friendly solution.', 3200.00, 12, '/assets/Collections/Kennede & Defender Charger Fan/2936s.jpg'),
+(32, 3, 2, 'Kennede Charger Fan 2956P', '16-inch premium plus model with USB charging port, 12-14 hours backup. Can charge mobile phones.', 3500.00, 10, '/assets/Collections/Kennede & Defender Charger Fan/2956p.jpg'),
+(33, 3, 2, 'HK Defender Charger Fan 2914', '14-inch defender series with strong build, 6-8 hours backup. Durable for heavy use.', 2100.00, 16, '/assets/Collections/Kennede & Defender Charger Fan/HK Defender 2914.jpg'),
+(34, 3, 2, 'HK Defender Charger Fan 2916', '16-inch defender series with metal blades, 8-10 hours backup. Industrial-grade quality.', 2600.00, 14, '/assets/Collections/Kennede & Defender Charger Fan/HK Defender 2916.jpg'),
+(35, 3, 2, 'HK Defender Charger Fan 2916 Plus', '16-inch defender plus with enhanced motor, 10-12 hours backup. Maximum airflow performance.', 2900.00, 12, '/assets/Collections/Kennede & Defender Charger Fan/HK Defender 2916_1.jpg'),
+(36, 3, 2, 'Kennede Charger Fan 2912 (Deal Model)', '12-inch rechargeable fan, same as product 5 but different image. Popular deal model.', 2200.00, 18, '/assets/Collections/Kennede & Defender Charger Fan/2912.jpg'),
+
+-- Flash Sale Products (37-39)
+(37, 1, 2, 'AV Sandwich Maker 560', 'Non-stick grill plates, fast heating, easy to clean. Perfect for students and small families for quick breakfast.', 1850.00, 25, '/assets/flash/av.jpg'),
+(38, 2, 2, 'Scarlet Hand Mixer HE-133', 'Powerful hand mixer for cake making and whisking eggs. Lightweight and easy to use. Budget-friendly kitchen essential.', 750.00, 30, '/assets/flash/handmixxer.jpg'),
+(39, 3, 2, 'Kennede Charger Fan 2912 Flash', '12-inch rechargeable fan with LED light, 5-6 hours backup. Summer season hot item with special flash price.', 3500.00, 20, '/assets/flash/kennede.jpg'),
+
+-- Best Sellers Product (40)
+(40, 1, 1, 'Prestige Rice Cooker 1.8L', 'Known for durability and perfectly cooked rice every time. Non-stick inner pot, keep-warm function. The perfect rice cooker for daily use.', 2800.00, 22, '/assets/bestSale/prestige.jpg')
 ON DUPLICATE KEY UPDATE product_name=VALUES(product_name), price=VALUES(price), stock_quantity=VALUES(stock_quantity);
 
 -- ---------------------------------------------------------------------------
@@ -468,15 +501,24 @@ INSERT INTO promotions (title, description, discount_percent, start_date, end_da
 ON DUPLICATE KEY UPDATE title=VALUES(title);
 
 -- ---------------------------------------------------------------------------
--- Sample Flash Sale
+-- Flash Sale (7 Hot Items)
 -- ---------------------------------------------------------------------------
 INSERT INTO flash_sales (flash_sale_id, title, start_time, end_time, active) VALUES
-(1, 'Flash Sale - Electronics', NOW(), DATE_ADD(NOW(), INTERVAL 12 HOUR), TRUE)
+(1, 'Flash Sale - Hot Items', NOW(), DATE_ADD(NOW(), INTERVAL 12 HOUR), TRUE)
 ON DUPLICATE KEY UPDATE title=VALUES(title);
 
-INSERT INTO flash_sale_products (flash_sale_id, product_id) VALUES
-(1, 1), (1, 2), (1, 5)
-ON DUPLICATE KEY UPDATE flash_sale_id=VALUES(flash_sale_id);
+-- Flash Sale Products: 7 items with special prices
+-- Using existing product IDs: 2 (Nima Grinder), 3 (Miyako Kettle), 4 (Sokany Dryer), 6 (Pink Panther Blender)
+-- Using new product IDs: 37 (AV Sandwich Maker), 38 (Scarlet Hand Mixer), 39 (Kennede Fan Flash)
+INSERT INTO flash_sale_products (flash_sale_id, product_id, flash_price) VALUES
+(1, 2, 1250.00),   -- Nima Grinder: Regular 1,450 → Flash 1,250 BDT (Hot Item)
+(1, 3, 1299.00),   -- Miyako Kettle: Regular 1,450 → Flash 1,299 BDT (Daily Essential)
+(1, 4, 990.00),    -- Sokany Hair Dryer: Regular 1,180 → Flash 990 BDT (Under 1000!)
+(1, 6, 3750.00),   -- Pink Panther Blender: Regular 4,050 → Flash 3,750 BDT (300 BDT Off)
+(1, 39, 3150.00),  -- Kennede Fan Flash: Regular 3,500 → Flash 3,150 BDT (Summer Hot Item)
+(1, 37, 1650.00),  -- AV Sandwich Maker: Regular 1,850 → Flash 1,650 BDT (Quick Breakfast)
+(1, 38, 599.00)    -- Scarlet Hand Mixer: Regular 750 → Flash 599 BDT (Incredibly Cheap!)
+ON DUPLICATE KEY UPDATE flash_price=VALUES(flash_price);
 
 -- ---------------------------------------------------------------------------
 -- Sample Collections (matching the app's collections)
@@ -519,7 +561,7 @@ INSERT INTO collection_items (collection_id, item_name, display_order) VALUES
 ON DUPLICATE KEY UPDATE item_name=VALUES(item_name);
 
 INSERT INTO collection_products (collection_id, product_id) VALUES
-(1, 5), (1, 13), (1, 19),  -- Fans collection
+(1, 5), (1, 13), (1, 19), (1, 28), (1, 29), (1, 30), (1, 31), (1, 32), (1, 33), (1, 34), (1, 35), (1, 36),  -- Fans collection (12 products)
 (2, 1), (2, 7), (2, 8), (2, 12), -- Cookers collection
 (3, 6), (3, 11), (3, 16) -- Blenders collection
 ON DUPLICATE KEY UPDATE collection_id=VALUES(collection_id);
@@ -549,11 +591,24 @@ INSERT INTO deals_of_the_day (product_id, deal_price, start_date, end_date) VALU
 ON DUPLICATE KEY UPDATE deal_price=VALUES(deal_price);
 
 -- ---------------------------------------------------------------------------
--- Best Sellers
+-- Deals Timer Configuration (Admin Control)
 -- ---------------------------------------------------------------------------
-INSERT INTO best_sellers (product_id, sales_count) VALUES 
-(1, 150), (2, 120), (3, 100), (7, 90), (8, 85), (10, 80), (11, 75), (13, 70)
-ON DUPLICATE KEY UPDATE sales_count=VALUES(sales_count);
+INSERT INTO deals_timer (timer_id, days, hours, minutes, seconds, is_active) VALUES
+(1, 3, 11, 15, 0, TRUE)
+ON DUPLICATE KEY UPDATE days=VALUES(days), hours=VALUES(hours), minutes=VALUES(minutes), seconds=VALUES(seconds);
+
+-- ---------------------------------------------------------------------------
+-- Best Sellers (7 Top Products with Sales Strategy)
+-- ---------------------------------------------------------------------------
+INSERT INTO best_sellers (product_id, sales_count, selling_point, sales_strategy) VALUES 
+(6, 500, 'The most trusted household name for daily grinding and juice making.', 'The All-rounder Kitchen King'),
+(2, 450, 'Extremely affordable and perfect for small families or coffee lovers.', 'Your Daily Spice Partner'),
+(5, 420, 'A lifesaver during load-shedding with reliable battery backup.', 'Stay Cool, No Matter the Power Cut'),
+(3, 380, 'Essential for every home and office for quick tea/coffee.', 'Hot Water in Minutes'),
+(4, 350, 'High power and stylish design at a very competitive price point.', 'Salon-Style Hair at Home'),
+(1, 320, 'Huge capacity makes it the go-to choice for cooking for guests.', 'Cook Big, Live Large'),
+(40, 300, 'Known for durability and perfectly cooked rice every time.', 'The Perfect Rice, Every Single Meal')
+ON DUPLICATE KEY UPDATE sales_count=VALUES(sales_count), selling_point=VALUES(selling_point), sales_strategy=VALUES(sales_strategy);
 
 -- ---------------------------------------------------------------------------
 -- Trending Products
@@ -786,7 +841,99 @@ INSERT INTO product_specifications (product_id, spec_key, spec_value, display_or
 (27, 'Technology', 'IPS Black', 3),
 (27, 'Connectivity', 'USB-C', 4),
 (27, 'Features', 'Professional Color Accuracy', 5),
-(27, 'Rating', '5', 6)
+(27, 'Rating', '5', 6),
+
+-- Kennede & Defender Charger Fan Specifications (28-36)
+-- Kennede 2412
+(28, 'Size', '12 inch', 1),
+(28, 'Battery Backup', '4-6 hours', 2),
+(28, 'Features', 'LED Light, Rechargeable', 3),
+(28, 'Design', 'Compact and Portable', 4),
+
+-- Kennede 2916
+(29, 'Size', '16 inch', 1),
+(29, 'Battery Backup', '6-8 hours', 2),
+(29, 'Features', 'High-speed Motor, Adjustable Height', 3),
+(29, 'Power', 'Powerful Airflow', 4),
+
+-- Kennede 2926
+(30, 'Size', '16 inch', 1),
+(30, 'Battery Backup', '8-10 hours', 2),
+(30, 'Features', 'Remote Control, Multiple Speed Settings', 3),
+(30, 'Type', 'Premium Model', 4),
+
+-- Kennede 2936S
+(31, 'Size', '16 inch', 1),
+(31, 'Battery Backup', '10-12 hours', 2),
+(31, 'Features', 'Solar Charging Option', 3),
+(31, 'Type', 'Eco-friendly Solution', 4),
+(31, 'Power', 'Super Powerful', 5),
+
+-- Kennede 2956P
+(32, 'Size', '16 inch', 1),
+(32, 'Battery Backup', '12-14 hours', 2),
+(32, 'Features', 'USB Charging Port, Can Charge Phones', 3),
+(32, 'Type', 'Premium Plus Model', 4),
+
+-- HK Defender 2914
+(33, 'Size', '14 inch', 1),
+(33, 'Battery Backup', '6-8 hours', 2),
+(33, 'Build', 'Strong and Durable', 3),
+(33, 'Series', 'Defender Series', 4),
+
+-- HK Defender 2916
+(34, 'Size', '16 inch', 1),
+(34, 'Battery Backup', '8-10 hours', 2),
+(34, 'Blades', 'Metal Blades', 3),
+(34, 'Quality', 'Industrial-grade', 4),
+(34, 'Series', 'Defender Series', 5),
+
+-- HK Defender 2916 Plus
+(35, 'Size', '16 inch', 1),
+(35, 'Battery Backup', '10-12 hours', 2),
+(35, 'Motor', 'Enhanced Motor', 3),
+(35, 'Performance', 'Maximum Airflow', 4),
+(35, 'Series', 'Defender Plus', 5),
+
+-- Kennede 2912 Deal Model
+(36, 'Size', '12 inch', 1),
+(36, 'Battery Backup', '5-6 hours', 2),
+(36, 'Features', 'LED Light, Rechargeable', 3),
+(36, 'Type', 'Popular Deal Model', 4),
+
+-- Flash Sale Products Specifications (37-39)
+-- AV Sandwich Maker 560
+(37, 'Model', '560', 1),
+(37, 'Plates', 'Non-stick Grill Plates', 2),
+(37, 'Heating', 'Fast Heating', 3),
+(37, 'Maintenance', 'Easy to Clean', 4),
+(37, 'Best For', 'Students & Small Families', 5),
+(37, 'USP', 'Perfect for Quick Breakfast', 6),
+
+-- Scarlet Hand Mixer HE-133
+(38, 'Model', 'HE-133', 1),
+(38, 'Type', 'Hand Mixer', 2),
+(38, 'Power', 'Powerful Motor', 3),
+(38, 'Weight', 'Lightweight', 4),
+(38, 'Use', 'Cake Making, Whisking Eggs', 5),
+(38, 'USP', 'Incredibly Cheap & Effective', 6),
+
+-- Kennede Charger Fan 2912 Flash
+(39, 'Model', '2912', 1),
+(39, 'Size', '12 inch', 2),
+(39, 'Battery Backup', '5-6 hours', 3),
+(39, 'Features', 'LED Light, Rechargeable', 4),
+(39, 'Season', 'Summer Hot Item', 5),
+(39, 'USP', 'Biggest Flash Sale Attraction', 6),
+
+-- Prestige Rice Cooker 1.8L
+(40, 'Brand', 'Prestige', 1),
+(40, 'Capacity', '1.8 Liters', 2),
+(40, 'Coating', 'Non-stick Inner Pot', 3),
+(40, 'Features', 'Keep-warm Function', 4),
+(40, 'Quality', 'Known for Durability', 5),
+(40, 'USP', 'The Perfect Rice, Every Single Meal', 6),
+(40, 'Strategy', 'Perfectly Cooked Rice Every Time', 7)
 ON DUPLICATE KEY UPDATE spec_value=VALUES(spec_value);
 
 -- ============================================================
