@@ -89,25 +89,6 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     );
   }
 
-  ProductData _buildProductData({
-    required int index,
-    required String brand,
-    required String title,
-    required String price,
-    required String oldPrice,
-    required String imagePath,
-  }) {
-    return ProductData(
-      id: 'deal_$index',
-      name: title,
-      category: 'Deals of the Day',
-      priceBDT: _parsePrice(price),
-      images: [imagePath],
-      description: '$title by $brand.',
-      additionalInfo: {'Brand': brand, 'Old Price': oldPrice},
-    );
-  }
-
   ProductData _buildProductDataFromAdmin(Map<String, dynamic> p, int index) {
     final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
@@ -295,29 +276,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                     ));
                   }
 
-                  const List<Map<String, String>> staticDeals = [
-                    {'brand': 'Samsung', 'title': 'CCTV Camera', 'price': '৳8,500', 'oldPrice': '৳10,500', 'imagePath': 'assets/Deals of the Day/2.png'},
-                    {'brand': 'Walton', 'title': 'Blender 3-in-1 Machine', 'price': '৳5,500', 'oldPrice': '৳7,000', 'imagePath': 'assets/Deals of the Day/9.png'},
-                    {'brand': 'Panasonic', 'title': 'Cooker 5L', 'price': '৳8,500', 'oldPrice': '৳11,000', 'imagePath': 'assets/Deals of the Day/3.png'},
-                    {'brand': 'Jamuna', 'title': 'Fan', 'price': '৳4,200', 'oldPrice': '৳4,800', 'imagePath': 'assets/Deals of the Day/5.png'},
-                    {'brand': 'Walton', 'title': 'AC 1.5 Ton', 'price': '৳32,200', 'oldPrice': '৳38,800', 'imagePath': 'assets/Deals of the Day/6.png'},
-                    {'brand': 'Walton', 'title': 'AC 2 Ton', 'price': '৳46,500', 'oldPrice': '৳55,750', 'imagePath': 'assets/Deals of the Day/6.png'},
-                    {'brand': 'Panasonic', 'title': 'Mixer Grinder', 'price': '৳2,800', 'oldPrice': '৳3,200', 'imagePath': 'assets/Deals of the Day/09.png'},
-                    {'brand': 'Hikvision', 'title': 'Air Purifier', 'price': '৳18,500', 'oldPrice': '৳22,000', 'imagePath': 'assets/Deals of the Day/7.png'},
-                    {'brand': 'P9 Max', 'title': 'Bluetooth Headphones', 'price': '৳1,850', 'oldPrice': '৳2,500', 'imagePath': 'assets/Deals of the Day/1.png'},
-                  ];
-                  for (var i = 0; i < staticDeals.length; i++) {
-                    final d = staticDeals[i];
-                    cards.add(_productCard(
-                      brand: d['brand']!,
-                      title: d['title']!,
-                      price: d['price']!,
-                      oldPrice: d['oldPrice']!,
-                      imagePath: d['imagePath']!,
-                      onTap: () => _openDetails(_buildProductData(index: i, brand: d['brand']!, title: d['title']!, price: d['price']!, oldPrice: d['oldPrice']!, imagePath: d['imagePath']!)),
-                    ));
-                  }
-
+                  // All products loaded from database and admin provider
                   return ListView(
                     controller: _scrollController,
                     scrollDirection: Axis.horizontal,

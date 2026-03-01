@@ -34,6 +34,24 @@ if (!empty($segments[0]) && $segments[0] === 'uploads') {
     }
 }
 
+// Serve images from assets folder (for Flutter assets)
+if (!empty($segments[0]) && $segments[0] === 'assets') {
+    // Construct path to Flutter assets folder
+    $assetsPath = __DIR__ . '/../../assets/' . implode('/', array_slice($segments, 1));
+    if (is_file($assetsPath)) {
+        $ext = strtolower(pathinfo($assetsPath, PATHINFO_EXTENSION));
+        $types = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+        ];
+        header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
+        readfile($assetsPath);
+        exit;
+    }
+}
+
 if (empty($segments[0])) {
     echo json_encode([
         'name' => 'ElectrocityBD API',

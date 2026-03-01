@@ -50,65 +50,10 @@ class _TechpartState extends State<Techpart> {
     'assets/Products/7.png',
   ];
 
-  // স্যাম্পল প্রোডাক্ট
-  final List<Map<String, dynamic>> sampleProducts = [
-    {
-      'name': 'Acer SB220Q bi 21.5 Inches Full HD',
-      'price': '৳9,400',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'Intel Core i7 12th Gen',
-      'price': '৳45,999',
-      'rating': 5,
-      'image': 'assets/Products/1.png',
-    },
-    {
-      'name': 'ASUS ROG Strix G15',
-      'price': '৳1,20,000',
-      'rating': 4,
-      'image': 'assets/Products/2.jpg',
-    },
-    {
-      'name': 'Logitech MX Master 3',
-      'price': '৳8,500',
-      'rating': 4,
-      'image': 'assets/Products/3.jpg',
-    },
-    {
-      'name': 'Samsung T7 Portable SSD 1TB',
-      'price': '৳12,000',
-      'rating': 5,
-      'image': 'assets/Products/4.jpg',
-    },
-    {
-      'name': 'Corsair K95 RGB Platinum Mechanical Gaming Keyboard',
-      'price': '৳18,000',
-      'rating': 4,
-      'image': 'assets/Products/5.jpg',
-    },
-    {
-      'name': 'Razer DeathAdder V2 Pro Wireless Gaming Mouse',
-      'price': '৳10,500',
-      'rating': 4,
-      'image': 'assets/Products/6.jpg',
-    },
-    {
-      'name': 'Dell UltraSharp U2723QE 27 Inch 4K Monitor',
-      'price': '৳35,000',
-      'rating': 5,
-      'image': 'assets/Products/7.png',
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
     _loadFromDb();
-    for (var i = 0; i < sampleProducts.length; i++) {
-      sampleProducts[i]['image'] = _techImages[i % _techImages.length];
-    }
   }
 
   // অ্যাডমিন প্রোডাক্টকে স্ট্যান্ডার্ড ফরম্যাটে কনভার্ট করা
@@ -144,14 +89,14 @@ class _TechpartState extends State<Techpart> {
         .toList();
   }
 
-  // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
+  // সব প্রোডাক্ট (DB + অ্যাডমিন)
   List<Map<String, dynamic>> _allProducts(BuildContext context) {
     final adminProducts = context
         .read<AdminProductProvider>()
         .getProductsBySection("Tech Part");
     final adminConverted = _convertAdminProducts(adminProducts);
     final dbConverted = _convertDbProducts(_dbProducts);
-    return [...dbConverted, ...adminConverted, ...sampleProducts];
+    return [...dbConverted, ...adminConverted];
   }
 
   void _loadMore() {

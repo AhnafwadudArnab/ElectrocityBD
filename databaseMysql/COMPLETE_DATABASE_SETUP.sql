@@ -1,28 +1,10 @@
 -- ============================================================
 -- ElectrocityBD - Complete MySQL Database Setup
--- This file creates the database, schema, and sample data
--- 
--- Usage:
---   mysql -u root -p < COMPLETE_DATABASE_SETUP.sql
--- 
--- Or in MySQL command line:
---   source /path/to/COMPLETE_DATABASE_SETUP.sql
--- 
--- Architecture: Flutter → PHP Backend (port 8000) → MySQL (port 3306)
--- Database: electrocity_db
--- ============================================================
-
--- Drop existing database if you want a fresh start (CAUTION: This deletes all data!)
--- DROP DATABASE IF EXISTS electrocity_db;
+DROP DATABASE IF EXISTS electrocity_db;
 
 -- Create database
-CREATE DATABASE IF NOT EXISTS electrocity_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE electrocity_db;
-
--- ============================================================
--- SCHEMA CREATION
--- ============================================================
-
+CREATE DATABASE IF NOT EXISTS electrobd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE electrobd;
 -- ---------------------------------------------------------------------------
 -- 1. Users (customers + admin)
 -- ---------------------------------------------------------------------------
@@ -414,26 +396,55 @@ ON DUPLICATE KEY UPDATE category_name=VALUES(category_name);
 -- ---------------------------------------------------------------------------
 INSERT INTO brands (brand_id, brand_name, brand_logo) VALUES
 (1, 'Philips', '/assets/brands/philips_logo.png'),
-(2, 'Walton', '/assets/brands/walton_logo.png'),
+(2, 'Walton', '/assets/Brand Logo/walton.png'),
 (3, 'Samsung', '/assets/brands/samsung_logo.png'),
-(4, 'LG', '/assets/brands/lg_logo.png'),
-(5, 'Sony', '/assets/brands/sony_logo.png')
+(4, 'LG', '/assets/Brand Logo/LG.png'),
+(5, 'Sony', '/assets/brands/sony_logo.png'),
+(6, 'Gree', '/assets/Brand Logo/Gree.png'),
+(7, 'Jamuna', '/assets/Brand Logo/jamuna.jpg'),
+(8, 'Panasonic', '/assets/Brand Logo/panasonnic.png'),
+(9, 'Singer', '/assets/Brand Logo/singer.png'),
+(10, 'Vision', '/assets/Brand Logo/vision.jpg')
 ON DUPLICATE KEY UPDATE brand_name=VALUES(brand_name);
 
 -- ---------------------------------------------------------------------------
--- Products
+-- Products (Deals of the Day products with real data)
 -- ---------------------------------------------------------------------------
 INSERT INTO products (product_id, category_id, brand_id, product_name, description, price, stock_quantity, image_url) VALUES
-(1, 4, 1, 'LED Bulb 9W', 'Energy saving LED bulb with 9W power', 150.00, 100, '/assets/products/led_bulb.png'),
-(2, 4, 1, 'Tube Light 20W', 'Bright tube light for home and office', 250.00, 50, '/assets/products/tube_light.png'),
-(3, 5, 2, 'Copper Wire 2.5mm', 'High quality copper wire for electrical wiring', 500.00, 200, '/assets/products/copper_wire.png'),
-(4, 6, 2, 'Screwdriver Set', 'Multi-purpose screwdriver set with 6 pieces', 350.00, 75, '/assets/products/screwdriver_set.png'),
-(5, 4, 3, 'Smart LED Strip 5m', 'RGB Smart LED Strip with remote control', 1200.00, 30, '/assets/products/led_strip.png'),
-(6, 3, 2, 'Electric Iron', 'Walton Electric Iron with temperature control', 1500.00, 40, '/assets/products/electric_iron.png'),
-(7, 1, 1, 'Rice Cooker 1.8L', 'Philips Rice Cooker with keep warm function', 2500.00, 25, '/assets/products/rice_cooker.png'),
-(8, 1, 2, 'Blender 500W', 'Walton Blender with 3 speed settings', 1800.00, 35, '/assets/products/blender.png'),
-(9, 2, 3, 'Hair Dryer', 'Samsung Hair Dryer with cool shot button', 1200.00, 45, '/assets/products/hair_dryer.png'),
-(10, 3, 4, 'Table Fan 16"', 'LG Table Fan with 3 speed settings', 2200.00, 20, '/assets/products/table_fan.png')
+-- Deals of the Day Products (Products 1-18)
+(1, 1, 2, 'Miyako Curry Cooker 5.5L', 'Family Reliable: 5.5L large capacity, non-stick coating, and automatic cooking mode. Best for cooking large portions of curry or rice for big families in one go.', 2500.00, 15, '/assets/Deals of the Day/miyoko.jpg'),
+(2, 6, 2, 'Nima 2-in-1 Grinder 400W', 'Budget Friendly: 450W powerful motor, stainless steel blades, suitable for dry and wet grinding. The most popular choice for grinding spices or coffee quickly at a low price.', 1200.00, 25, '/assets/Deals of the Day/nima grinder.jpg'),
+(3, 1, 2, 'Miyako Kettle 180 PS 1.8L', 'Quick Solution: 1.8L capacity, auto-shutoff feature (turns off automatically when water boils). The best choice for getting hot water for tea or coffee in just a few minutes.', 1500.00, 30, '/assets/Deals of the Day/miyoko kettle.jpg'),
+(4, 2, 3, 'Sokany Hair Dryer HS-3820', 'Perfect Look: 2000-2200W power, hot and cold air options, includes concentrator nozzle. Affordable and durable for achieving a salon-style hair drying experience at home.', 1800.00, 20, '/assets/Deals of the Day/sokany dyer.jpg'),
+(5, 3, 2, 'Kennede Charger Fan 2912', 'Load-shedding Master: 12-inch size, rechargeable battery, 5–6 hours backup, and built-in LED light. Your best friend during summer days due to its long-lasting battery backup.', 2200.00, 18, '/assets/Deals of the Day/kennede charger fan.jpg'),
+(6, 1, 2, 'Miyako Pink Panther Blender 750W', 'All-in-One: 750W copper motor, 3 stainless steel jars, overload protection. Perfect for everything from making juice to grinding spice pastes.', 3500.00, 12, '/assets/Deals of the Day/pinkPanther blender.jpg'),
+(7, 1, 2, 'NOHA Hotel King Blender 1050W', 'For Heavy Users: 1050W high-power motor, heavy-duty blades, anti-jam design. Extremely durable for those who require heavy blending every single day.', 4500.00, 10, '/assets/Deals of the Day/noha hot king.jpg'),
+(8, 1, 2, 'AV Sandwich Maker 296', 'Instant Breakfast: Non-stick grill plates, fast heating technology, and easy to clean. An essential for modern kitchens to quickly prepare breakfast or tiffins.', 1400.00, 22, '/assets/Deals of the Day/av sandwich maker.jpg'),
+(9, 1, 2, 'Miyako 25L Electric Oven', 'For Baking Lovers: 25L size, timer and temperature control, baking and grilling facilities. The best entry-level oven for baking cakes or making roasted chicken.', 5500.00, 8, '/assets/Deals of the Day/miyoko 25l oven.jpg'),
+
+-- Additional Deals of the Day Products (matching static deals from frontend)
+(10, 4, 3, 'Samsung CCTV Camera', 'High-quality security camera with night vision, motion detection, and remote viewing. Perfect for home and office security monitoring.', 8500.00, 12, '/assets/products/cctv_camera.png'),
+(11, 1, 2, 'Walton Blender 3-in-1 Machine', 'Versatile 3-in-1 blender with multiple jars for blending, grinding, and mixing. Powerful motor for all your kitchen needs.', 5500.00, 18, '/assets/products/blender_3in1.png'),
+(12, 1, 1, 'Panasonic Cooker 5L', 'Large 5L capacity rice cooker with keep-warm function. Non-stick inner pot and automatic cooking for perfect rice every time.', 8500.00, 10, '/assets/products/cooker_5l.png'),
+(13, 3, 2, 'Jamuna Fan', 'High-speed ceiling fan with energy-efficient motor. Provides powerful airflow while consuming less electricity.', 4200.00, 25, '/assets/products/jamuna_fan.png'),
+(14, 3, 2, 'Walton AC 1.5 Ton', 'Energy-efficient 1.5 ton air conditioner with fast cooling, auto-restart, and sleep mode. Perfect for medium-sized rooms.', 32200.00, 8, '/assets/products/ac_1_5ton.png'),
+(15, 3, 2, 'Walton AC 2 Ton', 'Powerful 2 ton air conditioner with turbo cooling, dehumidifier, and smart temperature control. Ideal for large rooms.', 46500.00, 5, '/assets/products/ac_2ton.png'),
+(16, 1, 1, 'Panasonic Mixer Grinder', 'Multi-purpose mixer grinder with 3 jars and stainless steel blades. Perfect for grinding spices, making chutneys, and mixing batters.', 2800.00, 20, '/assets/products/mixer_grinder.png'),
+(17, 3, 3, 'Hikvision Air Purifier', 'Advanced air purifier with HEPA filter, removes 99.9% pollutants, dust, and allergens. Quiet operation with multiple fan speeds.', 18500.00, 7, '/assets/products/air_purifier.png'),
+(18, 2, 5, 'P9 Max Bluetooth Headphones', 'Wireless Bluetooth headphones with noise cancellation, deep bass, and 20-hour battery life. Comfortable over-ear design.', 1850.00, 30, '/assets/products/headphones.png'),
+
+-- Additional products for variety
+(19, 3, 4, 'LG Table Fan 16"', 'LG Table Fan with 3 speed settings and oscillation. Energy-efficient and quiet operation.', 2200.00, 20, '/assets/products/table_fan.png'),
+
+-- Tech Part Products (20-27)
+(20, 4, 3, 'Acer SB220Q bi 21.5 Inches Full HD Monitor', 'Full HD 1920x1080 resolution, IPS panel, ultra-thin design with zero-frame. Perfect for office work and entertainment.', 9400.00, 15, '/assets/Products/1.png'),
+(21, 4, 1, 'Intel Core i7 12th Gen Processor', '12th generation Intel Core i7 processor with 12 cores, 20 threads. High performance for gaming and productivity.', 45999.00, 10, '/assets/Products/1.png'),
+(22, 4, 3, 'ASUS ROG Strix G15 Gaming Laptop', 'AMD Ryzen 9, RTX 3070, 16GB RAM, 1TB SSD. Ultimate gaming performance with RGB keyboard.', 120000.00, 5, '/assets/Products/2.jpg'),
+(23, 4, 4, 'Logitech MX Master 3 Wireless Mouse', 'Advanced wireless mouse with MagSpeed scroll wheel, ergonomic design, and multi-device connectivity.', 8500.00, 20, '/assets/Products/3.jpg'),
+(24, 4, 3, 'Samsung T7 Portable SSD 1TB', 'Ultra-fast portable SSD with USB 3.2 Gen 2, read speeds up to 1050 MB/s. Compact and durable design.', 12000.00, 18, '/assets/Products/4.jpg'),
+(25, 4, 5, 'Corsair K95 RGB Platinum Mechanical Gaming Keyboard', 'Cherry MX Speed switches, per-key RGB backlighting, dedicated media controls. Premium gaming keyboard.', 18000.00, 12, '/assets/Products/5.jpg'),
+(26, 4, 5, 'Razer DeathAdder V2 Pro Wireless Gaming Mouse', '20K DPI optical sensor, 70-hour battery life, ergonomic design. Professional gaming mouse.', 10500.00, 15, '/assets/Products/6.jpg'),
+(27, 4, 3, 'Dell UltraSharp U2723QE 27 Inch 4K Monitor', '4K UHD resolution, IPS Black technology, USB-C connectivity. Professional-grade color accuracy.', 35000.00, 8, '/assets/Products/7.png')
 ON DUPLICATE KEY UPDATE product_name=VALUES(product_name), price=VALUES(price), stock_quantity=VALUES(stock_quantity);
 
 -- ---------------------------------------------------------------------------
@@ -445,9 +456,13 @@ INSERT INTO users (user_id, full_name, last_name, email, password, role) VALUES
 ON DUPLICATE KEY UPDATE email=VALUES(email);
 
 -- ---------------------------------------------------------------------------
--- Sample Promotions
+-- Sample Promotions (for Offers Up to 90% section)
 -- ---------------------------------------------------------------------------
 INSERT INTO promotions (title, description, discount_percent, start_date, end_date, active) VALUES
+('Mega Smartphone Sale', 'Up to 90% off on smartphones', 90.00, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
+('Laptop Clearance', 'Huge discounts on laptops', 85.00, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
+('Home Appliances', 'Save big on home appliances', 80.00, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
+('Fashion Deals', 'Fashion items at unbeatable prices', 75.00, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
 ('Winter Sale', 'Up to 20% off on lighting products', 20.00, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
 ('Tools Discount', '10% off on all tools', 10.00, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), TRUE)
 ON DUPLICATE KEY UPDATE title=VALUES(title);
@@ -504,39 +519,54 @@ INSERT INTO collection_items (collection_id, item_name, display_order) VALUES
 ON DUPLICATE KEY UPDATE item_name=VALUES(item_name);
 
 INSERT INTO collection_products (collection_id, product_id) VALUES
-(1, 10), -- Fans collection
-(2, 7), (2, 8), -- Cookers collection
-(3, 8) -- Blenders collection
+(1, 5), (1, 13), (1, 19),  -- Fans collection
+(2, 1), (2, 7), (2, 8), (2, 12), -- Cookers collection
+(3, 6), (3, 11), (3, 16) -- Blenders collection
 ON DUPLICATE KEY UPDATE collection_id=VALUES(collection_id);
 
 -- ---------------------------------------------------------------------------
--- Deals of the Day
+-- Deals of the Day (18 products with deal prices)
 -- ---------------------------------------------------------------------------
 INSERT INTO deals_of_the_day (product_id, deal_price, start_date, end_date) VALUES
-(1, 120.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),
-(2, 200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),
-(5, 1000.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY))
+(1, 2200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Miyako Curry Cooker (12% off)
+(2, 1000.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Nima Grinder (17% off)
+(3, 1300.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Miyako Kettle (13% off)
+(4, 1600.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Sokany Hair Dryer (11% off)
+(5, 1900.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Kennede Charger Fan (14% off)
+(6, 3200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Pink Panther Blender (9% off)
+(7, 4200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- NOHA Hotel King Blender (7% off)
+(8, 1200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- AV Sandwich Maker (14% off)
+(9, 5200.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),   -- Miyako 25L Oven (5% off)
+(10, 7500.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),  -- Samsung CCTV Camera (12% off)
+(11, 4800.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),  -- Walton Blender 3-in-1 (13% off)
+(12, 7500.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),  -- Panasonic Cooker 5L (12% off)
+(13, 3800.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),  -- Jamuna Fan (10% off)
+(14, 29500.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)), -- Walton AC 1.5 Ton (8% off)
+(15, 42800.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)), -- Walton AC 2 Ton (8% off)
+(16, 2500.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)),  -- Panasonic Mixer Grinder (11% off)
+(17, 16800.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY)), -- Hikvision Air Purifier (9% off)
+(18, 1650.00, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY))   -- P9 Max Headphones (11% off)
 ON DUPLICATE KEY UPDATE deal_price=VALUES(deal_price);
 
 -- ---------------------------------------------------------------------------
 -- Best Sellers
 -- ---------------------------------------------------------------------------
 INSERT INTO best_sellers (product_id, sales_count) VALUES 
-(1, 150), (2, 120), (3, 100), (7, 90), (8, 85), (10, 80)
+(1, 150), (2, 120), (3, 100), (7, 90), (8, 85), (10, 80), (11, 75), (13, 70)
 ON DUPLICATE KEY UPDATE sales_count=VALUES(sales_count);
 
 -- ---------------------------------------------------------------------------
 -- Trending Products
 -- ---------------------------------------------------------------------------
 INSERT INTO trending_products (product_id, trending_score) VALUES 
-(1, 95), (5, 90), (7, 85), (8, 80), (9, 75), (10, 70)
+(1, 95), (5, 90), (7, 85), (8, 80), (9, 75), (10, 70), (14, 65), (18, 60)
 ON DUPLICATE KEY UPDATE trending_score=VALUES(trending_score);
 
 -- ---------------------------------------------------------------------------
 -- Tech Part Products
 -- ---------------------------------------------------------------------------
 INSERT INTO tech_part_products (product_id, display_order) VALUES 
-(5, 1), (9, 2), (10, 3), (7, 4)
+(20, 1), (21, 2), (22, 3), (23, 4), (24, 5), (25, 6), (26, 7), (27, 8)
 ON DUPLICATE KEY UPDATE display_order=VALUES(display_order);
 
 -- ---------------------------------------------------------------------------
@@ -548,9 +578,10 @@ INSERT INTO banners (banner_type, image_url, link_url, title, description, butto
 ('hero', '/uploads/banners/hero_smart_home.jpg', '/collections/fans', 'Smart Home Solutions', 'Transform your home with smart appliances', 'Explore', 2, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY)),
 ('hero', '/uploads/banners/hero_personal_care.jpg', '/collections/hair-dryer', 'Personal Care Essentials', 'Grooming products for everyone', 'Discover', 3, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY)),
 
--- Mid Banners
-('mid', '/uploads/banners/mid_daily_deals.jpg', '/deals', 'Daily Deals', 'Check out today\'s amazing deals', 'View Deals', 1, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY)),
-('mid', '/uploads/banners/mid_new_arrivals.jpg', '/products?sort=newest', 'New Arrivals', 'Latest products just for you', 'See New', 2, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY)),
+-- Mid Banners (3 banners for mid_banner_row)
+('mid', '/assets/1.png', '/deals', 'Special Offers', 'Check out our amazing deals', 'View Deals', 1, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY)),
+('mid', '/assets/2.png', '/collections', 'New Collections', 'Explore our latest collections', 'Browse', 2, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY)),
+('mid', '/assets/3.png', '/products', 'Featured Products', 'Discover trending products', 'Shop Now', 3, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY)),
 
 -- Sidebar Banners
 ('sidebar', '/uploads/banners/sidebar_flash_sale.jpg', '/flash-sale', 'Flash Sale', 'Limited time offer - Hurry up!', 'Buy Now', 1, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 12 HOUR)),
@@ -572,6 +603,191 @@ INSERT INTO site_settings (setting_key, setting_value) VALUES
 ('currency', 'BDT'),
 ('tax_rate', '0.00')
 ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+
+-- ---------------------------------------------------------------------------
+-- Product Specifications (for Deals of the Day products)
+-- ---------------------------------------------------------------------------
+INSERT INTO product_specifications (product_id, spec_key, spec_value, display_order) VALUES
+-- Miyako Curry Cooker
+(1, 'Capacity', '5.5 Liters', 1),
+(1, 'Coating', 'Non-stick', 2),
+(1, 'Cooking Mode', 'Automatic', 3),
+(1, 'USP', 'Family Reliable - Best for large families', 4),
+
+-- Nima Grinder
+(2, 'Power', '450W', 1),
+(2, 'Motor Type', 'Powerful Motor', 2),
+(2, 'Blade Material', 'Stainless Steel', 3),
+(2, 'Grinding Type', 'Dry and Wet', 4),
+(2, 'USP', 'Budget Friendly - Quick grinding at low price', 5),
+
+-- Miyako Kettle
+(3, 'Capacity', '1.8 Liters', 1),
+(3, 'Model', '180 PS', 2),
+(3, 'Safety Feature', 'Auto-shutoff when water boils', 3),
+(3, 'USP', 'Quick Solution - Hot water in minutes', 4),
+
+-- Sokany Hair Dryer
+(4, 'Model', 'HS-3820', 1),
+(4, 'Power', '2000-2200W', 2),
+(4, 'Air Options', 'Hot and Cold', 3),
+(4, 'Accessories', 'Concentrator Nozzle', 4),
+(4, 'USP', 'Perfect Look - Salon-style at home', 5),
+
+-- Kennede Charger Fan
+(5, 'Model', '2912', 1),
+(5, 'Size', '12 inch', 2),
+(5, 'Battery Type', 'Rechargeable', 3),
+(5, 'Backup Time', '5-6 hours', 4),
+(5, 'Extra Feature', 'Built-in LED light', 5),
+(5, 'USP', 'Load-shedding Master - Long battery backup', 6),
+
+-- Miyako Pink Panther Blender
+(6, 'Power', '750W', 1),
+(6, 'Motor Type', 'Copper Motor', 2),
+(6, 'Jars', '3 Stainless Steel Jars', 3),
+(6, 'Safety', 'Overload Protection', 4),
+(6, 'USP', 'All-in-One - Juice to spice grinding', 5),
+
+-- NOHA Hotel King Blender
+(7, 'Power', '1050W', 1),
+(7, 'Motor Type', 'High-power Motor', 2),
+(7, 'Blade Type', 'Heavy-duty Blades', 3),
+(7, 'Design', 'Anti-jam Design', 4),
+(7, 'USP', 'For Heavy Users - Extremely durable', 5),
+
+-- AV Sandwich Maker
+(8, 'Model', '296', 1),
+(8, 'Plates', 'Non-stick Grill Plates', 2),
+(8, 'Heating', 'Fast Heating Technology', 3),
+(8, 'Maintenance', 'Easy to Clean', 4),
+(8, 'USP', 'Instant Breakfast - Quick tiffin preparation', 5),
+
+-- Miyako 25L Electric Oven
+(9, 'Capacity', '25 Liters', 1),
+(9, 'Controls', 'Timer and Temperature Control', 2),
+(9, 'Functions', 'Baking and Grilling', 3),
+(9, 'USP', 'For Baking Lovers - Entry-level oven', 4),
+
+-- Samsung CCTV Camera
+(10, 'Brand', 'Samsung', 1),
+(10, 'Features', 'Night Vision, Motion Detection', 2),
+(10, 'Connectivity', 'Remote Viewing', 3),
+(10, 'USP', 'High-quality security monitoring', 4),
+
+-- Walton Blender 3-in-1
+(11, 'Brand', 'Walton', 1),
+(11, 'Type', '3-in-1 Machine', 2),
+(11, 'Functions', 'Blending, Grinding, Mixing', 3),
+(11, 'USP', 'Versatile kitchen companion', 4),
+
+-- Panasonic Cooker 5L
+(12, 'Brand', 'Panasonic', 1),
+(12, 'Capacity', '5 Liters', 2),
+(12, 'Coating', 'Non-stick Inner Pot', 3),
+(12, 'Features', 'Keep-warm Function, Automatic Cooking', 4),
+(12, 'USP', 'Perfect rice every time', 5),
+
+-- Jamuna Fan
+(13, 'Brand', 'Jamuna', 1),
+(13, 'Type', 'Ceiling Fan', 2),
+(13, 'Motor', 'Energy-efficient', 3),
+(13, 'USP', 'Powerful airflow, low electricity consumption', 4),
+
+-- Walton AC 1.5 Ton
+(14, 'Brand', 'Walton', 1),
+(14, 'Capacity', '1.5 Ton', 2),
+(14, 'Features', 'Fast Cooling, Auto-restart, Sleep Mode', 3),
+(14, 'Energy', 'Energy-efficient', 4),
+(14, 'USP', 'Perfect for medium-sized rooms', 5),
+
+-- Walton AC 2 Ton
+(15, 'Brand', 'Walton', 1),
+(15, 'Capacity', '2 Ton', 2),
+(15, 'Features', 'Turbo Cooling, Dehumidifier, Smart Control', 3),
+(15, 'USP', 'Ideal for large rooms', 4),
+
+-- Panasonic Mixer Grinder
+(16, 'Brand', 'Panasonic', 1),
+(16, 'Jars', '3 Jars', 2),
+(16, 'Blade Material', 'Stainless Steel', 3),
+(16, 'Functions', 'Grinding Spices, Making Chutneys, Mixing Batters', 4),
+(16, 'USP', 'Multi-purpose kitchen tool', 5),
+
+-- Hikvision Air Purifier
+(17, 'Brand', 'Hikvision', 1),
+(17, 'Filter Type', 'HEPA Filter', 2),
+(17, 'Efficiency', 'Removes 99.9% Pollutants', 3),
+(17, 'Operation', 'Quiet with Multiple Fan Speeds', 4),
+(17, 'USP', 'Advanced air purification', 5),
+
+-- P9 Max Bluetooth Headphones
+(18, 'Brand', 'P9 Max', 1),
+(18, 'Type', 'Wireless Bluetooth', 2),
+(18, 'Features', 'Noise Cancellation, Deep Bass', 3),
+(18, 'Battery Life', '20 Hours', 4),
+(18, 'Design', 'Comfortable Over-ear', 5),
+(18, 'USP', 'Premium audio experience', 6),
+
+-- Tech Part Products Specifications (20-27)
+-- Acer Monitor
+(20, 'Screen Size', '21.5 Inches', 1),
+(20, 'Resolution', 'Full HD 1920x1080', 2),
+(20, 'Panel Type', 'IPS', 3),
+(20, 'Design', 'Ultra-thin Zero-frame', 4),
+(20, 'Rating', '5', 5),
+
+-- Intel Core i7
+(21, 'Generation', '12th Gen', 1),
+(21, 'Cores', '12 Cores', 2),
+(21, 'Threads', '20 Threads', 3),
+(21, 'Performance', 'High Performance Gaming & Productivity', 4),
+(21, 'Rating', '5', 5),
+
+-- ASUS ROG Laptop
+(22, 'Processor', 'AMD Ryzen 9', 1),
+(22, 'Graphics', 'RTX 3070', 2),
+(22, 'RAM', '16GB', 3),
+(22, 'Storage', '1TB SSD', 4),
+(22, 'Features', 'RGB Keyboard', 5),
+(22, 'Rating', '4', 6),
+
+-- Logitech Mouse
+(23, 'Model', 'MX Master 3', 1),
+(23, 'Type', 'Wireless', 2),
+(23, 'Features', 'MagSpeed Scroll Wheel, Ergonomic Design', 3),
+(23, 'Connectivity', 'Multi-device', 4),
+(23, 'Rating', '4', 5),
+
+-- Samsung SSD
+(24, 'Capacity', '1TB', 1),
+(24, 'Interface', 'USB 3.2 Gen 2', 2),
+(24, 'Speed', 'Up to 1050 MB/s', 3),
+(24, 'Design', 'Compact and Durable', 4),
+(24, 'Rating', '5', 5),
+
+-- Corsair Keyboard
+(25, 'Switch Type', 'Cherry MX Speed', 1),
+(25, 'Lighting', 'Per-key RGB', 2),
+(25, 'Controls', 'Dedicated Media Controls', 3),
+(25, 'Type', 'Mechanical Gaming Keyboard', 4),
+(25, 'Rating', '4', 5),
+
+-- Razer Mouse
+(26, 'Sensor', '20K DPI Optical', 1),
+(26, 'Battery', '70-hour Battery Life', 2),
+(26, 'Design', 'Ergonomic', 3),
+(26, 'Type', 'Wireless Gaming Mouse', 4),
+(26, 'Rating', '4', 5),
+
+-- Dell Monitor
+(27, 'Screen Size', '27 Inch', 1),
+(27, 'Resolution', '4K UHD', 2),
+(27, 'Technology', 'IPS Black', 3),
+(27, 'Connectivity', 'USB-C', 4),
+(27, 'Features', 'Professional Color Accuracy', 5),
+(27, 'Rating', '5', 6)
+ON DUPLICATE KEY UPDATE spec_value=VALUES(spec_value);
 
 -- ============================================================
 -- SETUP COMPLETE
