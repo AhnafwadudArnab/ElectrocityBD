@@ -437,28 +437,28 @@ INSERT INTO products (product_id, category_id, brand_id, product_name, descripti
 (9, 1, 2, 'Miyako 25L Electric Oven', 'For Baking Lovers: 25L size, timer and temperature control, baking and grilling facilities. The best entry-level oven for baking cakes or making roasted chicken.', 5500.00, 8, '/assets/Deals of the Day/miyoko 25l oven.jpg'),
 
 -- Additional Deals of the Day Products (matching static deals from frontend)
-(10, 4, 3, 'Samsung CCTV Camera', 'High-quality security camera with night vision, motion detection, and remote viewing. Perfect for home and office security monitoring.', 8500.00, 12, '/assets/products/cctv_camera.png'),
-(11, 1, 2, 'Walton Blender 3-in-1 Machine', 'Versatile 3-in-1 blender with multiple jars for blending, grinding, and mixing. Powerful motor for all your kitchen needs.', 5500.00, 18, '/assets/products/blender_3in1.png'),
-(12, 1, 1, 'Panasonic Cooker 5L', 'Large 5L capacity rice cooker with keep-warm function. Non-stick inner pot and automatic cooking for perfect rice every time.', 8500.00, 10, '/assets/products/cooker_5l.png'),
-(13, 3, 2, 'Jamuna Fan', 'High-speed ceiling fan with energy-efficient motor. Provides powerful airflow while consuming less electricity.', 4200.00, 25, '/assets/products/jamuna_fan.png'),
-(14, 3, 2, 'Walton AC 1.5 Ton', 'Energy-efficient 1.5 ton air conditioner with fast cooling, auto-restart, and sleep mode. Perfect for medium-sized rooms.', 32200.00, 8, '/assets/products/ac_1_5ton.png'),
-(15, 3, 2, 'Walton AC 2 Ton', 'Powerful 2 ton air conditioner with turbo cooling, dehumidifier, and smart temperature control. Ideal for large rooms.', 46500.00, 5, '/assets/products/ac_2ton.png'),
-(16, 1, 1, 'Panasonic Mixer Grinder', 'Multi-purpose mixer grinder with 3 jars and stainless steel blades. Perfect for grinding spices, making chutneys, and mixing batters.', 2800.00, 20, '/assets/products/mixer_grinder.png'),
-(17, 3, 3, 'Hikvision Air Purifier', 'Advanced air purifier with HEPA filter, removes 99.9% pollutants, dust, and allergens. Quiet operation with multiple fan speeds.', 18500.00, 7, '/assets/products/air_purifier.png'),
-(18, 2, 5, 'P9 Max Bluetooth Headphones', 'Wireless Bluetooth headphones with noise cancellation, deep bass, and 20-hour battery life. Comfortable over-ear design.', 1850.00, 30, '/assets/products/headphones.png'),
+(10, 4, 3, 'Samsung CCTV Camera', 'High-quality security camera with night vision, motion detection, and remote viewing. Perfect for home and office security monitoring.', 8500.00, 12, '/assets/prod/1.png'),
+(11, 1, 2, 'Walton Blender 3-in-1 Machine', 'Versatile 3-in-1 blender with multiple jars for blending, grinding, and mixing. Powerful motor for all your kitchen needs.', 5500.00, 18, '/assets/prod/blender.jpg'),
+(12, 1, 1, 'Panasonic Cooker 5L', 'Large 5L capacity rice cooker with keep-warm function. Non-stick inner pot and automatic cooking for perfect rice every time.', 8500.00, 10, '/assets/prod/rice_cooker.jpg'),
+(13, 3, 2, 'Jamuna Fan', 'High-speed ceiling fan with energy-efficient motor. Provides powerful airflow while consuming less electricity.', 4200.00, 25, '/assets/prod/fan2.jpg'),
+(14, 3, 2, 'Walton AC 1.5 Ton', 'Energy-efficient 1.5 ton air conditioner with fast cooling, auto-restart, and sleep mode. Perfect for medium-sized rooms.', 32200.00, 8, '/assets/prod/2.png'),
+(15, 3, 2, 'Walton AC 2 Ton', 'Powerful 2 ton air conditioner with turbo cooling, dehumidifier, and smart temperature control. Ideal for large rooms.', 46500.00, 5, '/assets/prod/3.png'),
+(16, 1, 1, 'Panasonic Mixer Grinder', 'Multi-purpose mixer grinder with 3 jars and stainless steel blades. Perfect for grinding spices, making chutneys, and mixing batters.', 2800.00, 20, '/assets/prod/grinder.jpg'),
+(17, 3, 3, 'Hikvision Air Purifier', 'Advanced air purifier with HEPA filter, removes 99.9% pollutants, dust, and allergens. Quiet operation with multiple fan speeds.', 18500.00, 7, '/assets/prod/4.jpg'),
+(18, 2, 5, 'P9 Max Bluetooth Headphones', 'Wireless Bluetooth headphones with noise cancellation, deep bass, and 20-hour battery life. Comfortable over-ear design.', 1850.00, 30, '/assets/prod/5.png'),
 
 -- Additional products for variety
-(19, 3, 4, 'LG Table Fan 16"', 'LG Table Fan with 3 speed settings and oscillation. Energy-efficient and quiet operation.', 2200.00, 20, '/assets/products/table_fan.png'),
+(19, 3, 4, 'LG Table Fan 16"', 'LG Table Fan with 3 speed settings and oscillation. Energy-efficient and quiet operation.', 2200.00, 20, '/assets/prod/hFan3.jpg'),
 
 -- Tech Part Products (20-27)
-(20, 4, 3, 'Acer SB220Q bi 21.5 Inches Full HD Monitor', 'Full HD 1920x1080 resolution, IPS panel, ultra-thin design with zero-frame. Perfect for office work and entertainment.', 9400.00, 15, '/assets/Products/1.png'),
-(21, 4, 1, 'Intel Core i7 12th Gen Processor', '12th generation Intel Core i7 processor with 12 cores, 20 threads. High performance for gaming and productivity.', 45999.00, 10, '/assets/Products/1.png'),
-(22, 4, 3, 'ASUS ROG Strix G15 Gaming Laptop', 'AMD Ryzen 9, RTX 3070, 16GB RAM, 1TB SSD. Ultimate gaming performance with RGB keyboard.', 120000.00, 5, '/assets/Products/2.jpg'),
-(23, 4, 4, 'Logitech MX Master 3 Wireless Mouse', 'Advanced wireless mouse with MagSpeed scroll wheel, ergonomic design, and multi-device connectivity.', 8500.00, 20, '/assets/Products/3.jpg'),
-(24, 4, 3, 'Samsung T7 Portable SSD 1TB', 'Ultra-fast portable SSD with USB 3.2 Gen 2, read speeds up to 1050 MB/s. Compact and durable design.', 12000.00, 18, '/assets/Products/4.jpg'),
-(25, 4, 5, 'Corsair K95 RGB Platinum Mechanical Gaming Keyboard', 'Cherry MX Speed switches, per-key RGB backlighting, dedicated media controls. Premium gaming keyboard.', 18000.00, 12, '/assets/Products/5.jpg'),
-(26, 4, 5, 'Razer DeathAdder V2 Pro Wireless Gaming Mouse', '20K DPI optical sensor, 70-hour battery life, ergonomic design. Professional gaming mouse.', 10500.00, 15, '/assets/Products/6.jpg'),
-(27, 4, 3, 'Dell UltraSharp U2723QE 27 Inch 4K Monitor', '4K UHD resolution, IPS Black technology, USB-C connectivity. Professional-grade color accuracy.', 35000.00, 8, '/assets/Products/7.png'),
+(20, 4, 3, 'Acer SB220Q bi 21.5 Inches Full HD Monitor', 'Full HD 1920x1080 resolution, IPS panel, ultra-thin design with zero-frame. Perfect for office work and entertainment.', 9400.00, 15, '/assets/prod/6.png'),
+(21, 4, 1, 'Intel Core i7 12th Gen Processor', '12th generation Intel Core i7 processor with 12 cores, 20 threads. High performance for gaming and productivity.', 45999.00, 10, '/assets/prod/7.png'),
+(22, 4, 3, 'ASUS ROG Strix G15 Gaming Laptop', 'AMD Ryzen 9, RTX 3070, 16GB RAM, 1TB SSD. Ultimate gaming performance with RGB keyboard.', 120000.00, 5, '/assets/prod/8.png'),
+(23, 4, 4, 'Logitech MX Master 3 Wireless Mouse', 'Advanced wireless mouse with MagSpeed scroll wheel, ergonomic design, and multi-device connectivity.', 8500.00, 20, '/assets/prod/9.png'),
+(24, 4, 3, 'Samsung T7 Portable SSD 1TB', 'Ultra-fast portable SSD with USB 3.2 Gen 2, read speeds up to 1050 MB/s. Compact and durable design.', 12000.00, 18, '/assets/prod/01.png'),
+(25, 4, 5, 'Corsair K95 RGB Platinum Mechanical Gaming Keyboard', 'Cherry MX Speed switches, per-key RGB backlighting, dedicated media controls. Premium gaming keyboard.', 18000.00, 12, '/assets/prod/09.png'),
+(26, 4, 5, 'Razer DeathAdder V2 Pro Wireless Gaming Mouse', '20K DPI optical sensor, 70-hour battery life, ergonomic design. Professional gaming mouse.', 10500.00, 15, '/assets/prod/99.png'),
+(27, 4, 3, 'Dell UltraSharp U2723QE 27 Inch 4K Monitor', '4K UHD resolution, IPS Black technology, USB-C connectivity. Professional-grade color accuracy.', 35000.00, 8, '/assets/prod/1.png'),
 
 -- Kennede & Defender Charger Fan Collection (28-36)
 (28, 3, 2, 'Kennede Charger Fan 2412', '12-inch rechargeable fan with LED light, 4-6 hours backup. Compact and portable design for load-shedding.', 1800.00, 20, '/assets/Collections/Kennede & Defender Charger Fan/2412.png'),

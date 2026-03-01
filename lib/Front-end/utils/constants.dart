@@ -13,7 +13,13 @@ class AppConstants {
       defaultValue: '',
     );
     if (envApiUrl.isNotEmpty) return envApiUrl;
-    // Default dev backend port
+    
+    // 🔧 HOSTING CONFIGURATION
+    // For production hosting (InfinityFree/cPanel):
+    // Uncomment the line below and replace with your domain
+    // return 'https://yourdomain.com/api';
+    
+    // For local development:
     return 'http://localhost:8000/api';
   }
 

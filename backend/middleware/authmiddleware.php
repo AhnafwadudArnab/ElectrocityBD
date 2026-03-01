@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../util/JWT.php';
+require_once __DIR__ . '/../util/ApiResponse.php';
 
 class AuthMiddleware {
     
@@ -10,9 +11,7 @@ class AuthMiddleware {
         $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
         
         if (!$authHeader) {
-            http_response_code(401);
-            echo json_encode(['message' => 'No token provided']);
-            exit;
+            ApiResponse::unauthorized('Authentication required', 'No token provided');
         }
         
         $token = str_replace('Bearer ', '', $authHeader);
@@ -20,9 +19,7 @@ class AuthMiddleware {
         $user_data = JWT::verify($token);
         
         if (!$user_data) {
-            http_response_code(401);
-            echo json_encode(['message' => 'Invalid or expired token']);
-            exit;
+            ApiResponse::unauthorized('Authentication required', 'Invalid or expired token');
         }
         
         return $user_data;
@@ -32,9 +29,7 @@ class AuthMiddleware {
         $user_data = self::authenticate();
         
         if (!isset($user_data['role']) || $user_data['role'] !== 'admin') {
-            http_response_code(403);
-            echo json_encode(['message' => 'Admin access required']);
-            exit;
+            ApiResponse::forbidden('Access denied', 'Admin privileges required');
         }
         
         return $user_data;

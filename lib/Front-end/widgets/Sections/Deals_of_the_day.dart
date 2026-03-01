@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:electrocitybd1/Front-end/pages/Templates/Dyna_products.dart';
 import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
@@ -22,29 +24,14 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   late Timer _timer;
   late ScrollController _scrollController;
   List<Map<String, dynamic>> _dbDeals = [];
-  Duration _remaining = const Duration(
-    days: 3,
-    hours: 11,
-    minutes: 15,
-    seconds: 00,
-  );
+  Duration _remaining = const Duration(days: 0);
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _loadDealsFromDb();
-
-    // countdown timer
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        if (_remaining.inSeconds > 0) {
-          _remaining = _remaining - const Duration(seconds: 1);
-        } else {
-          _timer.cancel();
-        }
-      });
-    });
+    _loadTimerFromApi();
   }
 
   @override
@@ -60,6 +47,62 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       final list = (res['products'] as List<dynamic>?) ?? [];
       if (mounted) setState(() => _dbDeals = list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
     } catch (_) {}
+  }
+
+  Future<void> _loadTimerFromApi() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:8000/api/deals_timer'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['timer'] != null) {
+          final timer = data['timer'];
+          if (mounted) {
+            setState(() {
+              _remaining = Duration(
+                days: timer['days'] ?? 3,
+                hours: timer['hours'] ?? 11,
+                minutes: timer['minutes'] ?? 15,
+                seconds: timer['seconds'] ?? 0,
+              );
+            });
+            _startCountdown();
+          }
+        }
+      } else {
+        // Use default timer on error
+        if (mounted) {
+          setState(() {
+            _remaining = const Duration(days: 3, hours: 11, minutes: 15);
+          });
+          _startCountdown();
+        }
+      }
+    } catch (_) {
+      // Use default timer on error
+      if (mounted) {
+        setState(() {
+          _remaining = const Duration(days: 3, hours: 11, minutes: 15);
+        });
+        _startCountdown();
+      }
+    }
+  }
+
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          if (_remaining.inSeconds > 0) {
+            _remaining = _remaining - const Duration(seconds: 1);
+          } else {
+            _timer.cancel();
+          }
+        });
+      }
+    });
   }
 
   static double _parsePrice(dynamic v) {

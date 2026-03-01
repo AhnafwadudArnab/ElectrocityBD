@@ -6,6 +6,7 @@ import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_carts.dart';
 import 'A_collections.dart';
+import 'A_deals_timer.dart';
 import 'A_discounts.dart';
 import 'A_featured_brands.dart';
 import 'A_flash_sales.dart';
@@ -38,6 +39,8 @@ Widget? getAdminPage(AdminSidebarItem item) {
       return const AdminDiscountPage(embedded: true);
     case AdminSidebarItem.deals:
       return const AdminFeatureBrandsPage(embedded: true);
+    case AdminSidebarItem.dealsTimer:
+      return const AdminDealsTimerPage();
     case AdminSidebarItem.flashSales:
       return const AdminFlashSalesPage(embedded: true);
     case AdminSidebarItem.promotions:
