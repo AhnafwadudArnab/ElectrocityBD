@@ -1,12 +1,6 @@
--- ============================================================
--- ElectrocityBD - MySQL Schema
--- Matches backend (Node.js) config/init_db.js
--- Run: mysql -u root -p < electrocity_schema.sql
--- Or create DB first: CREATE DATABASE electrocity_db; USE electrocity_db;
--- ============================================================
 
-CREATE DATABASE IF NOT EXISTS electrocity_db;
-USE electrocity_db;
+CREATE DATABASE IF NOT EXISTS electrobd;
+USE electrobd;
 
 -- ---------------------------------------------------------------------------
 -- 1. Users (customers + admin)
