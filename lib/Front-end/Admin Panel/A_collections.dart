@@ -1224,9 +1224,9 @@ class _CollectionsContentState extends State<_CollectionsContent> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                'Publish to Best Sellings',
-                style: TextStyle(
+              child: Text(
+                'Add Product to ${collection['name']}',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
