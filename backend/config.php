@@ -3,7 +3,7 @@ return [
     'db' => [
         'host' => getenv('DB_HOST') ?: getenv('ECITY_DB_HOST') ?: '127.0.0.1',
         'port' => getenv('DB_PORT') ?: getenv('ECITY_DB_PORT') ?: '3306',
-        'name' => getenv('DB_NAME') ?: getenv('ECITY_DB_NAME') ?: 'electrocity_db',
+        'name' => getenv('DB_NAME') ?: getenv('ECITY_DB_NAME') ?: 'electrobd',
         'user' => getenv('DB_USER') ?: getenv('ECITY_DB_USER') ?: 'root',
         'pass' => getenv('DB_PASSWORD') ?: getenv('ECITY_DB_PASS') ?: '',
         'charset' => 'utf8mb4',

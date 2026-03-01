@@ -236,14 +236,33 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
           .toList();
     }
     if (showWeekly) {
-      final weekAgoMillis = DateTime.now()
-          .subtract(const Duration(days: 7))
-          .millisecondsSinceEpoch;
+      final now = DateTime.now();
+      final weekAgo = now.subtract(const Duration(days: 7));
+      final weekAgoMillis = weekAgo.millisecondsSinceEpoch;
+      
       filteredOrders = filteredOrders.where((o) {
-        final millis = int.tryParse(o['createdAtMillis'] ?? '');
-        if (millis == null) return true;
-        return millis >= weekAgoMillis;
+        final millisStr = o['createdAtMillis'] ?? '';
+        final millis = int.tryParse(millisStr);
+        
+        // If we can't parse the date, include it to be safe
+        if (millis == null) {
+          print('Warning: Could not parse createdAtMillis for order ${o['id']}: $millisStr');
+          return true;
+        }
+        
+        // Check if order is within the last 7 days
+        final isWithinWeek = millis >= weekAgoMillis;
+        
+        // Debug logging
+        if (showWeekly) {
+          final orderDate = DateTime.fromMillisecondsSinceEpoch(millis);
+          print('Order ${o['id']}: ${orderDate.toString()} - Within week: $isWithinWeek');
+        }
+        
+        return isWithinWeek;
       }).toList();
+      
+      print('Weekly filter: Showing ${filteredOrders.length} orders from last 7 days (since ${weekAgo.toString()})');
     }
 
     return Expanded(
@@ -356,16 +375,22 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                         showWeekly = !showWeekly;
                       });
                     },
-                    icon: const Icon(Icons.calendar_today, size: 18),
-                    label: const Text("Weekly"),
+                    icon: Icon(
+                      showWeekly ? Icons.calendar_today : Icons.calendar_today_outlined,
+                      size: 18,
+                    ),
+                    label: Text(showWeekly ? "Weekly (Active)" : "Weekly"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: showWeekly
-                          ? Colors.green[100]
+                          ? Colors.blue[600]
                           : Colors.grey[100],
-                      foregroundColor: Colors.grey[700],
-                      elevation: 0,
+                      foregroundColor: showWeekly ? Colors.white : Colors.grey[700],
+                      elevation: showWeekly ? 2 : 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
+                        side: showWeekly
+                            ? BorderSide.none
+                            : BorderSide(color: Colors.grey[300]!),
                       ),
                     ),
                   ),
@@ -446,6 +471,32 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               ),
             ),
             const Divider(height: 1),
+            // Filter info banner
+            if (filterStatus != null || showWeekly)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                color: Colors.blue[50],
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Active filters: ${filterStatus != null ? 'Status: $filterStatus' : ''}${filterStatus != null && showWeekly ? ', ' : ''}${showWeekly ? 'Last 7 days' : ''} (Showing ${filteredOrders.length} of ${orders.length} orders)',
+                      style: const TextStyle(fontSize: 12, color: Colors.blue),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          filterStatus = null;
+                          showWeekly = false;
+                        });
+                      },
+                      child: const Text('Clear all filters', style: TextStyle(fontSize: 12)),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {

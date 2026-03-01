@@ -1,4 +1,6 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../pages/home_page.dart';
 import 'Admin_sidebar.dart';
 import 'admin_pages.dart';
@@ -65,6 +67,9 @@ class _CollectionsContentState extends State<_CollectionsContent> {
   List<Map<String, dynamic>> _collections = [];
   bool _isLoading = true;
   String? _selectedCollectionId;
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -754,6 +759,50 @@ class _CollectionsContentState extends State<_CollectionsContent> {
     );
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _selectedImageBytes = bytes;
+          _selectedImageName = image.name;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Image selected: ${image.name}'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _clearImage() {
+    setState(() {
+      _selectedImageBytes = null;
+      _selectedImageName = null;
+    });
+  }
+
   Widget _buildProductUploadCard() {
     final collection = _collections.firstWhere(
       (c) => c['id'] == _selectedCollectionId,
@@ -981,36 +1030,126 @@ class _CollectionsContentState extends State<_CollectionsContent> {
               Expanded(
                 child: Column(
                   children: [
-                    Container(
-                      height: 300,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E2A3A),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey[700]!,
-                          width: 2,
-                          style: BorderStyle.solid,
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E2A3A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _selectedImageBytes != null 
+                                ? Colors.green 
+                                : Colors.grey[700]!,
+                            width: 2,
+                            style: BorderStyle.solid,
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate_outlined,
-                              size: 64,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Click to upload image',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 14,
+                        child: _selectedImageBytes != null
+                            ? Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.memory(
+                                      _selectedImageBytes!,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            onPressed: _pickImage,
+                                            tooltip: 'Change image',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: IconButton(
+                                            icon: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            onPressed: _clearImage,
+                                            tooltip: 'Remove image',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 8,
+                                    left: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        _selectedImageName ?? 'Image selected',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      size: 64,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Click to upload image',
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Recommended: 800x800px',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
                       ),
                     ),
                   ],
