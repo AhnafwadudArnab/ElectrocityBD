@@ -569,7 +569,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(8),
                     ),
-                    child: Container(
+                    child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
                       child: item['isDb'] == true
@@ -583,7 +583,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
                           ? _buildAdminImage(item)
                           : Image.asset(
                               item['image'] as String,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                               width: double.infinity,
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {

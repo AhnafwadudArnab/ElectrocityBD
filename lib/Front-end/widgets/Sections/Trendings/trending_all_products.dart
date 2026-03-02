@@ -316,8 +316,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   }
 
   List<Map<String, Object>> _filteredProducts() {
-    // Only use DB products, no fallback to sample products
-    final base = _dbProducts;
+    // Use DB products if available, otherwise fallback to sample products
+    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
     return base.where((p) {
       final price = p['price'] as double;
       final category = p['category'] as String;
@@ -340,8 +340,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   // Extract unique categories from products
   List<String> _getUniqueCategories() {
-    // Only use DB products
-    final base = _dbProducts;
+    // Use DB products if available, otherwise fallback to sample products
+    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
     final categories = base.map((p) => p['category'] as String).toSet().toList();
     categories.sort();
     return categories.isEmpty ? ['All'] : categories;
@@ -349,8 +349,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   // Extract unique brands from products
   List<String> _getUniqueBrands() {
-    // Only use DB products
-    final base = _dbProducts;
+    // Use DB products if available, otherwise fallback to sample products
+    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
     final brands = base.map((p) => p['brand'] as String).where((b) => b.isNotEmpty).toSet().toList();
     brands.sort();
     return brands.isEmpty ? ['All'] : brands;
@@ -358,8 +358,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   // Extract unique specs from products
   List<String> _getUniqueSpecs() {
-    // Only use DB products
-    final base = _dbProducts;
+    // Use DB products if available, otherwise fallback to sample products
+    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
     final specs = <String>{};
     for (var p in base) {
       final productSpecs = (p['specs'] as List<String>?) ?? const <String>[];
