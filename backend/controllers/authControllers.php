@@ -104,17 +104,40 @@ class AuthController {
             return ['message' => 'Username and password required'];
         }
         
-        $this->user->email = $data['username'];
-        
-        if (!$this->user->emailExists()) {
+                $username = trim($data['username']);
+                $normalizedUsername = strtolower($username);
+
+                $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role
+                                    FROM users
+                                    WHERE role = 'admin'
+                                        AND (
+                                            email = :login_email
+                                            OR LOWER(full_name) = :login_full_name
+                                            OR LOWER(REPLACE(full_name, ' ', '')) = :login_compact_name
+                                        )
+                                    LIMIT 1";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':login_email', $username);
+                $stmt->bindParam(':login_full_name', $normalizedUsername);
+                $stmt->bindParam(':login_compact_name', $normalizedUsername);
+                $stmt->execute();
+
+                if ($stmt->rowCount() === 0) {
             http_response_code(401);
             return ['message' => 'Invalid admin credentials'];
         }
-        
-        if ($this->user->role !== 'admin') {
-            http_response_code(403);
-            return ['message' => 'Access denied. Admin only.'];
-        }
+
+                $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $this->user->user_id = $admin['user_id'];
+                $this->user->full_name = $admin['full_name'];
+                $this->user->last_name = $admin['last_name'];
+                $this->user->email = $admin['email'];
+                $this->user->password = $admin['password'];
+                $this->user->phone_number = $admin['phone_number'];
+                $this->user->address = $admin['address'];
+                $this->user->gender = $admin['gender'];
+                $this->user->role = $admin['role'];
         
         if ($data['password'] !== $this->user->password && !password_verify($data['password'], $this->user->password)) {
             http_response_code(401);

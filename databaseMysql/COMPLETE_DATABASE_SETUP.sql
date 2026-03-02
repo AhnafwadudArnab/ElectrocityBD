@@ -525,12 +525,17 @@ INSERT INTO products (product_id, category_id, brand_id, product_name, descripti
 ON DUPLICATE KEY UPDATE product_name=VALUES(product_name), price=VALUES(price), stock_quantity=VALUES(stock_quantity);
 
 -- ---------------------------------------------------------------------------
--- Admin User (password: admin123 - hashed with bcrypt)
+-- Admin User (password: 1234@# - hashed with bcrypt)
 -- Note: Use backend API to create users with proper password hashing
 -- ---------------------------------------------------------------------------
 INSERT INTO users (user_id, full_name, last_name, email, password, role) VALUES
-(1, 'Admin', 'User', 'admin@electrocitybd.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
-ON DUPLICATE KEY UPDATE email=VALUES(email);
+(1, 'Admin', 'User', 'admin@electrocitybd.com', '$2y$10$3rljKMaaNeyPT9V88FXyDO2UVgf9qf6j.yesYOAd95ux8hN975wpi', 'admin')
+ON DUPLICATE KEY UPDATE
+  full_name=VALUES(full_name),
+  last_name=VALUES(last_name),
+  email=VALUES(email),
+  password=VALUES(password),
+  role=VALUES(role);
 
 -- ---------------------------------------------------------------------------
 -- Sample Promotions (for Offers Up to 90% section)
