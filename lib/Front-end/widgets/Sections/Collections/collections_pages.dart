@@ -257,7 +257,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
 
   Widget _categoryTile(Map<String, dynamic> c) {
     final title = c['name'] ?? c['title'] ?? 'Collection';
-    final count = c['item_count'] ?? c['count'] ?? 0;
+    final count = c['product_count'] ?? c['item_count'] ?? c['count'] ?? 0;
     final iconData = c['icon'] is IconData
         ? c['icon']
         : _getIconFromString(c['icon']);

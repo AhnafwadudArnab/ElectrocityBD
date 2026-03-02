@@ -12,10 +12,12 @@ import '../../header.dart';
 
 class TrendingAllProducts extends StatefulWidget {
   final String breadcrumbLabel;
+  final String? categoryFilter; // Add category filter parameter
 
   const TrendingAllProducts({
     super.key,
     this.breadcrumbLabel = 'Trending Products',
+    this.categoryFilter, // Optional category filter
   });
 
   @override
@@ -35,7 +37,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   final List<String> _selectedBrands = [];
   final List<String> _selectedSpecifications = [];
 
-  // Products loaded from backend (DB). If empty, fallback to _flashSaleprod.
+  // Products loaded from backend (DB)
   List<Map<String, Object>> _dbProducts = [];
   bool _loadingProducts = false;
   String? _loadError;
@@ -47,224 +49,18 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     return 0.0;
   }
 
-  // UPDATED: Standardized Data with BD Market Prices
-  static const List<Map<String, Object>> _flashSaleprod = [
-    {
-      'title': 'Air Fryer',
-      'price': 7200.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Digital Control'],
-      'image': "$imgPath/air_fryer.jpg",
-    },
-    {
-      'title': 'Blender',
-      'price': 3800.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Multiple Speed'],
-      'image': "$imgPath/blender.jpg",
-    },
-    {
-      'title': 'Coffee Maker',
-      'price': 6500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Auto Brew'],
-      'image': "$imgPath/catllee.jpg",
-    },
-    {
-      'title': 'Charger Fan',
-      'price': 2200.0,
-      'category': 'Electronics',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'USB Charging'],
-      'image': "$imgPath/chargerfan.jpg",
-    },
-    {
-      'title': 'Chopper',
-      'price': 4800.0,
-      'category': 'Kitchen Tools',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Compact'],
-      'image': "$imgPath/chopper.jpg",
-    },
-    {
-      'title': 'Curry Cooker',
-      'price': 3500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Non-stick'],
-      'image': "$imgPath/curry_cooker.jpg",
-    },
-    {
-      'title': 'Electric Stove',
-      'price': 1250.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'Portable'],
-      'image': "$imgPath/elec_stove.jpg",
-    },
-    {
-      'title': 'Fan',
-      'price': 13500.0,
-      'category': 'Electronics',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Variable Speed'],
-      'image': "$imgPath/fan2.jpg",
-    },
-    {
-      'title': 'Grinder',
-      'price': 11000.0,
-      'category': 'Kitchen Tools',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'High Power'],
-      'image': "$imgPath/grinder.jpg",
-    },
-    {
-      'title': 'Hair Dryer',
-      'price': 3200.0,
-      'category': 'Personal Care',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Multiple Heat'],
-      'image': "$imgPath/hair_drier.jpg",
-    },
-    {
-      'title': 'Hand Blender',
-      'price': 5500.0,
-      'category': 'Kitchen Tools',
-      'brand': 'Brand C',
-      'specs': ['Cordless', 'Compact'],
-      'image': "$imgPath/hand_blender.jpg",
-    },
-    {
-      'title': 'Hand Blender Pro',
-      'price': 7200.0,
-      'category': 'Kitchen Tools',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Powerful'],
-      'image': "$imgPath/hand_blender23.jpg",
-    },
-    {
-      'title': 'Head Massager',
-      'price': 3800.0,
-      'category': 'Personal Care',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Vibration'],
-      'image': "$imgPath/head_massager.jpg",
-    },
-    {
-      'title': 'Portable Fan',
-      'price': 4200.0,
-      'category': 'Electronics',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'USB Powered'],
-      'image': "$imgPath/hFan3.jpg",
-    },
-    {
-      'title': 'Induction Stove',
-      'price': 8500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Fast Heating'],
-      'image': "$imgPath/induction_stove.jpg",
-    },
-    {
-      'title': 'Iron',
-      'price': 2800.0,
-      'category': 'Home Appliances',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Steam'],
-      'image': "$imgPath/iron.jpg",
-    },
-    {
-      'title': 'Massage Gun',
-      'price': 6200.0,
-      'category': 'Personal Care',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'Portable'],
-      'image': "$imgPath/massage_gun.jpg",
-    },
-    {
-      'title': 'Mini Cooker',
-      'price': 3500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Compact'],
-      'image': "$imgPath/mini_cooker.jpg",
-    },
-    {
-      'title': 'Mini Cooker Deluxe',
-      'price': 4200.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Multi-function'],
-      'image': "$imgPath/mini2cokker.jpg",
-    },
-    {
-      'title': 'Mini Hand Blender',
-      'price': 2500.0,
-      'category': 'Kitchen Tools',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'Lightweight'],
-      'image': "$imgPath/minihand.jpg",
-    },
-    {
-      'title': 'Oven',
-      'price': 12000.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Convection'],
-      'image': "$imgPath/oven.jpg",
-    },
-    {
-      'title': 'Rice Cooker',
-      'price': 5500.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand B',
-      'specs': ['Electric', 'Auto Cook'],
-      'image': "$imgPath/rice_cooker.jpg",
-    },
-    {
-      'title': 'Rice Cooker Pro',
-      'price': 7800.0,
-      'category': 'Kitchen Appliances',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'Digital'],
-      'image': "$imgPath/riceCooker2.jpg",
-    },
-    {
-      'title': 'Hair Styling Tool',
-      'price': 3200.0,
-      'category': 'Personal Care',
-      'brand': 'Brand A',
-      'specs': ['Electric', 'Ceramic'],
-      'image': "$imgPath/tele_sett.jpg",
-    },
-    {
-      'title': 'Trimmer Pro',
-      'price': 4500.0,
-      'category': 'Personal Care',
-      'brand': 'Brand B',
-      'specs': ['Cordless', 'Rechargeable'],
-      'image': "$imgPath/trimmeer2.jpg",
-    },
-    {
-      'title': 'Trimmer',
-      'price': 2800.0,
-      'category': 'Personal Care',
-      'brand': 'Brand C',
-      'specs': ['Electric', 'Compact'],
-      'image': "$imgPath/trimmer.jpg",
-    },
-  ];
-
   late RangeValues _priceRange;
 
   @override
   void initState() {
     super.initState();
     _priceRange = const RangeValues(_priceMin, _priceMax);
+    
+    // If category filter is provided, add it to selected categories
+    if (widget.categoryFilter != null && widget.categoryFilter!.isNotEmpty) {
+      _selectedCategories.add(widget.categoryFilter!);
+    }
+    
     _fetchProductsFromBackend();
   }
 
@@ -274,16 +70,31 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       _loadError = null;
     });
     try {
+      // Pass category filter to API if provided
       final res = await ApiService.getProducts(
         section: 'trending',
-        category: 'all',
+        category: widget.categoryFilter ?? 'all',
         sort: 'newest',
         limit: 60,
       );
       print('Trending API Response: $res');
-      final list = (res['products'] as List<dynamic>? ?? [])
+      print('Category Filter: ${widget.categoryFilter}');
+      
+      // Handle both Map and List responses
+      List<dynamic> productsList;
+      if (res is Map<String, dynamic>) {
+        productsList = (res['products'] as List<dynamic>? ?? []);
+      } else if (res is List) {
+        productsList = res;
+      } else {
+        productsList = [];
+      }
+      
+      final list = productsList
+          .where((raw) => raw != null)
           .map<Map<String, Object>>((raw) {
-            final p = raw as Map<String, dynamic>;
+            if (raw == null) return <String, Object>{};
+            final p = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
             return {
               'title': (p['product_name'] ?? '') as String,
               'price': _parsePrice(p['price']),
@@ -292,10 +103,11 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               // Specs can later be mapped from attributes if needed.
               'specs': const <String>[],
               'image': (p['image_url'] ?? '') as String,
-              'rating': p['rating_avg'] ?? p['rating'],
-              'reviews': p['review_count'] ?? p['reviews'],
+              'rating': p['rating_avg'] ?? p['rating'] ?? '',
+              'reviews': p['review_count'] ?? p['reviews'] ?? '',
             };
           })
+          .where((p) => p.isNotEmpty && (p['title'] as String).isNotEmpty)
           .toList();
       print('Trending Products Count: ${list.length}');
       if (mounted) {
@@ -316,8 +128,14 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   }
 
   List<Map<String, Object>> _filteredProducts() {
-    // Use DB products if available, otherwise fallback to sample products
-    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
+    // Always use DB products, no fallback to sample products
+    final base = _dbProducts;
+    
+    // If no products from DB, return empty list
+    if (base.isEmpty) {
+      return [];
+    }
+    
     return base.where((p) {
       final price = p['price'] as double;
       final category = p['category'] as String;
@@ -340,26 +158,40 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   // Extract unique categories from products
   List<String> _getUniqueCategories() {
-    // Use DB products if available, otherwise fallback to sample products
-    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
-    final categories = base.map((p) => p['category'] as String).toSet().toList();
+    // Only use DB products that are currently loaded
+    final base = _dbProducts;
+    if (base.isEmpty) return [];
+    
+    final categories = base
+        .map((p) => p['category'] as String)
+        .where((c) => c.isNotEmpty)
+        .toSet()
+        .toList();
     categories.sort();
-    return categories.isEmpty ? ['All'] : categories;
+    return categories;
   }
 
   // Extract unique brands from products
   List<String> _getUniqueBrands() {
-    // Use DB products if available, otherwise fallback to sample products
-    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
-    final brands = base.map((p) => p['brand'] as String).where((b) => b.isNotEmpty).toSet().toList();
+    // Only use DB products that are currently loaded
+    final base = _dbProducts;
+    if (base.isEmpty) return [];
+    
+    final brands = base
+        .map((p) => p['brand'] as String)
+        .where((b) => b.isNotEmpty)
+        .toSet()
+        .toList();
     brands.sort();
-    return brands.isEmpty ? ['All'] : brands;
+    return brands;
   }
 
   // Extract unique specs from products
   List<String> _getUniqueSpecs() {
-    // Use DB products if available, otherwise fallback to sample products
-    final base = _dbProducts.isEmpty ? _flashSaleprod : _dbProducts;
+    // Only use DB products that are currently loaded
+    final base = _dbProducts;
+    if (base.isEmpty) return [];
+    
     final specs = <String>{};
     for (var p in base) {
       final productSpecs = (p['specs'] as List<String>?) ?? const <String>[];
@@ -367,7 +199,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     }
     final specsList = specs.toList();
     specsList.sort();
-    return specsList.isEmpty ? ['N/A'] : specsList;
+    return specsList;
   }
 
   List<Map<String, Object>> _sortedProducts(List<Map<String, Object>> items) {
@@ -493,6 +325,11 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   // --- UI Components ---
 
   Widget _buildBanner(AppResponsive r, BuildContext context) {
+    // Show category name in banner if filter is applied
+    final displayTitle = widget.categoryFilter != null && widget.categoryFilter!.isNotEmpty
+        ? '${widget.breadcrumbLabel} - ${widget.categoryFilter}'
+        : widget.breadcrumbLabel;
+    
     return Container(
       height: r.value(
         smallMobile: 120,
@@ -514,13 +351,14 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       ),
       child: Center(
         child: Text(
-          widget.breadcrumbLabel.toUpperCase(),
+          displayTitle.toUpperCase(),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
             letterSpacing: 2,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -540,9 +378,30 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Filters',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Filters',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              if (widget.categoryFilter != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    widget.categoryFilter!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const Divider(height: 30),
           const Text(
@@ -587,6 +446,11 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     required List<String> options,
     required List<String> selectedList,
   }) {
+    // Don't show filter section if no options available
+    if (options.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
     return ExpansionTile(
       title: Text(
         title,
@@ -603,6 +467,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               controlAffinity: ListTileControlAffinity.leading,
               dense: true,
               contentPadding: EdgeInsets.zero,
+              activeColor: Colors.amber[700],
             ),
           )
           .toList(),
@@ -688,10 +553,18 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                     children: [
                       const Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
                       const SizedBox(height: 16),
-                      const Text(
-                        "No products match your filters.",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      Text(
+                        _dbProducts.isEmpty 
+                            ? "No trending products available in database."
+                            : "No products match your filters.",
+                        style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
+                      const SizedBox(height: 8),
+                      if (_dbProducts.isEmpty)
+                        const Text(
+                          "Please add products to the trending_products table.",
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
                       if (_selectedCategories.isNotEmpty ||
                           _selectedBrands.isNotEmpty ||
                           _selectedSpecifications.isNotEmpty)
@@ -761,7 +634,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                   height: double.infinity,
                   child: ImageResolver.image(
                     imageUrl: image,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     width: double.infinity,
                     height: double.infinity,
                   ),
@@ -835,20 +708,103 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   }
 
   Widget _buildPagination(int totalPages) {
+    if (totalPages <= 1) return const SizedBox.shrink();
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        totalPages,
-        (i) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ChoiceChip(
-            label: Text('${i + 1}'),
-            selected: _currentPage == i + 1,
-            onSelected: (s) => setState(() => _currentPage = i + 1),
-            selectedColor: Colors.amber,
+      children: [
+        // Previous button
+        IconButton(
+          onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+          icon: const Icon(Icons.chevron_left),
+          style: IconButton.styleFrom(
+            backgroundColor: _currentPage > 1 ? Colors.amber[700] : Colors.grey[300],
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey[300],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         ),
-      ),
+        const SizedBox(width: 12),
+        
+        // Page numbers
+        ...List.generate(
+          totalPages > 7 ? 7 : totalPages,
+          (i) {
+            int pageNum;
+            if (totalPages <= 7) {
+              pageNum = i + 1;
+            } else {
+              // Smart pagination: show first, last, current and nearby pages
+              if (i == 0) {
+                pageNum = 1;
+              } else if (i == 6) {
+                pageNum = totalPages;
+              } else if (_currentPage <= 4) {
+                pageNum = i + 1;
+              } else if (_currentPage >= totalPages - 3) {
+                pageNum = totalPages - 6 + i;
+              } else {
+                pageNum = _currentPage - 3 + i;
+              }
+            }
+            
+            final isActive = _currentPage == pageNum;
+            final isEllipsis = totalPages > 7 && 
+                ((i == 1 && _currentPage > 4) || 
+                 (i == 5 && _currentPage < totalPages - 3));
+            
+            if (isEllipsis) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text('...', style: TextStyle(fontSize: 18, color: Colors.grey)),
+              );
+            }
+            
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: InkWell(
+                onTap: () => setState(() => _currentPage = pageNum),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isActive ? Colors.amber[700] : Colors.white,
+                    border: Border.all(
+                      color: isActive ? Colors.amber[700]! : Colors.grey[300]!,
+                      width: 1.5,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$pageNum',
+                      style: TextStyle(
+                        color: isActive ? Colors.white : Colors.black87,
+                        fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(width: 12),
+        // Next button
+        IconButton(
+          onPressed: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+          icon: const Icon(Icons.chevron_right),
+          style: IconButton.styleFrom(
+            backgroundColor: _currentPage < totalPages ? Colors.amber[700] : Colors.grey[300],
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey[300],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
     );
   }
 }

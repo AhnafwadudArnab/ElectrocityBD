@@ -462,11 +462,11 @@ class ApiService {
   }
 
   static Future<void> updateProduct(int id, Map<String, dynamic> data) async {
-    await put('/products/$id', data);
+    await put('/products?id=$id', data);
   }
 
   static Future<void> deleteProduct(int id) async {
-    await delete('/products/$id');
+    await delete('/products?id=$id');
   }
 
   // ─── Cart API ───

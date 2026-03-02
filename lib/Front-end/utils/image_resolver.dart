@@ -55,7 +55,8 @@ class ImageResolver {
 
   static ImageProvider imageProvider(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) {
-      return const AssetImage('assets/images/placeholder.png');
+      // Return a transparent image provider instead of trying to load non-existent asset
+      return const NetworkImage('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
     }
     
     // Handle asset: prefix
@@ -97,7 +98,7 @@ class ImageResolver {
         width: width,
         height: height,
         errorBuilder: (context, error, stackTrace) {
-          print('Error loading asset image: $path - $error');
+          // Silently handle error - don't print to console
           return _placeholderBox(width: width, height: height, child: placeholder);
         },
       );
@@ -112,7 +113,7 @@ class ImageResolver {
         width: width,
         height: height,
         errorBuilder: (context, error, stackTrace) {
-          print('Error loading Flutter asset: $path - $error');
+          // Silently handle error - don't print to console
           return _placeholderBox(width: width, height: height, child: placeholder);
         },
       );
@@ -136,7 +137,7 @@ class ImageResolver {
           );
         },
         errorBuilder: (context, error, stackTrace) {
-          print('Error loading network image: $imageUrl - $error');
+          // Silently handle error - don't print to console
           return _placeholderBox(width: width, height: height, child: placeholder);
         },
       );
@@ -160,7 +161,7 @@ class ImageResolver {
         );
       },
       errorBuilder: (context, error, stackTrace) {
-        print('Error loading relative path image: $networkUrl - $error');
+        // Silently handle error - don't print to console
         return _placeholderBox(width: width, height: height, child: placeholder);
       },
     );

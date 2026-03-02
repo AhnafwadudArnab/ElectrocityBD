@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../All Pages/CART/Track_ur_orders.dart';
 import '../Dimensions/responsive_dimensions.dart'; // Adjust path as needed
+import '../pages/Profiles/Profile.dart';
 
 class FooterSection extends StatelessWidget {
   const FooterSection({super.key});
@@ -367,51 +369,7 @@ Widget _linkColumn(BuildContext context, String title, List<String> links) {
 
 Widget _footerButton(BuildContext context, String text) {
   return TextButton(
-    onPressed: () {
-      // Handle different footer link actions
-      switch (text.toLowerCase()) {
-        case 'about us':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('About Us page coming soon!')),
-          );
-          break;
-        case 'blog':
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Blog coming soon!')));
-          break;
-        case 'contact us':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Contact: support@electrocitybd.com')),
-          );
-          break;
-        case 'career':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Career opportunities coming soon!')),
-          );
-          break;
-        case 'my account':
-          Navigator.pushNamed(context, '/profile');
-          break;
-        case 'track order':
-          Navigator.pushNamed(context, '/orders');
-          break;
-        case 'return':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Return policy page coming soon!')),
-          );
-          break;
-        case 'faq':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('FAQ page coming soon!')),
-          );
-          break;
-        default:
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('$text page coming soon!')));
-      }
-    },
+    onPressed: () => _handleFooterLinkTap(context, text),
     style: TextButton.styleFrom(
       foregroundColor: Colors.white,
       padding: EdgeInsets.zero,
@@ -424,6 +382,133 @@ Widget _footerButton(BuildContext context, String text) {
       style: TextStyle(fontSize: AppDimensions.smallFont(context)),
     ),
   );
+}
+
+void _handleFooterLinkTap(BuildContext context, String text) {
+  final key = text.trim().toLowerCase();
+
+  switch (key) {
+    case 'my account':
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ProfilePage()),
+      );
+      return;
+    case 'track order':
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const TrackOrderFormPage()),
+      );
+      return;
+    case 'about us':
+      _openFooterPage(
+        context,
+        title: 'About Us',
+        body:
+            'ElectrocityBD is a trusted online electronics store in Bangladesh.\n\nWe focus on authentic products, fair prices, and fast delivery with reliable customer support.',
+      );
+      return;
+    case 'blog':
+      _openFooterPage(
+        context,
+        title: 'Blog',
+        body:
+            'Our blog section will share buying guides, product tips, and tech updates.\n\nStay tuned for new posts from ElectrocityBD.',
+      );
+      return;
+    case 'contact us':
+      _openFooterPage(
+        context,
+        title: 'Contact Us',
+        body:
+            'Phone: +880 1234-567890\nEmail: support@electrocitybd.com\nAddress: 123, Main Street, Dhaka, Bangladesh\n\nWe are available for support and order help.',
+      );
+      return;
+    case 'career':
+      _openFooterPage(
+        context,
+        title: 'Career',
+        body:
+            'We are always open to talented people in e-commerce, operations, and customer support.\n\nPlease send your CV to support@electrocitybd.com.',
+      );
+      return;
+    case 'return':
+    case 'return policy':
+      _openFooterPage(
+        context,
+        title: 'Return Policy',
+        body:
+            'Products can be returned based on condition and policy terms.\n\nPlease keep invoice and original packaging. Contact support for return approval and process.',
+      );
+      return;
+    case 'faq':
+      _openFooterPage(
+        context,
+        title: 'FAQ',
+        body:
+            'Q: How long does delivery take?\nA: Delivery time depends on location and product availability.\n\nQ: How can I track my order?\nA: Use the Track Order section with your order details.',
+      );
+      return;
+    case 'privacy':
+      _openFooterPage(
+        context,
+        title: 'Privacy Policy',
+        body:
+            'We respect your privacy and protect your personal information.\n\nYour data is used only for account, order processing, and support-related communication.',
+      );
+      return;
+    case 'terms':
+      _openFooterPage(
+        context,
+        title: 'Terms & Conditions',
+        body:
+            'By using ElectrocityBD, you agree to our purchase, delivery, return, and account usage terms.\n\nProduct availability and pricing may change without prior notice.',
+      );
+      return;
+    default:
+      _openFooterPage(
+        context,
+        title: text,
+        body: '$text information is available in this section.',
+      );
+  }
+}
+
+void _openFooterPage(
+  BuildContext context, {
+  required String title,
+  required String body,
+}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => _FooterContentPage(title: title, body: body),
+    ),
+  );
+}
+
+class _FooterContentPage extends StatelessWidget {
+  final String title;
+  final String body;
+
+  const _FooterContentPage({required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(AppDimensions.padding(context)),
+        child: Text(
+          body,
+          style: TextStyle(
+            fontSize: AppDimensions.bodyFont(context),
+            height: 1.6,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Widget _contactRow(BuildContext context, IconData icon, String text) {
@@ -455,12 +540,29 @@ Widget _social(BuildContext context, IconData icon) {
   return SizedBox(
     width: AppDimensions.iconSize(context) + 8,
     child: IconButton(
-      onPressed: () {},
+      onPressed: () => _handleSocialTap(context, icon),
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
       icon: FaIcon(icon, color: Colors.white, size: iconSize),
     ),
   );
+}
+
+void _handleSocialTap(BuildContext context, IconData icon) {
+  String platform = 'Social';
+  if (icon == FontAwesomeIcons.facebookF) {
+    platform = 'Facebook';
+  } else if (icon == FontAwesomeIcons.twitter) {
+    platform = 'Twitter';
+  } else if (icon == FontAwesomeIcons.instagram) {
+    platform = 'Instagram';
+  } else if (icon == FontAwesomeIcons.linkedinIn) {
+    platform = 'LinkedIn';
+  }
+
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text('Follow ElectrocityBD on $platform')));
 }
 
 Widget _paymentLogo(
