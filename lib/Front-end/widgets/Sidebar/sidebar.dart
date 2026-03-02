@@ -3,9 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../Admin Panel/A_customers.dart';
 import '../../Provider/Banner_provider.dart';
-import '../../All Pages/Categories All/SideCatePages/HomeComfortUtils.dart';
-import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
-import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/auth_session.dart';
 import '../../utils/api_service.dart';

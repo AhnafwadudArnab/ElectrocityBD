@@ -9,7 +9,6 @@ import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
 import '../../../utils/optimized_image_widget.dart';
-import 'best_selling_all.dart';
 
 class BestSellingBox extends StatefulWidget {
   const BestSellingBox({super.key});
