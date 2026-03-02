@@ -8,7 +8,9 @@ import '../../All Pages/Categories All/SideCatePages/KitchenAppliances.dart';
 import '../../All Pages/Categories All/SideCatePages/PersonalCareLifestyle.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/auth_session.dart';
+import '../../utils/api_service.dart';
 import '../Sections/Flash Sale/Flash_sale_all.dart';
+import '../../pages/Templates/category_products_page.dart';
 
 class Sidebar extends StatefulWidget {
   final double? width;
@@ -19,30 +21,83 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  bool _expanded = true; // Default to expanded for desktop feel
+  bool _expanded = true;
+  List<Map<String, dynamic>> _categories = [];
+  bool _loadingCategories = true;
 
-  final List<Map<String, dynamic>> _categories = [
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await ApiService.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = categories
+              .map((c) => Map<String, dynamic>.from(c as Map))
+              .toList();
+          _loadingCategories = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading categories: $e');
+      if (mounted) {
+        setState(() {
+          // Fallback to hardcoded categories
+          _categories = _fallbackCategories;
+          _loadingCategories = false;
+        });
+      }
+    }
+  }
+
+  final List<Map<String, dynamic>> _fallbackCategories = [
     {
+      'category_id': 1,
+      'category_name': 'Kitchen Appliances',
       'icon': Icons.kitchen,
-      'text': 'Kitchen Appliances',
-      // Rice cooker, Oven, Blender, Kettle, Airfryer ইত্যাদি এখানে থাকবে
-      'page': KitchenAppliancesPage(),
     },
     {
-      'icon': Icons.iron, // আইকন পরিবর্তন করা হয়েছে
-      'text': 'Personal Care & Lifestyle',
-      // Trimmer, Iron, Hair dryer, Massage gun এখানে থাকবে
-      'page': PersonalCareLifestylePage(),
+      'category_id': 2,
+      'category_name': 'Personal Care & Lifestyle',
+      'icon': Icons.iron,
     },
     {
+      'category_id': 3,
+      'category_name': 'Home Comfort & Utility',
       'icon': Icons.wash,
-      'text': 'Home Comfort & Utility',
-      'page': HomeComfortUtilityPage(),
     },
   ];
 
-  void _openCategory(BuildContext context, Widget page) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  IconData _getCategoryIcon(String? categoryName) {
+    if (categoryName == null) return Icons.category;
+    final name = categoryName.toLowerCase();
+    if (name.contains('kitchen')) return Icons.kitchen;
+    if (name.contains('personal') || name.contains('care')) return Icons.iron;
+    if (name.contains('home') || name.contains('comfort')) return Icons.wash;
+    if (name.contains('electronic')) return Icons.devices;
+    if (name.contains('lighting') || name.contains('light')) return Icons.lightbulb;
+    if (name.contains('tool')) return Icons.build;
+    if (name.contains('wiring') || name.contains('wire')) return Icons.cable;
+    if (name.contains('appliance')) return Icons.home_repair_service;
+    return Icons.category;
+  }
+
+  void _openCategory(BuildContext context, Map<String, dynamic> category) {
+    final categoryId = category['category_id'];
+    final categoryName = category['category_name'] ?? 'Products';
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CategoryProductsPage(
+          categoryId: categoryId,
+          categoryName: categoryName,
+        ),
+      ),
+    );
   }
 
   @override
@@ -162,6 +217,27 @@ class _SidebarState extends State<Sidebar> {
   }
 
   Widget _buildCategoryList(BuildContext context) {
+    if (_loadingCategories) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    if (_categories.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        child: const Center(
+          child: Text(
+            'No categories available',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
@@ -169,18 +245,21 @@ class _SidebarState extends State<Sidebar> {
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
-        children: _categories.map((item) {
+        children: _categories.map((category) {
+          final categoryName = category['category_name'] ?? 'Category';
+          final icon = _getCategoryIcon(categoryName);
+          
           return InkWell(
-            onTap: () => _openCategory(context, item['page']),
+            onTap: () => _openCategory(context, category),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  Icon(item['icon'], size: 18, color: Colors.blueGrey.shade700),
+                  Icon(icon, size: 18, color: Colors.blueGrey.shade700),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      item['text'],
+                      categoryName,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,

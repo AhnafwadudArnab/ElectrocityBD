@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../utils/api_service.dart';
 import 'collection_detail_page.dart';
 
 class CollectionsPage extends StatefulWidget {
@@ -10,14 +12,40 @@ class CollectionsPage extends StatefulWidget {
 
 class _CollectionsPageState extends State<CollectionsPage> {
   final ScrollController _scrollController = ScrollController();
+  List<Map<String, dynamic>> _collections = [];
+  bool _loading = true;
 
-  final List<Map<String, dynamic>> _gadgetCollections = [
-    {
-      'title': 'Fans',
-      'count': 20,
-      'icon': Icons.air,
-      'slug': 'fans',
-    },
+  @override
+  void initState() {
+    super.initState();
+    _loadCollections();
+  }
+
+  Future<void> _loadCollections() async {
+    try {
+      final collections = await ApiService.getCollections();
+      if (mounted) {
+        setState(() {
+          _collections = collections
+              .map((c) => Map<String, dynamic>.from(c as Map))
+              .where((c) => c['is_active'] == 1 || c['is_active'] == true)
+              .toList();
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading collections: $e');
+      if (mounted) {
+        setState(() {
+          _collections = _fallbackCollections;
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  final List<Map<String, dynamic>> _fallbackCollections = [
+    {'title': 'Fans', 'count': 20, 'icon': Icons.air, 'slug': 'fans'},
     {
       'title': 'Cookers',
       'count': 46,
@@ -54,18 +82,8 @@ class _CollectionsPageState extends State<CollectionsPage> {
       'icon': Icons.local_fire_department,
       'slug': 'electric-chula',
     },
-    {
-      'title': 'Iron',
-      'count': 18,
-      'icon': Icons.iron,
-      'slug': 'iron',
-    },
-    {
-      'title': 'Chopper',
-      'count': 12,
-      'icon': Icons.cut,
-      'slug': 'chopper',
-    },
+    {'title': 'Iron', 'count': 18, 'icon': Icons.iron, 'slug': 'iron'},
+    {'title': 'Chopper', 'count': 12, 'icon': Icons.cut, 'slug': 'chopper'},
     {
       'title': 'Grinder',
       'count': 10,
@@ -84,12 +102,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
       'icon': Icons.air,
       'slug': 'hair-dryer',
     },
-    {
-      'title': 'Oven',
-      'count': 8,
-      'icon': Icons.microwave,
-      'slug': 'oven',
-    },
+    {'title': 'Oven', 'count': 8, 'icon': Icons.microwave, 'slug': 'oven'},
     {
       'title': 'Air Fryer',
       'count': 18,
@@ -127,17 +140,53 @@ class _CollectionsPageState extends State<CollectionsPage> {
       context,
       MaterialPageRoute(
         builder: (_) => CollectionDetailPage(
-          collectionName: collection['title'],
+          collectionName: collection['name'] ?? collection['title'],
           collectionSlug: collection['slug'],
-          icon: collection['icon'],
+          icon: _getIconFromString(collection['icon']),
         ),
       ),
     );
   }
 
+  IconData _getIconFromString(dynamic iconName) {
+    if (iconName == null) return Icons.category;
+    final name = iconName.toString().toLowerCase();
+    switch (name) {
+      case 'air':
+        return Icons.air;
+      case 'soup_kitchen':
+        return Icons.soup_kitchen;
+      case 'blender':
+        return Icons.blender;
+      case 'phone':
+        return Icons.phone;
+      case 'spa':
+        return Icons.spa;
+      case 'content_cut':
+        return Icons.content_cut;
+      case 'local_fire_department':
+        return Icons.local_fire_department;
+      case 'iron':
+        return Icons.iron;
+      case 'cut':
+        return Icons.cut;
+      case 'settings':
+        return Icons.settings;
+      case 'coffee_maker':
+        return Icons.coffee_maker;
+      case 'microwave':
+        return Icons.microwave;
+      case 'kitchen':
+        return Icons.kitchen;
+      default:
+        return Icons.category;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final collections = _loading ? _fallbackCollections : _collections;
 
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -187,14 +236,19 @@ class _CollectionsPageState extends State<CollectionsPage> {
           const SizedBox(height: 12),
           SizedBox(
             height: 100,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-              child: Row(
-                children: _gadgetCollections.map(_categoryTile).toList(),
-              ),
-            ),
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 2,
+                    ),
+                    child: Row(
+                      children: collections.map(_categoryTile).toList(),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -202,6 +256,12 @@ class _CollectionsPageState extends State<CollectionsPage> {
   }
 
   Widget _categoryTile(Map<String, dynamic> c) {
+    final title = c['name'] ?? c['title'] ?? 'Collection';
+    final count = c['item_count'] ?? c['count'] ?? 0;
+    final iconData = c['icon'] is IconData
+        ? c['icon']
+        : _getIconFromString(c['icon']);
+
     return Container(
       width: _tileWidth,
       margin: const EdgeInsets.only(right: 12),
@@ -212,14 +272,8 @@ class _CollectionsPageState extends State<CollectionsPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            // Set border to red
             border: Border.all(
-              color: const Color.fromARGB(
-                255,
-                197,
-                111,
-                105,
-              ), // Using red border color
+              color: const Color.fromARGB(255, 197, 111, 105),
               width: 1.5,
             ),
           ),
@@ -232,7 +286,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      c['title'],
+                      title,
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -242,7 +296,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${c['count']} items',
+                      '$count items',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Colors.black54,
@@ -256,16 +310,10 @@ class _CollectionsPageState extends State<CollectionsPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(
-                    0.05,
-                  ), // Subtle red tint for icon bg
+                  color: Colors.red.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(
-                  c['icon'],
-                  size: 22,
-                  color: Colors.red,
-                ), // Red icon to match
+                child: Icon(iconData, size: 22, color: Colors.red),
               ),
             ],
           ),

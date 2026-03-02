@@ -301,17 +301,14 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       if (mounted) {
         setState(() {
           _dbProducts = list;
+          _loadingProducts = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      print('Error loading trending products: $e');
       if (mounted) {
         setState(() {
-          _loadError = 'Products load failed';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
+          _loadError = 'Failed to load products: $e';
           _loadingProducts = false;
         });
       }
@@ -613,6 +610,37 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   }
 
   Widget _buildProductsSection(AppResponsive r, int gridCount) {
+    // Show loading state
+    if (_loadingProducts) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(50),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Show error state
+    if (_loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(50),
+          child: Column(
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(_loadError!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _fetchProductsFromBackend,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final items = _sortedProducts(_filteredProducts());
     final perPage = gridCount * _rowsPerPage;
     final totalPages = (items.length / perPage).ceil().clamp(1, 99).toInt();
@@ -653,7 +681,35 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
         ),
         const SizedBox(height: 16),
         pageItems.isEmpty
-            ? const Center(child: Text("No products match your filters."))
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(50),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "No products match your filters.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      if (_selectedCategories.isNotEmpty ||
+                          _selectedBrands.isNotEmpty ||
+                          _selectedSpecifications.isNotEmpty)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedCategories.clear();
+                              _selectedBrands.clear();
+                              _selectedSpecifications.clear();
+                              _priceRange = const RangeValues(_priceMin, _priceMax);
+                            });
+                          },
+                          child: const Text('Clear Filters'),
+                        ),
+                    ],
+                  ),
+                ),
+              )
             : GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -673,7 +729,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                 ),
               ),
         const SizedBox(height: 30),
-        _buildPagination(totalPages),
+        if (pageItems.isNotEmpty) _buildPagination(totalPages),
       ],
     );
   }
