@@ -429,6 +429,23 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 
 
 
+-- Run this after creating base schema (electrocity_schema.sql or COMPLETE_DATABASE_SETUP.sql)
+USE electrobd;
+
+-- Ensure flash_sale_products has pricing and section-image/order support
+ALTER TABLE flash_sale_products
+  ADD COLUMN IF NOT EXISTS flash_price DECIMAL(10,2) NULL AFTER product_id,
+  ADD COLUMN IF NOT EXISTS image_path VARCHAR(255) NULL AFTER flash_price,
+  ADD COLUMN IF NOT EXISTS display_order INT DEFAULT 0 AFTER image_path;
+
+-- Ensure trending_products has section-image/order support
+ALTER TABLE trending_products
+  ADD COLUMN IF NOT EXISTS image_path VARCHAR(255) NULL AFTER trending_score,
+  ADD COLUMN IF NOT EXISTS display_order INT DEFAULT 0 AFTER image_path;
+
+-- Optional helpful indexes
+CREATE INDEX IF NOT EXISTS idx_flash_sale_products_order ON flash_sale_products(display_order);
+CREATE INDEX IF NOT EXISTS idx_trending_products_order ON trending_products(display_order);
 
 
 

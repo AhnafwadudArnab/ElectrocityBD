@@ -195,13 +195,12 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pushAndRemoveUntil(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
                         const FlashSaleAll(breadcrumbLabel: 'Flash Sale'),
                   ),
-                  (route) => false,
                 );
               },
               child: const Text('See All'),

@@ -46,18 +46,22 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
   Future<void> _loadFromDb() async {
     try {
       final res = await ApiService.getProducts(
-        section: 'flash_sale',
+        section: 'flash-sale',
         category: 'Flash Sale',
         limit: 60,
       );
+      print('Flash Sale API Response: $res');
       final list = (res['products'] as List<dynamic>?) ?? [];
+      print('Flash Sale Products Count: ${list.length}');
       if (mounted)
         setState(
           () => _dbProducts = list
               .map((e) => Map<String, dynamic>.from(e as Map))
               .toList(),
         );
-    } catch (_) {}
+    } catch (e) {
+      print('Flash Sale Load Error: $e');
+    }
   }
 
   List<Map<String, Object>> _convertDbProducts() {
@@ -157,7 +161,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
     );
   }
 
-  // সব প্রোডাক্ট (DB + অ্যাডমিন + স্যাম্পল)
+  // সব প্রোডাক্ট (DB + অ্যাডমিন)
   List<Map<String, Object>> _allProducts(BuildContext context) {
     final adminProducts = Provider.of<AdminProductProvider>(
       context,
@@ -166,7 +170,8 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
       adminProducts,
     ).map((e) => Map<String, Object>.from(e)).toList();
     final dbConverted = _convertDbProducts();
-    return [...dbConverted, ...adminConverted, ..._sampleProducts];
+    // Only show DB and admin products, no sample products
+    return [...dbConverted, ...adminConverted];
   }
 
   List<Map<String, Object>> _filteredProducts(BuildContext context) {
@@ -190,6 +195,35 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
 
       return matchesPrice && matchesCategory && matchesBrand && matchesSpecs;
     }).toList();
+  }
+
+  // Extract unique categories from products
+  List<String> _getUniqueCategories(BuildContext context) {
+    final allProducts = _allProducts(context);
+    final categories = allProducts.map((p) => p['category'] as String).toSet().toList();
+    categories.sort();
+    return categories.isEmpty ? ['All'] : categories;
+  }
+
+  // Extract unique brands from products
+  List<String> _getUniqueBrands(BuildContext context) {
+    final allProducts = _allProducts(context);
+    final brands = allProducts.map((p) => p['brand'] as String).where((b) => b.isNotEmpty).toSet().toList();
+    brands.sort();
+    return brands.isEmpty ? ['All'] : brands;
+  }
+
+  // Extract unique specs from products
+  List<String> _getUniqueSpecs(BuildContext context) {
+    final allProducts = _allProducts(context);
+    final specs = <String>{};
+    for (var p in allProducts) {
+      final productSpecs = (p['specs'] as List<String>?) ?? const <String>[];
+      specs.addAll(productSpecs);
+    }
+    final specsList = specs.toList();
+    specsList.sort();
+    return specsList.isEmpty ? ['N/A'] : specsList;
   }
 
   List<Map<String, Object>> _sortedProducts(BuildContext context) {
@@ -398,17 +432,17 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
           const SizedBox(height: 20),
           _filterSection(
             title: 'Categories',
-            options: ['Power Tools', 'Hand Tools', 'Uncategorized'],
+            options: _getUniqueCategories(context),
             selectedList: _selectedCategories,
           ),
           _filterSection(
             title: 'Brands',
-            options: ['Brand A', 'Brand B', 'Brand C', 'Admin Product'],
+            options: _getUniqueBrands(context),
             selectedList: _selectedBrands,
           ),
           _filterSection(
             title: 'Specs',
-            options: ['Cordless', 'Corded', 'Variable Speed', 'LED Light'],
+            options: _getUniqueSpecs(context),
             selectedList: _selectedSpecifications,
           ),
         ],

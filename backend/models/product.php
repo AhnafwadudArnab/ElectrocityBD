@@ -160,12 +160,14 @@ class Product {
     
     public function getTrending($limit = 10) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
-                         tp.trending_score
+                         tp.trending_score,
+                         COALESCE(tp.image_path, p.image_url) as image_url,
+                         tp.display_order
                   FROM products p
                   JOIN trending_products tp ON p.product_id = tp.product_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
-                  ORDER BY tp.trending_score DESC
+                  ORDER BY tp.display_order ASC, tp.trending_score DESC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
@@ -197,14 +199,16 @@ class Product {
         $query = "SELECT p.*, c.category_name, b.brand_name,
                          fs.title as flash_sale_title,
                          fs.end_time,
-                         fsp.flash_price
+                         fsp.flash_price,
+                         COALESCE(fsp.image_path, p.image_url) as image_url,
+                         fsp.display_order
                   FROM products p
                   JOIN flash_sale_products fsp ON p.product_id = fsp.product_id
                   JOIN flash_sales fs ON fsp.flash_sale_id = fs.flash_sale_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
                   WHERE fs.active = 1 AND fs.end_time >= NOW()
-                  ORDER BY fs.end_time ASC
+                  ORDER BY fsp.display_order ASC, fs.end_time ASC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);

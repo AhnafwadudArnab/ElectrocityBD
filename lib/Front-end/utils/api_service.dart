@@ -336,7 +336,7 @@ class ApiService {
 
   // ─── Products API ───
 
-  /// [section] = best_sellers | trending | deals | flash_sale | tech_part for homepage sections
+  /// [section] = best-sellers | trending | deals | flash-sale | tech-part for homepage sections
   static Future<dynamic> getProducts({
     int? categoryId,
     String? category,
@@ -351,7 +351,8 @@ class ApiService {
     if (category != null && category.isNotEmpty) query += '&category=$category';
     if (search != null && search.isNotEmpty) query += '&search=$search';
     if (sort != null) query += '&sort=$sort';
-    if (section != null && section.isNotEmpty) query += '&section=$section';
+    // Backend expects 'action' parameter, not 'section'
+    if (section != null && section.isNotEmpty) query += '&action=$section';
     
     final response = await get('/products$query', withAuth: false);
     

@@ -31,7 +31,7 @@ class _BestSellingAllState extends State<BestSellingAll> {
   Future<void> _load() async {
     try {
       final res = await ApiService.getProducts(
-        section: 'best_sellers',
+        section: 'best-sellers',
         category: 'Best Sellings',
         limit: 60,
       );

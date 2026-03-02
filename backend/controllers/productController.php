@@ -21,7 +21,7 @@ class ProductController {
         
         $products = $this->product->getAll($limit, $offset, $category, $brand);
         
-        return $products;
+        return ['products' => $products];
     }
     
     public function getById($id) {
@@ -37,27 +37,32 @@ class ProductController {
     
     public function getBestSellers($data) {
         $limit = $data['limit'] ?? 10;
-        return $this->product->getBestSellers($limit);
+        $products = $this->product->getBestSellers($limit);
+        return ['products' => $products];
     }
     
     public function getTrending($data) {
         $limit = $data['limit'] ?? 10;
-        return $this->product->getTrending($limit);
+        $products = $this->product->getTrending($limit);
+        return ['products' => $products];
     }
     
     public function getDealsOfDay($data) {
         $limit = $data['limit'] ?? 10;
-        return $this->product->getDealsOfDay($limit);
+        $products = $this->product->getDealsOfDay($limit);
+        return ['products' => $products];
     }
     
     public function getFlashSale($data) {
         $limit = $data['limit'] ?? 10;
-        return $this->product->getFlashSale($limit);
+        $products = $this->product->getFlashSale($limit);
+        return ['products' => $products];
     }
     
     public function getTechPart($data) {
         $limit = $data['limit'] ?? 10;
-        return $this->product->getTechPart($limit);
+        $products = $this->product->getTechPart($limit);
+        return ['products' => $products];
     }
     
     public function search($data) {

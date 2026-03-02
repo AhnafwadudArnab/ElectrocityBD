@@ -122,18 +122,6 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                 'Best Selling',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const BestSellingAll(breadcrumbLabel: 'Best Selling'),
-                    ),
-                  );
-                },
-                child: const Text('See All'),
-              ),
             ],
           ),
         ),

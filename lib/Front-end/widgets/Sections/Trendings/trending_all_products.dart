@@ -280,6 +280,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
         sort: 'newest',
         limit: 60,
       );
+      print('Trending API Response: $res');
       final list = (res['products'] as List<dynamic>? ?? [])
           .map<Map<String, Object>>((raw) {
             final p = raw as Map<String, dynamic>;
@@ -296,6 +297,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
             };
           })
           .toList();
+      print('Trending Products Count: ${list.length}');
       if (mounted) {
         setState(() {
           _dbProducts = list;
@@ -317,7 +319,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   }
 
   List<Map<String, Object>> _filteredProducts() {
-    final base = _dbProducts.isNotEmpty ? _dbProducts : _flashSaleprod;
+    // Only use DB products, no fallback to sample products
+    final base = _dbProducts;
     return base.where((p) {
       final price = p['price'] as double;
       final category = p['category'] as String;
@@ -336,6 +339,38 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
       return matchesPrice && matchesCategory && matchesBrand && matchesSpecs;
     }).toList();
+  }
+
+  // Extract unique categories from products
+  List<String> _getUniqueCategories() {
+    // Only use DB products
+    final base = _dbProducts;
+    final categories = base.map((p) => p['category'] as String).toSet().toList();
+    categories.sort();
+    return categories.isEmpty ? ['All'] : categories;
+  }
+
+  // Extract unique brands from products
+  List<String> _getUniqueBrands() {
+    // Only use DB products
+    final base = _dbProducts;
+    final brands = base.map((p) => p['brand'] as String).where((b) => b.isNotEmpty).toSet().toList();
+    brands.sort();
+    return brands.isEmpty ? ['All'] : brands;
+  }
+
+  // Extract unique specs from products
+  List<String> _getUniqueSpecs() {
+    // Only use DB products
+    final base = _dbProducts;
+    final specs = <String>{};
+    for (var p in base) {
+      final productSpecs = (p['specs'] as List<String>?) ?? const <String>[];
+      specs.addAll(productSpecs);
+    }
+    final specsList = specs.toList();
+    specsList.sort();
+    return specsList.isEmpty ? ['N/A'] : specsList;
   }
 
   List<Map<String, Object>> _sortedProducts(List<Map<String, Object>> items) {
@@ -532,17 +567,17 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           const SizedBox(height: 20),
           _filterSection(
             title: 'Categories',
-            options: ['Power Tools', 'Hand Tools'],
+            options: _getUniqueCategories(),
             selectedList: _selectedCategories,
           ),
           _filterSection(
             title: 'Brands',
-            options: ['Brand A', 'Brand B', 'Brand C'],
+            options: _getUniqueBrands(),
             selectedList: _selectedBrands,
           ),
           _filterSection(
             title: 'Specs',
-            options: ['Cordless', 'Corded', 'Variable Speed', 'LED Light'],
+            options: _getUniqueSpecs(),
             selectedList: _selectedSpecifications,
           ),
         ],
