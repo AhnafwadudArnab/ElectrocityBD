@@ -448,6 +448,43 @@ CREATE INDEX IF NOT EXISTS idx_flash_sale_products_order ON flash_sale_products(
 CREATE INDEX IF NOT EXISTS idx_trending_products_order ON trending_products(display_order);
 
 
+-- ============================================
+-- Add created_at columns for proper sorting
+-- ============================================
+USE electrobd;
+
+-- Add created_at to best_sellers if not exists
+ALTER TABLE best_sellers 
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER sales_count;
+
+-- Add created_at to deals_of_the_day if not exists
+ALTER TABLE deals_of_the_day 
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER end_date;
+
+-- Rename added_at to created_at in tech_part_products for consistency
+ALTER TABLE tech_part_products 
+CHANGE COLUMN added_at created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- Add index for better performance on sorting
+CREATE INDEX IF NOT EXISTS idx_best_sellers_created ON best_sellers(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_deals_created ON deals_of_the_day(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_techpart_created ON tech_part_products(created_at DESC);
+
+SELECT 'Migration completed successfully!' as Status;
+SELECT 'All tables now have created_at columns for proper sorting' as Info;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- ============================================================

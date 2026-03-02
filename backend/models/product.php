@@ -143,12 +143,13 @@ class Product {
     
     public function getBestSellers($limit = 10) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
-                         bs.sales_count, bs.selling_point, bs.sales_strategy
+                         bs.sales_count, bs.selling_point, bs.sales_strategy,
+                         bs.created_at as bestseller_added_at
                   FROM products p
                   JOIN best_sellers bs ON p.product_id = bs.product_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
-                  ORDER BY bs.sales_count DESC
+                  ORDER BY bs.created_at DESC, bs.sales_count DESC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
@@ -162,12 +163,13 @@ class Product {
         $query = "SELECT p.*, c.category_name, b.brand_name,
                          tp.trending_score,
                          COALESCE(tp.image_path, p.image_url) as image_url,
-                         tp.display_order
+                         tp.display_order,
+                         tp.created_at as trending_added_at
                   FROM products p
                   JOIN trending_products tp ON p.product_id = tp.product_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
-                  ORDER BY tp.display_order ASC, tp.trending_score DESC
+                  ORDER BY tp.created_at DESC, tp.display_order ASC, tp.trending_score DESC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
@@ -179,13 +181,14 @@ class Product {
     
     public function getDealsOfDay($limit = 10) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
-                         d.deal_price, d.end_date
+                         d.deal_price, d.end_date,
+                         d.created_at as deal_added_at
                   FROM products p
                   JOIN deals_of_the_day d ON p.product_id = d.product_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
                   WHERE d.end_date >= NOW()
-                  ORDER BY d.end_date ASC
+                  ORDER BY d.created_at DESC, d.end_date ASC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
@@ -201,14 +204,15 @@ class Product {
                          fs.end_time,
                          fsp.flash_price,
                          COALESCE(fsp.image_path, p.image_url) as image_url,
-                         fsp.display_order
+                         fsp.display_order,
+                         fsp.created_at as flash_added_at
                   FROM products p
                   JOIN flash_sale_products fsp ON p.product_id = fsp.product_id
                   JOIN flash_sales fs ON fsp.flash_sale_id = fs.flash_sale_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
                   WHERE fs.active = 1 AND fs.end_time >= NOW()
-                  ORDER BY fsp.display_order ASC, fs.end_time ASC
+                  ORDER BY fsp.created_at DESC, fsp.display_order ASC, fs.end_time ASC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
@@ -220,12 +224,13 @@ class Product {
     
     public function getTechPart($limit = 10) {
         $query = "SELECT p.*, c.category_name, b.brand_name,
-                         tp.display_order
+                         tp.display_order,
+                         tp.created_at as techpart_added_at
                   FROM products p
                   JOIN tech_part_products tp ON p.product_id = tp.product_id
                   LEFT JOIN categories c ON p.category_id = c.category_id
                   LEFT JOIN brands b ON p.brand_id = b.brand_id
-                  ORDER BY tp.display_order ASC
+                  ORDER BY tp.created_at DESC, tp.display_order ASC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
