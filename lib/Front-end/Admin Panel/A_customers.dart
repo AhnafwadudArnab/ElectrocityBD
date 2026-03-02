@@ -4,6 +4,7 @@ import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
+import 'A_brands.dart';
 import 'A_carts.dart';
 import 'A_collections.dart';
 import 'A_deals.dart';
@@ -65,6 +66,8 @@ class _AdminLayoutPageState extends State<AdminLayoutPage> {
         return const AdminProductUploadPage(embedded: true);
       case AdminSidebarItem.collections:
         return const AdminCollectionsPage(embedded: true);
+      case AdminSidebarItem.brands:
+        return const AdminBrandsPage(embedded: true);
       case AdminSidebarItem.payments:
         return const AdminPaymentsPage(embedded: true);
       case AdminSidebarItem.reports:

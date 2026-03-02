@@ -20,11 +20,22 @@ if ($method === 'POST') {
         exit;
     }
     
-    $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role 
-              FROM users WHERE email = :email AND role = 'admin'";
-    
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':email', $username);
+        $normalizedUsername = strtolower(trim($username));
+
+        $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role
+                            FROM users
+                            WHERE role = 'admin'
+                                AND (
+                                    email = :login_email
+                                    OR LOWER(full_name) = :login_full_name
+                                    OR LOWER(REPLACE(full_name, ' ', '')) = :login_compact_name
+                                )
+                            LIMIT 1";
+
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':login_email', $username);
+        $stmt->bindParam(':login_full_name', $normalizedUsername);
+        $stmt->bindParam(':login_compact_name', $normalizedUsername);
     $stmt->execute();
     
     if ($stmt->rowCount() === 0) {

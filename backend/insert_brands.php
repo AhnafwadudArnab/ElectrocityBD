@@ -35,39 +35,49 @@ $brands = [
 ];
 
 try {
-    // Check if brands already exist
-    $stmt = $db->query("SELECT COUNT(*) as count FROM brands");
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    // First, let's see what's in the database
+    $stmt = $db->query("SELECT brand_name FROM brands ORDER BY brand_name");
+    $existing = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    if ($result['count'] > 0) {
-        echo "Brands already exist in database. Updating logos...\n";
+    echo "Current brands in database: " . count($existing) . "\n";
+    if (count($existing) > 0) {
+        echo "Existing brands: " . implode(', ', $existing) . "\n\n";
+    }
+    
+    // Insert or update each brand
+    $stmt = $db->prepare("
+        INSERT INTO brands (brand_name, brand_logo)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE brand_logo = VALUES(brand_logo)
+    ");
+    
+    $inserted = 0;
+    $updated = 0;
+    
+    foreach ($brands as $brand) {
+        // Check if brand exists
+        $check = $db->prepare("SELECT brand_id FROM brands WHERE brand_name = ?");
+        $check->execute([$brand['name']]);
+        $exists = $check->fetch();
         
-        // Update existing brands with logos
-        foreach ($brands as $brand) {
-            $stmt = $db->prepare("
-                UPDATE brands 
-                SET brand_logo = ? 
-                WHERE brand_name = ?
-            ");
-            $stmt->execute([$brand['logo'], $brand['name']]);
+        $stmt->execute([$brand['name'], $brand['logo']]);
+        
+        if ($exists) {
+            $updated++;
             echo "Updated: {$brand['name']}\n";
-        }
-    } else {
-        echo "Inserting new brands...\n";
-        
-        // Insert new brands
-        $stmt = $db->prepare("
-            INSERT INTO brands (brand_name, brand_logo)
-            VALUES (?, ?)
-        ");
-        
-        foreach ($brands as $brand) {
-            $stmt->execute([$brand['name'], $brand['logo']]);
+        } else {
+            $inserted++;
             echo "Inserted: {$brand['name']}\n";
         }
     }
     
     echo "\n✅ Successfully processed " . count($brands) . " brands!\n";
+    echo "   Inserted: $inserted, Updated: $updated\n";
+    
+    // Show final count
+    $stmt = $db->query("SELECT COUNT(*) as count FROM brands");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo "   Total brands in database: {$result['count']}\n";
     
 } catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";

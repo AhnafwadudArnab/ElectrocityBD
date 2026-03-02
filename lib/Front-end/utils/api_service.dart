@@ -614,19 +614,19 @@ class ApiService {
   // ─── Flash Sales API ───
 
   static Future<List<dynamic>> getFlashSales() async {
-    return await get('/flash-sales', withAuth: false) as List<dynamic>;
+    return await get('/flash_sales', withAuth: false) as List<dynamic>;
   }
 
   static Future<void> createFlashSale(Map<String, dynamic> data) async {
-    await post('/flash-sales', data);
+    await post('/flash_sales', data);
   }
 
   static Future<void> updateFlashSale(int id, Map<String, dynamic> data) async {
-    await put('/flash-sales/$id', data);
+    await put('/flash_sales/$id', data);
   }
 
   static Future<void> deleteFlashSale(int id) async {
-    await delete('/flash-sales/$id');
+    await delete('/flash_sales/$id');
   }
 
   // ─── Promotions API ───
@@ -685,6 +685,196 @@ class ApiService {
     if (minPrice != null) payload['min_price'] = minPrice;
     if (maxPrice != null) payload['max_price'] = maxPrice;
     await put('/admin/section-filters/$section', payload);
+  }
+
+  // ─── Brands API ───
+
+  static Future<List<dynamic>> getBrands() async {
+    return await get('/brands', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> getBrand(int id) async {
+    return await get('/brands?id=$id', withAuth: false) as Map<String, dynamic>;
+  }
+
+  static Future<void> createBrand(Map<String, dynamic> data) async {
+    await post('/brands', data);
+  }
+
+  static Future<void> updateBrand(int id, Map<String, dynamic> data) async {
+    await put('/brands?id=$id', data);
+  }
+
+  static Future<void> deleteBrand(int id) async {
+    await delete('/brands?id=$id');
+  }
+
+  // ─── Collections API ───
+
+  static Future<List<dynamic>> getCollections() async {
+    return await get('/collections', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> getCollection(int id) async {
+    return await get('/collections?id=$id', withAuth: false) as Map<String, dynamic>;
+  }
+
+  static Future<void> createCollection(Map<String, dynamic> data) async {
+    await post('/collections', data);
+  }
+
+  static Future<void> updateCollection(int id, Map<String, dynamic> data) async {
+    await put('/collections?id=$id', data);
+  }
+
+  static Future<void> deleteCollection(int id) async {
+    await delete('/collections?id=$id');
+  }
+
+  // ─── Best Sellers API ───
+
+  static Future<List<dynamic>> getBestSellers({int limit = 10}) async {
+    return await get('/best_sellers?limit=$limit', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> addBestSeller(Map<String, dynamic> data) async {
+    await post('/best_sellers', data);
+  }
+
+  static Future<void> updateBestSeller(int productId, Map<String, dynamic> data) async {
+    await put('/best_sellers?product_id=$productId', data);
+  }
+
+  static Future<void> removeBestSeller(int productId) async {
+    await delete('/best_sellers?product_id=$productId');
+  }
+
+  // ─── Trending Products API ───
+
+  static Future<List<dynamic>> getTrendingProducts({int limit = 10}) async {
+    return await get('/trending?limit=$limit', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> addTrendingProduct(Map<String, dynamic> data) async {
+    await post('/trending', data);
+  }
+
+  static Future<void> updateTrendingProduct(int productId, Map<String, dynamic> data) async {
+    await put('/trending?product_id=$productId', data);
+  }
+
+  static Future<void> removeTrendingProduct(int productId) async {
+    await delete('/trending?product_id=$productId');
+  }
+
+  // ─── Tech Part API ───
+
+  static Future<List<dynamic>> getTechPartProducts() async {
+    return await get('/tech_part', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> addTechPartProduct(Map<String, dynamic> data) async {
+    await post('/tech_part', data);
+  }
+
+  // ─── Reviews API ───
+
+  static Future<Map<String, dynamic>> getProductReviews(int productId) async {
+    return await get('/reviews?product_id=$productId', withAuth: false) as Map<String, dynamic>;
+  }
+
+  static Future<List<dynamic>> getAllReviews() async {
+    return await get('/reviews', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> createReview(Map<String, dynamic> data) async {
+    await post('/reviews', data);
+  }
+
+  static Future<void> updateReview(int id, Map<String, dynamic> data) async {
+    await put('/reviews?id=$id', data);
+  }
+
+  static Future<void> deleteReview(int id) async {
+    await delete('/reviews?id=$id');
+  }
+
+  // ─── Customer Support API ───
+
+  static Future<List<dynamic>> getSupportTickets({bool admin = false}) async {
+    final endpoint = admin ? '/customer_support?admin=true' : '/customer_support';
+    return await get(endpoint) as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> getSupportTicket(int id) async {
+    return await get('/customer_support?id=$id') as Map<String, dynamic>;
+  }
+
+  static Future<void> createSupportTicket(Map<String, dynamic> data) async {
+    await post('/customer_support', data);
+  }
+
+  static Future<void> updateSupportTicket(int id, Map<String, dynamic> data) async {
+    await put('/customer_support?id=$id', data);
+  }
+
+  static Future<void> deleteSupportTicket(int id) async {
+    await delete('/customer_support?id=$id');
+  }
+
+  // ─── Product Specifications API ───
+
+  static Future<List<dynamic>> getProductSpecifications(int productId) async {
+    return await get('/product_specifications?product_id=$productId', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<void> addProductSpecification(Map<String, dynamic> data) async {
+    await post('/product_specifications', data);
+  }
+
+  // ─── Site Settings API ───
+
+  static Future<List<dynamic>> getSiteSettings() async {
+    return await get('/site_settings', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> getSiteSetting(String key) async {
+    return await get('/site_settings?key=$key', withAuth: false) as Map<String, dynamic>;
+  }
+
+  static Future<void> saveSiteSetting(Map<String, dynamic> data) async {
+    await post('/site_settings', data);
+  }
+
+  // ─── Search History API ───
+
+  static Future<List<dynamic>> getPopularSearches({int limit = 10}) async {
+    return await get('/search_history?popular=true&limit=$limit', withAuth: false) as List<dynamic>;
+  }
+
+  static Future<List<dynamic>> getSearchHistory() async {
+    return await get('/search_history', withAuth: false) as List<dynamic>;
+  }
+
+  // ─── Payments API ───
+
+  static Future<List<dynamic>> getPayments({int? orderId}) async {
+    final endpoint = orderId != null ? '/payments?order_id=$orderId' : '/payments';
+    return await get(endpoint) as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> getPayment(int id) async {
+    return await get('/payments?id=$id') as Map<String, dynamic>;
+  }
+
+  // ─── Admin Reports API ───
+
+  static Future<List<dynamic>> getAdminReports() async {
+    return await get('/reports') as List<dynamic>;
+  }
+
+  static Future<void> createAdminReport(Map<String, dynamic> data) async {
+    await post('/reports', data);
   }
 }
 

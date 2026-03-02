@@ -3,9 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:provider/provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
-import '../../Provider/Banner_provider.dart';
+import '../../utils/api_service.dart';
 
 class FeaturedBrandsStrip extends StatefulWidget {
   const FeaturedBrandsStrip({super.key});
@@ -18,9 +17,11 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
   final ScrollController _controller = ScrollController();
   Timer? _timer;
   int _direction = 1;
+  List<Map<String, dynamic>> _brands = [];
+  bool _loading = true;
 
   // Adjust this based on your logo container width + padding
-  static const double _itemStep = 200;
+  static const double _itemStep = 150;
 
   final List<String> _defaultBrandLogos = [
     'assets/Brand Logo/Gree.png',
@@ -29,21 +30,50 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
     'assets/Brand Logo/panasonnic.png',
     'assets/Brand Logo/singer.png',
     'assets/Brand Logo/vision.jpg',
-    'assets/Brand Logo/Gree.png',
-    'assets/Brand Logo/jamuna.jpg',
-    'assets/Brand Logo/LG.png',
-    'assets/Brand Logo/panasonnic.png',
-    'assets/Brand Logo/singer.png',
-    'assets/Brand Logo/vision.jpg',
+    'assets/Brand Logo/walton.png',
   ];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_controller.hasClients) return;
-      _timer = Timer.periodic(const Duration(seconds: 3), (_) => _autoScroll());
-    });
+    _loadBrands();
+  }
+
+  Future<void> _loadBrands() async {
+    try {
+      final brands = await ApiService.getBrands();
+      if (mounted) {
+        setState(() {
+          _brands = brands
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          _loading = false;
+        });
+        
+        // Start auto-scroll after brands are loaded and widget is built
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && _controller.hasClients) {
+            _timer = Timer.periodic(const Duration(seconds: 3), (_) => _autoScroll());
+          }
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading brands: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+        
+        // Start auto-scroll with default brands
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && _controller.hasClients) {
+            _timer = Timer.periodic(const Duration(seconds: 3), (_) => _autoScroll());
+          }
+        });
+      }
+    }
   }
 
   void _autoScroll() {
@@ -77,8 +107,25 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
 
   @override
   Widget build(BuildContext context) {
-    final logos = context.watch<BannerProvider>().featuredBrands;
-    final brandLogos = logos.isNotEmpty ? logos : _defaultBrandLogos;
+    // Use database brands if available, otherwise use default
+    final brandLogos = _brands.isNotEmpty
+        ? _brands
+              .map((b) => b['brand_logo']?.toString() ?? '')
+              .where((l) => l.isNotEmpty)
+              .toList()
+        : _defaultBrandLogos;
+
+    if (kDebugMode) {
+      print('🏢 FeaturedBrandsStrip: Displaying ${brandLogos.length} brands');
+    }
+
+    if (_loading) {
+      return const SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Column(
       children: [
         // 1. Header Section
@@ -90,21 +137,34 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Featured Brands",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              Row(
+                children: [
+                  const Text(
+                    "Featured Brands",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${brandLogos.length} brands',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              // Row(
-              //   children: [
-              //     Icon(Icons.chevron_left, color: Colors.grey.shade400, size: 20),
-              //     const SizedBox(width: 8),
-              //     Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
-              //   ],
-              // )
             ],
           ),
         ),
@@ -112,75 +172,62 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
 
         // 2. Scrollable Brands Section
         SizedBox(
-          height: 120,
+          height: 100,
           child: ListView.separated(
             controller: _controller,
             scrollDirection: Axis.horizontal,
             itemCount: brandLogos.length,
             separatorBuilder: (context, index) => VerticalDivider(
               color: Colors.grey.shade200,
-              indent: 20,
-              endIndent: 20,
+              indent: 15,
+              endIndent: 15,
               thickness: 1,
             ),
             itemBuilder: (context, index) {
+              final logoPath = brandLogos[index];
+              final isAsset = logoPath.startsWith('assets/');
+
               return Container(
-                width: 200,
+                width: 150,
                 alignment: Alignment.center,
-                child: Image.asset(
-                  brandLogos[index],
-                  fit: BoxFit.contain,
-                  width: 140,
-                  errorBuilder: (context, error, stackTrace) {
-                    if (kDebugMode) {
-                      print('Error loading: ${brandLogos[index]}');
-                    }
-                    if (kDebugMode) {
-                      print('Error: $error');
-                    }
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.broken_image,
-                          size: 50,
-                          color: Colors.red,
-                        ),
-                        Text(
-                          brandLogos[index].split('/').last,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                child: isAsset
+                    ? Image.asset(
+                        logoPath,
+                        fit: BoxFit.contain,
+                        width: 100,
+                        height: 70,
+                        errorBuilder: (context, error, stackTrace) {
+                          if (kDebugMode) {
+                            print('Error loading: $logoPath');
+                          }
+                          return const Icon(
+                            Icons.broken_image,
+                            size: 40,
+                            color: Colors.grey,
+                          );
+                        },
+                      )
+                    : Image.network(
+                        'http://localhost:8000/$logoPath',
+                        fit: BoxFit.contain,
+                        width: 100,
+                        height: 70,
+                        errorBuilder: (context, error, stackTrace) {
+                          if (kDebugMode) {
+                            print('Error loading: $logoPath');
+                          }
+                          return const Icon(
+                            Icons.broken_image,
+                            size: 40,
+                            color: Colors.grey,
+                          );
+                        },
+                      ),
               );
             },
           ),
         ),
         const Divider(height: 1),
-
-        // 3. Dot Indicators
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(vertical: 15),
-        //   child: Row(
-        //     mainAxisAlignment: MainAxisAlignment.center,
-        //     children: [
-        //       Container(
-        //         width: 20,
-        //         height: 4,
-        //         decoration: BoxDecoration(
-        //           color: Colors.blue,
-        //           borderRadius: BorderRadius.circular(2),
-        //         ),
-        //       ),
-        //       const SizedBox(width: 5),
-        //       _buildInactiveDot(),
-        //       const SizedBox(width: 5),
-        //       _buildInactiveDot(),
-        //     ],
-        //   ),
-        // ),
       ],
     );
   }

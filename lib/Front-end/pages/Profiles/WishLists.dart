@@ -99,16 +99,7 @@ class _WishlistPageState extends State<WishlistPage> {
     _showMessage('Added to cart and removed from wishlist');
   }
 
-  void _subscribeNewsletter() {
-    final email = _emailController.text.trim();
-    final isValid = email.contains('@') && email.contains('.');
-    if (!isValid) {
-      _showMessage('Enter a valid email address.');
-      return;
-    }
-    _showMessage('Subscribed: $email');
-    _emailController.clear();
-  }
+
 
   @override
   void dispose() {

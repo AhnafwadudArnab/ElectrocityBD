@@ -132,17 +132,50 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       _error = null;
     });
     try {
-      final res = await ApiService.getProducts(limit: 200, category: 'all');
-      final list = (res['products'] as List<dynamic>?) ?? [];
+      print('🔍 Loading products from API...');
+      final res = await ApiService.getProducts(limit: 200);
+      print('✅ API Response type: ${res.runtimeType}');
+      
+      // Handle different response formats
+      List<dynamic> list = [];
+      if (res is List) {
+        // Direct list response
+        print('📦 Direct list response with ${res.length} items');
+        list = res;
+      } else if (res is Map) {
+        // Map response with products key
+        print('📦 Map response');
+        list = (res['products'] as List<dynamic>?) ?? 
+               (res['data'] as List<dynamic>?) ?? 
+               [];
+        print('📦 Extracted ${list.length} products from map');
+      }
+      
       _dbProducts = list
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      _totalDb = (res['total'] as int?) ?? _dbProducts.length;
+      
+      print('✅ Loaded ${_dbProducts.length} products');
+      
+      // Load section information for each product
+      await _loadProductSections();
+      
+      // Get total count
+      if (res is Map) {
+        _totalDb = (res['total'] as int?) ?? _dbProducts.length;
+      } else {
+        _totalDb = _dbProducts.length;
+      }
+      
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_cacheKey, jsonEncode(_dbProducts));
-      } catch (_) {}
+        print('💾 Cached products');
+      } catch (e) {
+        print('⚠️ Cache save failed: $e');
+      }
     } on ApiException catch (e) {
+      print('❌ ApiException: ${e.message}');
       bool restored = await _restoreFromCache();
       if (!restored) {
         setState(() {
@@ -150,16 +183,64 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
           _dbProducts = [];
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Error loading products: $e');
+      print('Stack trace: $stackTrace');
       bool restored = await _restoreFromCache();
       if (!restored) {
         setState(() {
-          _error = 'Failed to load products. Is the backend running?';
+          _error = 'Failed to load products: $e';
           _dbProducts = [];
         });
       }
     }
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _loadProductSections() async {
+    try {
+      // Load all section data
+      final bestSellers = await ApiService.getBestSellers(limit: 100);
+      final trending = await ApiService.getTrendingProducts(limit: 100);
+      final techPart = await ApiService.getTechPartProducts();
+      final deals = await ApiService.getDeals();
+      final flashSales = await ApiService.getFlashSales();
+      
+      // Create maps for quick lookup
+      final bestSellerIds = bestSellers.map((p) => p['product_id']).toSet();
+      final trendingIds = trending.map((p) => p['product_id']).toSet();
+      final techPartIds = techPart.map((p) => p['product_id']).toSet();
+      final dealIds = deals.map((p) => p['product_id']).toSet();
+      
+      // Extract flash sale product IDs
+      final flashSaleIds = <int>{};
+      for (var sale in flashSales) {
+        if (sale['products'] != null) {
+          for (var p in sale['products']) {
+            flashSaleIds.add(p['product_id']);
+          }
+        }
+      }
+      
+      // Add section info to each product
+      for (var product in _dbProducts) {
+        final pid = product['product_id'];
+        final sections = <String>[];
+        
+        if (bestSellerIds.contains(pid)) sections.add('Best Sellers');
+        if (trendingIds.contains(pid)) sections.add('Trending');
+        if (techPartIds.contains(pid)) sections.add('Tech Part');
+        if (dealIds.contains(pid)) sections.add('Deals');
+        if (flashSaleIds.contains(pid)) sections.add('Flash Sale');
+        
+        product['sections'] = sections;
+      }
+      
+      print('✅ Loaded section information for products');
+    } catch (e) {
+      print('⚠️ Failed to load section info: $e');
+      // Continue without section info
+    }
   }
 
   Future<bool> _restoreFromCache() async {
@@ -510,6 +591,10 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
           final imageUrl = (p['image_url'] ?? p['imageUrl'] ?? '').toString();
           final rating = (p['rating_avg'] ?? '').toString();
           final reviews = (p['review_count'] ?? '').toString();
+          final sections = (p['sections'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList();
+          
           return _DbProductTile(
             productId: id is int ? id : int.tryParse(id?.toString() ?? ''),
             name: name,
@@ -517,6 +602,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
             imageUrl: imageUrl,
             rating: rating.isNotEmpty ? rating : null,
             reviews: reviews.isNotEmpty ? reviews : null,
+            sections: sections,
             onDeleted: () {
               _dbProducts.removeAt(index);
               setState(() {});
@@ -532,61 +618,224 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
     Color brandOrange,
     Color cardBg,
   ) {
-    return Consumer<AdminProductProvider>(
-      builder: (context, provider, _) {
-        final sections = provider.sectionProducts;
+    return FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
+      future: _loadWebsiteSections(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
+          );
+        }
+        
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading sections: ${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => setState(() {}),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(backgroundColor: brandOrange),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        
+        final sections = snapshot.data ?? {};
         int total = 0;
         for (final list in sections.values) {
           total += list.length;
         }
+        
         if (total == 0) {
-          return const Center(
-            child: Text(
-              'No products in website sections (Best Sellings, Flash Sale, etc.).',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white54),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inventory_2_outlined, size: 48, color: Colors.white24),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No products in website sections yet.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white54, fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Add products to sections like Best Sellers, Trending, etc.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white38, fontSize: 14),
+                  ),
+                ],
+              ),
             ),
           );
         }
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: sections.entries.map((entry) {
-            final sectionName = entry.key;
-            final list = entry.value;
-            if (list.isEmpty) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    sectionName,
-                    style: TextStyle(
-                      color: brandOrange,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+        
+        return RefreshIndicator(
+          onRefresh: () async => setState(() {}),
+          color: brandOrange,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: sections.entries.map((entry) {
+              final sectionName = entry.key;
+              final list = entry.value;
+              if (list.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _getSectionIcon(sectionName),
+                        const SizedBox(width: 8),
+                        Text(
+                          sectionName,
+                          style: TextStyle(
+                            color: brandOrange,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: brandOrange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${list.length} items',
+                            style: TextStyle(
+                              color: brandOrange,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...List.generate(list.length, (index) {
-                    final p = list[index];
-                    return _SectionProductTile(
-                      sectionTitle: sectionName,
-                      index: index,
-                      name: (p['name'] ?? '—').toString(),
-                      price: (p['price'] ?? '').toString(),
-                      imageUrl: (p['imageUrl'] ?? '').toString(),
-                      hasImageBytes: p['image']?.bytes != null,
-                      imageBytes: p['image']?.bytes,
-                    );
-                  }),
-                ],
-              ),
-            );
-          }).toList(),
+                    const SizedBox(height: 12),
+                    ...List.generate(list.length, (index) {
+                      final p = list[index];
+                      return _WebsiteSectionProductTile(
+                        sectionName: sectionName,
+                        productId: p['product_id'],
+                        name: (p['product_name'] ?? '—').toString(),
+                        price: (p['price'] ?? '').toString(),
+                        imageUrl: (p['image_url'] ?? '').toString(),
+                        onRefresh: () => setState(() {}),
+                      );
+                    }),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
         );
       },
     );
+  }
+
+  Widget _getSectionIcon(String sectionName) {
+    IconData icon;
+    Color color;
+    
+    switch (sectionName) {
+      case 'Best Sellers':
+        icon = Icons.star;
+        color = Colors.amber;
+        break;
+      case 'Trending':
+        icon = Icons.trending_up;
+        color = Colors.pink;
+        break;
+      case 'Tech Part':
+        icon = Icons.computer;
+        color = Colors.blue;
+        break;
+      case 'Deals':
+        icon = Icons.local_offer;
+        color = Colors.orange;
+        break;
+      case 'Flash Sale':
+        icon = Icons.flash_on;
+        color = Colors.red;
+        break;
+      default:
+        icon = Icons.category;
+        color = Colors.grey;
+    }
+    
+    return Icon(icon, color: color, size: 20);
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>> _loadWebsiteSections() async {
+    final sections = <String, List<Map<String, dynamic>>>{};
+    
+    try {
+      // Load Best Sellers
+      final bestSellers = await ApiService.getBestSellers(limit: 100);
+      sections['Best Sellers'] = bestSellers
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      
+      // Load Trending
+      final trending = await ApiService.getTrendingProducts(limit: 100);
+      sections['Trending'] = trending
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      
+      // Load Tech Part
+      final techPart = await ApiService.getTechPartProducts();
+      sections['Tech Part'] = techPart
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      
+      // Load Deals
+      final deals = await ApiService.getDeals();
+      sections['Deals'] = deals
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      
+      // Load Flash Sales
+      final flashSales = await ApiService.getFlashSales();
+      final flashProducts = <Map<String, dynamic>>[];
+      for (var sale in flashSales) {
+        if (sale['products'] != null) {
+          for (var p in sale['products']) {
+            flashProducts.add(Map<String, dynamic>.from(p as Map));
+          }
+        }
+      }
+      sections['Flash Sale'] = flashProducts;
+      
+      print('✅ Loaded website sections:');
+      sections.forEach((key, value) {
+        print('  - $key: ${value.length} products');
+      });
+      
+    } catch (e) {
+      print('❌ Error loading website sections: $e');
+      rethrow;
+    }
+    
+    return sections;
   }
 }
 
@@ -598,6 +847,7 @@ class _DbProductTile extends StatelessWidget {
   final VoidCallback onDeleted;
   final String? rating;
   final String? reviews;
+  final List<String>? sections;
 
   const _DbProductTile({
     required this.productId,
@@ -606,6 +856,7 @@ class _DbProductTile extends StatelessWidget {
     required this.imageUrl,
     this.rating,
     this.reviews,
+    this.sections,
     required this.onDeleted,
   });
 
@@ -627,9 +878,69 @@ class _DbProductTile extends StatelessWidget {
               : null,
         ),
         title: Text(name, style: const TextStyle(color: Colors.white)),
-        subtitle: Text(
-          '৳ $price • ID: $productId${(rating != null && rating!.isNotEmpty) ? ' • ★ ${rating}' : ''}${(reviews != null && reviews!.isNotEmpty) ? ' (${reviews})' : ''}',
-          style: const TextStyle(color: Colors.green),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '৳ $price • ID: $productId${(rating != null && rating!.isNotEmpty) ? ' • ★ ${rating}' : ''}${(reviews != null && reviews!.isNotEmpty) ? ' (${reviews})' : ''}',
+              style: const TextStyle(color: Colors.green),
+            ),
+            if (sections != null && sections!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: sections!.map((section) {
+                    Color chipColor;
+                    IconData chipIcon;
+                    
+                    switch (section) {
+                      case 'Best Sellers':
+                        chipColor = Colors.amber;
+                        chipIcon = Icons.star;
+                        break;
+                      case 'Trending':
+                        chipColor = Colors.pink;
+                        chipIcon = Icons.trending_up;
+                        break;
+                      case 'Tech Part':
+                        chipColor = Colors.blue;
+                        chipIcon = Icons.computer;
+                        break;
+                      case 'Deals':
+                        chipColor = Colors.orange;
+                        chipIcon = Icons.local_offer;
+                        break;
+                      case 'Flash Sale':
+                        chipColor = Colors.red;
+                        chipIcon = Icons.flash_on;
+                        break;
+                      default:
+                        chipColor = Colors.grey;
+                        chipIcon = Icons.label;
+                    }
+                    
+                    return Chip(
+                      avatar: Icon(chipIcon, size: 14, color: Colors.white),
+                      label: Text(
+                        section,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      backgroundColor: chipColor.withOpacity(0.3),
+                      side: BorderSide(color: chipColor, width: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    );
+                  }).toList(),
+                ),
+              ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -860,6 +1171,125 @@ class _SectionProductTile extends StatelessWidget {
             content: Text('Product removed from section'),
           ),
         );
+      }
+    }
+  }
+}
+
+class _WebsiteSectionProductTile extends StatelessWidget {
+  final String sectionName;
+  final int productId;
+  final String name;
+  final String price;
+  final String imageUrl;
+  final VoidCallback onRefresh;
+
+  const _WebsiteSectionProductTile({
+    required this.sectionName,
+    required this.productId,
+    required this.name,
+    required this.price,
+    required this.imageUrl,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const Color cardBg = Color(0xFF151C2C);
+
+    return Card(
+      color: cardBg,
+      margin: const EdgeInsets.only(bottom: 6),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: Colors.white12,
+          backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+          child: imageUrl.isEmpty
+              ? const Icon(Icons.image, color: Colors.white54)
+              : null,
+        ),
+        title: Text(
+          name,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+        subtitle: Text(
+          '৳ $price • ID: $productId',
+          style: const TextStyle(color: Colors.green, fontSize: 12),
+        ),
+        trailing: IconButton(
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.redAccent,
+            size: 22,
+          ),
+          tooltip: 'Remove from section',
+          onPressed: () => _confirmRemove(context),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmRemove(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF151C2C),
+        title: const Text(
+          'Remove from section?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Remove "$name" from "$sectionName"?\n\nNote: This will remove it from the database section table.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    
+    if (ok == true) {
+      try {
+        // Remove from appropriate section based on name
+        switch (sectionName) {
+          case 'Best Sellers':
+            await ApiService.removeBestSeller(productId);
+            break;
+          case 'Trending':
+            await ApiService.removeTrendingProduct(productId);
+            break;
+          case 'Deals':
+            await ApiService.deleteDeal(productId);
+            break;
+          // Add other sections as needed
+        }
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.green,
+              content: Text('Product removed from section'),
+            ),
+          );
+          onRefresh();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text('Failed to remove: $e'),
+            ),
+          );
+        }
       }
     }
   }
