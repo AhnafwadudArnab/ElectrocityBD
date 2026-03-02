@@ -419,6 +419,19 @@ class _SignupState extends State<Signup> {
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
   }) {
+    IconData prefixIcon;
+    if (label.toLowerCase().contains('email')) {
+      prefixIcon = Icons.email_outlined;
+    } else if (label.toLowerCase().contains('password')) {
+      prefixIcon = Icons.lock_outline;
+    } else if (label.toLowerCase().contains('phone')) {
+      prefixIcon = Icons.phone_outlined;
+    } else if (label.toLowerCase().contains('name')) {
+      prefixIcon = Icons.person_outline;
+    } else {
+      prefixIcon = Icons.text_fields;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: SizedBox(
@@ -432,6 +445,7 @@ class _SignupState extends State<Signup> {
           decoration: InputDecoration(
             labelText: label,
             isDense: false,
+            prefixIcon: Icon(prefixIcon, size: 24),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             suffixIcon: isPassword
                 ? IconButton(

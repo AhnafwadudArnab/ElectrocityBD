@@ -544,6 +544,15 @@ class _LogInState extends State<LogIn> {
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
   }) {
+    IconData prefixIcon;
+    if (label.toLowerCase().contains('email') || label.toLowerCase().contains('username')) {
+      prefixIcon = Icons.person_outline;
+    } else if (label.toLowerCase().contains('password')) {
+      prefixIcon = Icons.lock_outline;
+    } else {
+      prefixIcon = Icons.text_fields;
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: AppDimensions.padding(context) * 0.8),
       child: SizedBox(
@@ -557,6 +566,7 @@ class _LogInState extends State<LogIn> {
           decoration: InputDecoration(
             labelText: label,
             isDense: false,
+            prefixIcon: Icon(prefixIcon, size: 24),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
                 AppDimensions.borderRadius(context),
