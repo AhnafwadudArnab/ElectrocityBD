@@ -76,24 +76,32 @@ class Order {
                     $stock_stmt->execute([$item['quantity'], $item['product_id'], $item['quantity']]);
                 }
                 
-                // Update best_sellers
+                // Update best_sellers (with error handling)
                 if ((int)$item['product_id'] > 0) {
-                    $best_query = "INSERT INTO best_sellers (product_id, sales_count) 
-                                   VALUES (?, ?)
-                                   ON DUPLICATE KEY UPDATE 
-                                   sales_count = sales_count + VALUES(sales_count), last_updated = NOW()";
-                    $best_stmt = $this->conn->prepare($best_query);
-                    $best_stmt->execute([$item['product_id'], $item['quantity']]);
+                    try {
+                        $best_query = "INSERT INTO best_sellers (product_id, sales_count) 
+                                       VALUES (?, ?)
+                                       ON DUPLICATE KEY UPDATE 
+                                       sales_count = sales_count + VALUES(sales_count)";
+                        $best_stmt = $this->conn->prepare($best_query);
+                        $best_stmt->execute([$item['product_id'], $item['quantity']]);
+                    } catch (Exception $e) {
+                        error_log("Best sellers update failed (non-critical): " . $e->getMessage());
+                    }
                 }
                 
-                // Update trending score (simple algorithm: +1 for each purchase)
+                // Update trending score (with error handling)
                 if ((int)$item['product_id'] > 0) {
-                    $trend_query = "INSERT INTO trending_products (product_id, trending_score) 
-                                   VALUES (?, 1)
-                                   ON DUPLICATE KEY UPDATE 
-                                   trending_score = trending_score + 1, last_updated = NOW()";
-                    $trend_stmt = $this->conn->prepare($trend_query);
-                    $trend_stmt->execute([$item['product_id']]);
+                    try {
+                        $trend_query = "INSERT INTO trending_products (product_id, trending_score) 
+                                       VALUES (?, 1)
+                                       ON DUPLICATE KEY UPDATE 
+                                       trending_score = trending_score + 1";
+                        $trend_stmt = $this->conn->prepare($trend_query);
+                        $trend_stmt->execute([$item['product_id']]);
+                    } catch (Exception $e) {
+                        error_log("Trending products update failed (non-critical): " . $e->getMessage());
+                    }
                 }
             }
             
