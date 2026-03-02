@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../All Pages/CART/Cart_provider.dart';
 import '../Dimensions/responsive_dimensions.dart';
 import '../pages/Profiles/Wishlist_provider.dart';
+import '../utils/optimized_image_widget.dart';
 
 class ProductCard extends StatelessWidget {
   final String? productId;
@@ -57,13 +58,14 @@ class ProductCard extends StatelessWidget {
           // Image area with badges
           Stack(
             children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(8),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1.2,
-                  child: Image.network(imageUrl, fit: BoxFit.cover),
+              AspectRatio(
+                aspectRatio: 1.2,
+                child: OptimizedImageWidget(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
                 ),
               ),
               if (discountPercent != null)

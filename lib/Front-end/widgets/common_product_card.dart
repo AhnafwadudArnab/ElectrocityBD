@@ -5,15 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
-import '../utils/image_resolver.dart';
+import '../utils/optimized_image_widget.dart';
 
 class CommonProductCard extends StatelessWidget {
   final ProductData product;
   final VoidCallback? onTap;
 
   const CommonProductCard({super.key, required this.product, this.onTap});
-
-  ImageProvider _resolveImageProvider(String path) => ImageResolver.imageProvider(path);
 
   @override
   Widget build(BuildContext context) {
@@ -51,77 +49,78 @@ class CommonProductCard extends StatelessWidget {
             // Product Image
             Expanded(
               flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(AppDimensions.borderRadius(context)),
-                  ),
-                  color: Colors.grey[100],
-                  image: DecorationImage(
-                    image: _resolveImageProvider(product.images.isNotEmpty ? product.images.first : 'assets/images/placeholder.png'),
+              child: Stack(
+                children: [
+                  OptimizedImageWidget(
+                    imageUrl: product.images.isNotEmpty
+                        ? product.images.first
+                        : 'assets/images/placeholder.png',
                     fit: BoxFit.cover,
+                    width: double.infinity,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(AppDimensions.borderRadius(context)),
+                    ),
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          context.read<WishlistProvider>().toggleWishlist(
-                            productId: product.id,
-                            name: product.name,
-                            price: product.priceBDT,
-                            imageUrl: product.images.first,
-                            category: product.category,
-                          );
-                          final isAdded = context
-                              .read<WishlistProvider>()
-                              .isInWishlist(product.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                isAdded
-                                    ? '✓ Wishlist updated'
-                                    : '✓ Removed from wishlist',
-                              ),
-                              duration: const Duration(seconds: 2),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        context.read<WishlistProvider>().toggleWishlist(
+                          productId: product.id,
+                          name: product.name,
+                          price: product.priceBDT,
+                          imageUrl: product.images.isNotEmpty
+                              ? product.images.first
+                              : 'assets/images/placeholder.png',
+                          category: product.category,
+                        );
+                        final isAdded = context
+                            .read<WishlistProvider>()
+                            .isInWishlist(product.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isAdded
+                                  ? '✓ Wishlist updated'
+                                  : '✓ Removed from wishlist',
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
+                            duration: const Duration(seconds: 2),
                           ),
-                          child: Consumer<WishlistProvider>(
-                            builder: (context, wishlistProvider, _) {
-                              final isInWishlist = wishlistProvider
-                                  .isInWishlist(product.id);
-                              return Icon(
-                                isInWishlist
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                size: AppDimensions.iconSize(context) * 0.7,
-                                color: isInWishlist
-                                    ? Colors.red
-                                    : Colors.grey[600],
-                              );
-                            },
-                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Consumer<WishlistProvider>(
+                          builder: (context, wishlistProvider, _) {
+                            final isInWishlist = wishlistProvider.isInWishlist(
+                              product.id,
+                            );
+                            return Icon(
+                              isInWishlist
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              size: AppDimensions.iconSize(context) * 0.7,
+                              color: isInWishlist
+                                  ? Colors.red
+                                  : Colors.grey[600],
+                            );
+                          },
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             // Product Info

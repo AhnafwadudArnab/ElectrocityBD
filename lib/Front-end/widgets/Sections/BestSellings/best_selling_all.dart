@@ -6,7 +6,7 @@ import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../utils/api_service.dart';
-import '../../../utils/image_resolver.dart';
+import '../../../utils/optimized_image_widget.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -226,9 +226,12 @@ class _BestSellingAllState extends State<BestSellingAll> {
                             Expanded(
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: ImageResolver.image(
+                                child: OptimizedImageWidget(
                                   imageUrl: it['image'] as String?,
                                   fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),

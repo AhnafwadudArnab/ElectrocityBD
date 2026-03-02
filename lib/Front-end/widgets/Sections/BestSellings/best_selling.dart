@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
-import '../../../utils/image_resolver.dart';
+import '../../../utils/optimized_image_widget.dart';
 import 'best_selling_all.dart';
 
 class BestSellingBox extends StatefulWidget {
@@ -239,11 +239,12 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                 height: 60,
                 color: Colors.grey[200],
                 child: imageUrl.isNotEmpty
-                    ? ImageResolver.image(
+                    ? OptimizedImageWidget(
                         imageUrl: imageUrl,
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(8),
                       )
                     : const Icon(Icons.image, color: Colors.grey),
               ),
@@ -397,11 +398,12 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                 height: 60,
                 color: Colors.grey[200],
                 child: imageUrl != null
-                    ? ImageResolver.image(
+                    ? OptimizedImageWidget(
                         imageUrl: imageUrl,
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(8),
                       )
                     : imageBytes != null
                     ? Image.memory(

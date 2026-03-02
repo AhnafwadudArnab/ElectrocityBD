@@ -9,7 +9,7 @@ import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../utils/api_service.dart';
-import '../../../utils/image_resolver.dart';
+import '../../../utils/optimized_image_widget.dart';
 import 'Flash_sale_all.dart';
 
 class FlashSaleItem {
@@ -325,9 +325,14 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
                                                   top: Radius.circular(12),
                                                 ),
                                             child: isFromDb
-                                                ? ImageResolver.image(
+                                                ? OptimizedImageWidget(
                                                     imageUrl: product.image,
                                                     fit: BoxFit.fill,
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    borderRadius: const BorderRadius.vertical(
+                                                      top: Radius.circular(12),
+                                                    ),
                                                   )
                                                 : isFromAdmin
                                                     ? (adminProducts[index - _dbFlashItems.length]['image']?.bytes != null
@@ -339,20 +344,18 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
                                                           )
                                                         : (adminProducts[index - _dbFlashItems.length]['imageUrl'] != null &&
                                                                 (adminProducts[index - _dbFlashItems.length]['imageUrl'] as String).isNotEmpty
-                                                            ? Image.network(
-                                                                adminProducts[index - _dbFlashItems.length]['imageUrl'] as String,
+                                                            ? OptimizedImageWidget(
+                                                                imageUrl: adminProducts[index - _dbFlashItems.length]['imageUrl'] as String,
                                                                 fit: BoxFit.fill,
                                                                 width: double.infinity,
                                                                 height: double.infinity,
-                                                                errorBuilder: (_, __, ___) => Container(color: Colors.grey[300], child: const Icon(Icons.image)),
                                                               )
                                                             : Container(color: Colors.grey[300], child: const Icon(Icons.image))))
-                                                    : Image.asset(
-                                                        product.image,
+                                                    : OptimizedImageWidget(
+                                                        imageUrl: product.image,
                                                         fit: BoxFit.fill,
                                                         width: double.infinity,
                                                         height: double.infinity,
-                                                        errorBuilder: (_, __, ___) => const Icon(Icons.error),
                                                       ),
                                           ),
                                           if (isFromAdmin)

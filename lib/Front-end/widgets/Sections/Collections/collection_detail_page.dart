@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../Provider/Admin_product_provider.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../utils/api_service.dart';
-import '../../../utils/image_resolver.dart';
+import '../../../utils/optimized_image_widget.dart';
 import '../../footer.dart';
 import '../../header.dart';
 
@@ -37,7 +37,14 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   // Pagination
   int _currentPage = 1;
   int _itemsPerPage = 12;
-  int get _totalPages => (_allProducts.length / _itemsPerPage).ceil();
+  int get _totalPages {
+    final total = _allProducts.length;
+    if (total == 0) return 1;
+    return (total / _itemsPerPage).ceil();
+  }
+  
+  // Maximum pages to show in pagination
+  int get _maxPagesToShow => 5;
 
   @override
   void initState() {
@@ -403,72 +410,163 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
 
           // Pagination
           const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _currentPage > 1
-                    ? () {
+          if (_totalPages > 1)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Previous button
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _currentPage > 1
+                      ? () {
+                          setState(() {
+                            _currentPage--;
+                          });
+                        }
+                      : null,
+                  color: _currentPage > 1 ? Colors.grey : Colors.grey[300],
+                ),
+                
+                // Smart pagination: Show all pages if <= 7, otherwise show with ellipsis
+                if (_totalPages <= 7) ...[
+                  // Show all pages if 7 or less
+                  ...List.generate(_totalPages, (index) {
+                    final pageNum = index + 1;
+                    return InkWell(
+                      onTap: () {
                         setState(() {
-                          _currentPage--;
+                          _currentPage = pageNum;
                         });
-                      }
-                    : null,
-                color: _currentPage > 1 ? Colors.grey : Colors.grey[300],
-              ),
-              ...List.generate(_totalPages > 5 ? 5 : _totalPages, (index) {
-                final pageNum = index + 1;
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      _currentPage = pageNum;
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: _currentPage == pageNum
-                          ? Colors.red
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: _currentPage == pageNum
-                            ? Colors.red
-                            : Colors.grey[300]!,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$pageNum',
-                        style: TextStyle(
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
                           color: _currentPage == pageNum
-                              ? Colors.white
-                              : Colors.black,
-                          fontWeight: FontWeight.w500,
+                              ? Colors.red
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _currentPage == pageNum
+                                ? Colors.red
+                                : Colors.grey[300]!,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$pageNum',
+                            style: TextStyle(
+                              color: _currentPage == pageNum
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ] else ...[
+                  // Show first 5 pages + ellipsis + last page
+                  ...List.generate(5, (index) {
+                    final pageNum = index + 1;
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _currentPage = pageNum;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _currentPage == pageNum
+                              ? Colors.red
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _currentPage == pageNum
+                                ? Colors.red
+                                : Colors.grey[300]!,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$pageNum',
+                            style: TextStyle(
+                              color: _currentPage == pageNum
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(width: 8),
+                  Text(
+                    '...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _currentPage = _totalPages;
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: _currentPage == _totalPages
+                            ? Colors.red
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: _currentPage == _totalPages
+                              ? Colors.red
+                              : Colors.grey[300]!,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$_totalPages',
+                          style: TextStyle(
+                            color: _currentPage == _totalPages
+                                ? Colors.white
+                                : Colors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                );
-              }),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: _currentPage < _totalPages
-                    ? () {
-                        setState(() {
-                          _currentPage++;
-                        });
-                      }
-                    : null,
-                color: _currentPage < _totalPages
-                    ? Colors.grey
-                    : Colors.grey[300],
-              ),
-            ],
-          ),
+                ],
+                
+                // Next button
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: _currentPage < _totalPages
+                      ? () {
+                          setState(() {
+                            _currentPage++;
+                          });
+                        }
+                      : null,
+                  color: _currentPage < _totalPages
+                      ? Colors.grey
+                      : Colors.grey[300],
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -529,9 +627,11 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                 children: [
                   Center(
                     child: (product['image'] ?? '').toString().isNotEmpty
-                        ? ImageResolver.image(
+                        ? OptimizedImageWidget(
                             imageUrl: product['image'],
                             fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
                           )
                         : Icon(
                             Icons.shopping_bag_outlined,
