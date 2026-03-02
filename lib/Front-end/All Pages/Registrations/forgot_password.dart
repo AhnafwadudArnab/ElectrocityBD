@@ -451,6 +451,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
   }) {
+    IconData prefixIcon;
+    if (label.toLowerCase().contains('email')) {
+      prefixIcon = Icons.email_outlined;
+    } else if (label.toLowerCase().contains('password')) {
+      prefixIcon = Icons.lock_outline;
+    } else if (label.toLowerCase().contains('code') || label.toLowerCase().contains('token')) {
+      prefixIcon = Icons.vpn_key_outlined;
+    } else {
+      prefixIcon = Icons.text_fields;
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: AppDimensions.padding(context) * 0.8),
       child: SizedBox(
@@ -464,6 +475,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           decoration: InputDecoration(
             labelText: label,
             isDense: false,
+            prefixIcon: Icon(prefixIcon, size: 24),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
                 AppDimensions.borderRadius(context),
