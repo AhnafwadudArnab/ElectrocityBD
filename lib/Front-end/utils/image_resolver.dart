@@ -16,32 +16,64 @@ class ImageResolver {
     return url.substring(_assetPrefix.length);
   }
 
+  /// Check if the URL is a Flutter asset path
+  static bool isFlutterAsset(String? url) {
+    if (url == null || url.isEmpty) return false;
+    // Check for common asset patterns
+    return url.startsWith('assets/') || 
+           url.startsWith('/assets/') ||
+           url.startsWith('asset:');
+  }
+
   /// Resolve to a full network URL if backend returned a relative path (e.g. /uploads/...).
   static String _resolveNetworkUrl(String imageUrl) {
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
     
-    // If it's a Flutter asset path (starts with /assets/ or assets/), convert to asset: prefix
-    if (imageUrl.startsWith('/assets/') || imageUrl.startsWith('assets/')) {
-      return imageUrl; // Will be handled as asset below
-    }
+    // If it's a Flutter asset path, don't modify it
+    if (isFlutterAsset(imageUrl)) return imageUrl;
     
     if (imageUrl.startsWith('/')) return AppConstants.baseUrlImages + imageUrl;
     return AppConstants.baseUrlImages + '/' + imageUrl;
   }
 
+  /// Get the correct asset path for Flutter
+  static String _getAssetPath(String imageUrl) {
+    // Remove leading slash if present
+    if (imageUrl.startsWith('/assets/')) {
+      return imageUrl.substring(1); // Remove leading /
+    }
+    // Already in correct format
+    if (imageUrl.startsWith('assets/')) {
+      return imageUrl;
+    }
+    // Has asset: prefix
+    if (imageUrl.startsWith('asset:')) {
+      return imageUrl.substring(6); // Remove 'asset:' prefix
+    }
+    return imageUrl;
+  }
+
   static ImageProvider imageProvider(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) return const AssetImage('assets/images/placeholder.png');
-    if (isAssetUrl(imageUrl)) return AssetImage(assetPath(imageUrl));
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const AssetImage('assets/images/placeholder.png');
+    }
+    
+    // Handle asset: prefix
+    if (isAssetUrl(imageUrl)) {
+      return AssetImage(assetPath(imageUrl));
+    }
     
     // Handle Flutter asset paths from database
-    if (imageUrl.startsWith('/assets/')) {
-      return AssetImage(imageUrl.substring(1)); // Remove leading /
-    }
-    if (imageUrl.startsWith('assets/')) {
-      return AssetImage(imageUrl);
+    if (isFlutterAsset(imageUrl)) {
+      return AssetImage(_getAssetPath(imageUrl));
     }
     
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return NetworkImage(imageUrl);
+    // Handle network URLs
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return NetworkImage(imageUrl);
+    }
+    
+    // Handle relative paths (uploads from backend)
     return NetworkImage(_resolveNetworkUrl(imageUrl));
   }
 
@@ -55,52 +87,82 @@ class ImageResolver {
     if (imageUrl == null || imageUrl.isEmpty) {
       return _placeholderBox(width: width, height: height, child: placeholder);
     }
+    
+    // Handle asset: prefix
     if (isAssetUrl(imageUrl)) {
+      final path = assetPath(imageUrl);
       return Image.asset(
-        assetPath(imageUrl),
+        path,
         fit: fit,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading asset image: $path - $error');
+          return _placeholderBox(width: width, height: height, child: placeholder);
+        },
       );
     }
     
     // Handle Flutter asset paths from database
-    if (imageUrl.startsWith('/assets/')) {
+    if (isFlutterAsset(imageUrl)) {
+      final path = _getAssetPath(imageUrl);
       return Image.asset(
-        imageUrl.substring(1), // Remove leading /
+        path,
         fit: fit,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
-      );
-    }
-    if (imageUrl.startsWith('assets/')) {
-      return Image.asset(
-        imageUrl,
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading Flutter asset: $path - $error');
+          return _placeholderBox(width: width, height: height, child: placeholder);
+        },
       );
     }
     
+    // Handle network URLs
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return Image.network(
         imageUrl,
         fit: fit,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading network image: $imageUrl - $error');
+          return _placeholderBox(width: width, height: height, child: placeholder);
+        },
       );
     }
+    
+    // Handle relative paths (uploads from backend)
     final networkUrl = _resolveNetworkUrl(imageUrl);
     return Image.network(
       networkUrl,
       fit: fit,
       width: width,
       height: height,
-      errorBuilder: (_, __, ___) => _placeholderBox(width: width, height: height, child: placeholder),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        print('Error loading relative path image: $networkUrl - $error');
+        return _placeholderBox(width: width, height: height, child: placeholder);
+      },
     );
   }
 

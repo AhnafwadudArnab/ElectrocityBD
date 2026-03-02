@@ -43,12 +43,24 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
     try {
       final brands = await ApiService.getBrands();
       if (mounted) {
+        // Remove duplicates by brand_name and keep unique brands
+        final uniqueBrands = <String, Map<String, dynamic>>{};
+        for (final brand in brands) {
+          final brandMap = Map<String, dynamic>.from(brand as Map);
+          final brandName = brandMap['brand_name']?.toString().toLowerCase() ?? '';
+          if (brandName.isNotEmpty && !uniqueBrands.containsKey(brandName)) {
+            uniqueBrands[brandName] = brandMap;
+          }
+        }
+        
         setState(() {
-          _brands = brands
-              .map((e) => Map<String, dynamic>.from(e as Map))
-              .toList();
+          _brands = uniqueBrands.values.toList();
           _loading = false;
         });
+        
+        if (kDebugMode) {
+          print('🏢 Loaded ${_brands.length} unique brands from ${brands.length} total');
+        }
         
         // Start auto-scroll after brands are loaded and widget is built
         Future.delayed(const Duration(milliseconds: 500), () {

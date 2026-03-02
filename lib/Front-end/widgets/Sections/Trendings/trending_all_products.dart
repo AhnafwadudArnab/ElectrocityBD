@@ -696,10 +696,20 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                width: double.infinity,
-                child: ImageResolver.image(imageUrl: image, fit: BoxFit.cover),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: ImageResolver.image(
+                    imageUrl: image,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
               ),
             ),
             Padding(

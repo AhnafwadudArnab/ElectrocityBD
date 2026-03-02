@@ -364,7 +364,7 @@ class ApiService {
     int productId,
     Map<String, bool> sections,
   ) async {
-    await put('/products/sections?id=$productId', sections);
+    await put('/product_sections?id=$productId', sections);
   }
 
   static Future<Map<String, dynamic>> getProduct(int id) async {

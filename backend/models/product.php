@@ -57,18 +57,19 @@ class Product {
         $params = [];
         
         if ($category) {
-            // Support both category_id (integer) and collection slug (string)
+            // Support category_id (integer), category name (string), or collection slug (string)
             if (is_numeric($category)) {
                 $conditions[] = "p.category_id = :category";
                 $params[':category'] = $category;
             } else {
-                // Try to find products by collection slug
-                $conditions[] = "p.product_id IN (
+                // Try category name first, then collection slug
+                $conditions[] = "(c.category_name = :category_name OR p.product_id IN (
                     SELECT cp.product_id 
                     FROM collection_products cp
                     JOIN collections col ON cp.collection_id = col.collection_id
                     WHERE col.slug = :category_slug
-                )";
+                ))";
+                $params[':category_name'] = $category;
                 $params[':category_slug'] = $category;
             }
         }

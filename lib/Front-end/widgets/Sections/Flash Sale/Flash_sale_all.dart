@@ -124,7 +124,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
         'title': p['name'] ?? '',
         'price': price,
         'category': p['category'] ?? 'Uncategorized',
-        'brand': 'Admin Product',
+        'brand': p['brand'] ?? 'Unknown',  // Use actual brand if available
         'specs': <String>[],
         'image': imageUrl,
         'isAdmin': true,
@@ -565,26 +565,35 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
             Expanded(
               child: Stack(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    width: double.infinity,
-                    child: item['isDb'] == true
-                        ? ImageResolver.image(
-                            imageUrl: item['image'] as String?,
-                            fit: BoxFit.contain,
-                          )
-                        : isAdmin
-                        ? _buildAdminImage(item)
-                        : Image.asset(
-                            item['image'] as String,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.image_not_supported),
-                              );
-                            },
-                          ),
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(8),
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: item['isDb'] == true
+                          ? ImageResolver.image(
+                              imageUrl: item['image'] as String?,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : isAdmin
+                          ? _buildAdminImage(item)
+                          : Image.asset(
+                              item['image'] as String,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.image_not_supported),
+                                );
+                              },
+                            ),
+                    ),
                   ),
                   if (isAdmin)
                     Positioned(
