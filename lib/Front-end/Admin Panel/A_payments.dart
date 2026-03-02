@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/payment_config.dart';
+import '../utils/api_service.dart';
 
 class AdminPaymentsPage extends StatefulWidget {
   final bool embedded;
@@ -11,56 +11,268 @@ class AdminPaymentsPage extends StatefulWidget {
 
 class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   bool _loading = true;
-  PaymentConfig _cfg = const PaymentConfig();
-  final _bkashCtrl = TextEditingController();
-  final _nagadCtrl = TextEditingController();
+  List<Map<String, dynamic>> _paymentMethods = [];
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _loadPaymentMethods();
   }
 
-  Future<void> _load() async {
-    final cfg = await PaymentConfigStore.load();
-    if (!mounted) return;
+  Future<void> _loadPaymentMethods() async {
     setState(() {
-      _cfg = cfg;
-      _bkashCtrl.text = cfg.bkashNumber;
-      _nagadCtrl.text = cfg.nagadNumber;
-      _loading = false;
+      _loading = true;
+      _error = null;
     });
+
+    try {
+      final response = await ApiService.get('payment_methods');
+      if (response['success'] == true && response['data'] != null) {
+        setState(() {
+          _paymentMethods = List<Map<String, dynamic>>.from(response['data']);
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = response['message'] ?? 'Failed to load payment methods';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error: $e';
+        _loading = false;
+      });
+    }
   }
 
-  Future<void> _save() async {
-    final next = _cfg.copyWith(
-      bkashNumber: _bkashCtrl.text.trim(),
-      nagadNumber: _nagadCtrl.text.trim(),
-    );
-    await PaymentConfigStore.save(next);
-    if (!mounted) return;
-    setState(() {
-      _cfg = next;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Payment settings saved')),
+  Future<void> _toggleStatus(int methodId, bool currentStatus) async {
+    try {
+      final response = await ApiService.put(
+        'payment_methods/$methodId',
+        {
+          'toggle_status': true,
+          'is_enabled': currentStatus ? 0 : 1,
+        },
+      );
+
+      if (response['success'] == true) {
+        await _loadPaymentMethods();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment method ${currentStatus ? 'disabled' : 'enabled'}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to update status'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showAddEditDialog({Map<String, dynamic>? method}) async {
+    final isEdit = method != null;
+    final nameController = TextEditingController(text: method?['method_name'] ?? '');
+    final accountController = TextEditingController(text: method?['account_number'] ?? '');
+    final typeController = TextEditingController(text: method?['method_type'] ?? 'mobile_banking');
+    bool isEnabled = method?['is_enabled'] == 1;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(isEdit ? 'Edit Payment Method' : 'Add Payment Method'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Method Name',
+                    hintText: 'e.g., bKash, Nagad, Rocket',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: typeController.text,
+                  decoration: const InputDecoration(labelText: 'Method Type'),
+                  items: const [
+                    DropdownMenuItem(value: 'mobile_banking', child: Text('Mobile Banking')),
+                    DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer')),
+                    DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                    DropdownMenuItem(value: 'card', child: Text('Card Payment')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) typeController.text = value;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: accountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Account Number',
+                    hintText: '01XXXXXXXXX',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Enabled'),
+                  subtitle: const Text('Show this method in checkout'),
+                  value: isEnabled,
+                  onChanged: (value) {
+                    setDialogState(() {
+                      isEnabled = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter method name')),
+                  );
+                  return;
+                }
+
+                Navigator.pop(context);
+
+                try {
+                  final data = {
+                    'method_name': name,
+                    'method_type': typeController.text,
+                    'account_number': accountController.text.trim(),
+                    'is_enabled': isEnabled ? 1 : 0,
+                    'display_order': method?['display_order'] ?? 0,
+                  };
+
+                  final response = isEdit
+                      ? await ApiService.put('payment_methods/${method['method_id']}', data)
+                      : await ApiService.post('payment_methods', data);
+
+                  if (response['success'] == true) {
+                    await _loadPaymentMethods();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(isEdit ? 'Payment method updated' : 'Payment method added'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(response['message'] ?? 'Operation failed'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(isEdit ? 'Update' : 'Add'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  @override
-  void dispose() {
-    _bkashCtrl.dispose();
-    _nagadCtrl.dispose();
-    super.dispose();
+  Future<void> _deleteMethod(int methodId, String methodName) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Payment Method'),
+        content: Text('Are you sure you want to delete "$methodName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final response = await ApiService.delete('payment_methods/$methodId');
+      if (response['success'] == true) {
+        await _loadPaymentMethods();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment method deleted'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to delete'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     const cardBg = Color(0xFF151C2C);
     const brandOrange = Color(0xFFF59E0B);
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -71,116 +283,203 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             border: Border(bottom: BorderSide(color: Colors.white10)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: const Row(
+          child: Row(
             children: [
-              Text('Management / Payments',
-                  style: TextStyle(color: Colors.white54, fontSize: 14)),
+              const Text(
+                'Management / Payments',
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () => _showAddEditDialog(),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Payment Method'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brandOrange,
+                  foregroundColor: Colors.black,
+                ),
+              ),
             ],
           ),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Container(
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10),
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Payment Methods',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Enable/disable methods and set receiver numbers used in checkout.',
-                    style: TextStyle(color: Colors.white60),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile.adaptive(
-                    value: _cfg.bkashEnabled,
-                    onChanged: (v) =>
-                        setState(() => _cfg = _cfg.copyWith(bkashEnabled: v)),
-                    title: const Text('bKash',
-                        style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Enable bKash in checkout',
-                        style: TextStyle(color: Colors.white54)),
-                    activeColor: brandOrange,
-                  ),
-                  TextField(
-                    controller: _bkashCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'bKash Personal Number',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      hintText: '01XXXXXXXXX',
-                      hintStyle: const TextStyle(color: Colors.white38),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white24),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: brandOrange),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile.adaptive(
-                    value: _cfg.nagadEnabled,
-                    onChanged: (v) =>
-                        setState(() => _cfg = _cfg.copyWith(nagadEnabled: v)),
-                    title: const Text('Nagad',
-                        style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Enable Nagad in checkout',
-                        style: TextStyle(color: Colors.white54)),
-                    activeColor: brandOrange,
-                  ),
-                  TextField(
-                    controller: _nagadCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'Nagad Personal Number',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      hintText: '01XXXXXXXXX',
-                      hintStyle: const TextStyle(color: Colors.white38),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white24),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: brandOrange),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 24),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: ElevatedButton.icon(
-                      onPressed: _save,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Save Settings'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: brandOrange,
-                        foregroundColor: Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        if (_error != null)
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.red[100],
+            child: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.red),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_error!, style: const TextStyle(color: Colors.red))),
+                TextButton(
+                  onPressed: _loadPaymentMethods,
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
           ),
+        Expanded(
+          child: _paymentMethods.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.payment, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No payment methods found',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => _showAddEditDialog(),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Payment Method'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: brandOrange,
+                          foregroundColor: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadPaymentMethods,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(32),
+                    itemCount: _paymentMethods.length,
+                    itemBuilder: (context, index) {
+                      final method = _paymentMethods[index];
+                      final isEnabled = method['is_enabled'] == 1;
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isEnabled ? brandOrange.withOpacity(0.3) : Colors.white10,
+                            width: 2,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(20),
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: isEnabled ? brandOrange.withOpacity(0.2) : Colors.grey[800],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              _getMethodIcon(method['method_type']),
+                              color: isEnabled ? brandOrange : Colors.grey,
+                              size: 28,
+                            ),
+                          ),
+                          title: Text(
+                            method['method_name'] ?? 'Unknown',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+                              Text(
+                                'Type: ${_formatMethodType(method['method_type'])}',
+                                style: const TextStyle(color: Colors.white60),
+                              ),
+                              if (method['account_number'] != null && 
+                                  method['account_number'].toString().isNotEmpty)
+                                Text(
+                                  'Account: ${method['account_number']}',
+                                  style: const TextStyle(color: Colors.white60),
+                                ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isEnabled ? Colors.green[700] : Colors.red[700],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  isEnabled ? 'ENABLED' : 'DISABLED',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Switch(
+                                value: isEnabled,
+                                onChanged: (value) {
+                                  _toggleStatus(method['method_id'], isEnabled);
+                                },
+                                activeColor: brandOrange,
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () => _showAddEditDialog(method: method),
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                tooltip: 'Edit',
+                              ),
+                              IconButton(
+                                onPressed: () => _deleteMethod(
+                                  method['method_id'],
+                                  method['method_name'],
+                                ),
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'Delete',
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
         ),
       ],
     );
+  }
+
+  IconData _getMethodIcon(String? type) {
+    switch (type) {
+      case 'mobile_banking':
+        return Icons.phone_android;
+      case 'bank_transfer':
+        return Icons.account_balance;
+      case 'cash':
+        return Icons.money;
+      case 'card':
+        return Icons.credit_card;
+      default:
+        return Icons.payment;
+    }
+  }
+
+  String _formatMethodType(String? type) {
+    switch (type) {
+      case 'mobile_banking':
+        return 'Mobile Banking';
+      case 'bank_transfer':
+        return 'Bank Transfer';
+      case 'cash':
+        return 'Cash';
+      case 'card':
+        return 'Card Payment';
+      default:
+        return type ?? 'Unknown';
+    }
   }
 }

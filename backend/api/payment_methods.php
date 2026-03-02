@@ -1,0 +1,123 @@
+<?php
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/../controllers/paymentMethodController.php';
+
+$controller = new PaymentMethodController($conn);
+$method = $_SERVER['REQUEST_METHOD'];
+$input = json_decode(file_get_contents('php://input'), true);
+
+// Get payment method ID from URL if present
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri_parts = explode('/', $uri);
+$method_id = null;
+
+// Extract ID from URL like /api/payment_methods/1
+if (count($uri_parts) > 3 && is_numeric($uri_parts[count($uri_parts) - 1])) {
+    $method_id = (int)$uri_parts[count($uri_parts) - 1];
+}
+
+try {
+    switch ($method) {
+        case 'GET':
+            if ($method_id) {
+                // Get single payment method
+                $result = $controller->getById($method_id);
+            } elseif (isset($_GET['enabled']) && $_GET['enabled'] === 'true') {
+                // Get only enabled methods
+                $result = $controller->getEnabled();
+            } else {
+                // Get all payment methods
+                $result = $controller->getAll();
+            }
+            break;
+            
+        case 'POST':
+            // Create new payment method (admin only)
+            $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+            $token = str_replace('Bearer ', '', $token);
+            
+            if (empty($token)) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit;
+            }
+            
+            $result = $controller->create($input);
+            break;
+            
+        case 'PUT':
+            // Update payment method (admin only)
+            $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+            $token = str_replace('Bearer ', '', $token);
+            
+            if (empty($token)) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit;
+            }
+            
+            if (!$method_id && isset($input['method_id'])) {
+                $method_id = (int)$input['method_id'];
+            }
+            
+            if (!$method_id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Method ID required']);
+                exit;
+            }
+            
+            // Check if it's a toggle status request
+            if (isset($input['toggle_status'])) {
+                $result = $controller->toggleStatus($method_id, $input['is_enabled']);
+            } else {
+                $result = $controller->update($method_id, $input);
+            }
+            break;
+            
+        case 'DELETE':
+            // Delete payment method (admin only)
+            $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+            $token = str_replace('Bearer ', '', $token);
+            
+            if (empty($token)) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit;
+            }
+            
+            if (!$method_id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Method ID required']);
+                exit;
+            }
+            
+            $result = $controller->delete($method_id);
+            break;
+            
+        default:
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit;
+    }
+    
+    http_response_code($result['success'] ? 200 : 400);
+    echo json_encode($result);
+    
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error: ' . $e->getMessage()
+    ]);
+}
+?>

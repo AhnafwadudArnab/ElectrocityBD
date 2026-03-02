@@ -7,6 +7,7 @@ import '../../Dimensions/responsive_dimensions.dart';
 import '../../pages/home_page.dart';
 import '../../utils/auth_session.dart';
 import '../CART/Cart_provider.dart';
+import 'forgot_password.dart';
 import 'signup.dart';
 
 class LogIn extends StatefulWidget {
@@ -223,18 +224,12 @@ class _LogInState extends State<LogIn> {
     } on ApiException catch (e) {
       if (!mounted) return;
 
-      String message = e.message;
-      if (e.message.contains('Invalid admin')) {
-        message =
-            'Invalid admin credentials. Use Email: ahnaf@electrocitybd.com, Password: 1234@';
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(e.message),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 3),
         ),
       );
     } catch (e) {
@@ -352,29 +347,39 @@ class _LogInState extends State<LogIn> {
         padding: EdgeInsets.all(AppDimensions.padding(context)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: showText
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              _logoPath,
-              height: showText ? 85 : 75,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.flash_on, color: Colors.white, size: 40),
-            ),
-            if (showText) ...[
-              const SizedBox(height: 20),
-              Text(
-                'Welcome back to\n Electrocity-BD',
-                textAlign: TextAlign.start,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: AppDimensions.titleFont(context) * 0.9,
-                  fontWeight: FontWeight.bold,
+            Expanded(
+              flex: 2,
+              child: Center(
+                child: Image.asset(
+                  _logoPath,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.flash_on, color: Colors.white, size: 80),
                 ),
               ),
-            ],
+            ),
+            // if (showText) ...[
+            //   Container(
+            //     width: double.infinity,
+            //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            //     decoration: BoxDecoration(
+            //       border: Border.all(color: Colors.white, width: 3),
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //     child: Text(
+            //       'Welcome back to\nElectrocity-BD',
+            //       textAlign: TextAlign.center,
+            //       style: TextStyle(
+            //         color: Colors.white,
+            //         fontSize: AppDimensions.titleFont(context) * 0.85,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //   ),
+            // ],
           ],
         ),
       ),
@@ -419,6 +424,24 @@ class _LogInState extends State<LogIn> {
                   setState(() => _obscurePassword = !_obscurePassword),
               validator: (v) =>
                   (v == null || v.length < 4) ? 'Min 4 characters' : null,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+                  );
+                },
+                child: const Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: Color(0xFF4A3AFF),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             Row(

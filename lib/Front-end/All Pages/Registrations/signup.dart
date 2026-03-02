@@ -264,28 +264,39 @@ class _SignupState extends State<Signup> {
         padding: EdgeInsets.all(AppDimensions.padding(context)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: showText
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              _logoPath,
-              height: showText ? 80 : 75,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.bolt, color: Colors.white, size: 50),
-            ),
-            if (showText) ...[
-              const SizedBox(height: 20),
-              Text(
-                'Get all your buying\nproblems solved today',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: AppDimensions.titleFont(context) * 0.9,
-                  fontWeight: FontWeight.bold,
+            Expanded(
+              flex: 2,
+              child: Center(
+                child: Image.asset(
+                  _logoPath,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.bolt, color: Colors.white, size: 80),
                 ),
               ),
-            ],
+            ),
+            // if (showText) ...[
+            //   Container(
+            //     width: double.infinity,
+            //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            //     decoration: BoxDecoration(
+            //       border: Border.all(color: Colors.white, width: 3),
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //     child: Text(
+            //       'Get all your buying\nproblems solved today',
+            //       textAlign: TextAlign.center,
+            //       style: TextStyle(
+            //         color: Colors.white,
+            //         fontSize: AppDimensions.titleFont(context) * 0.85,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //   ),
+            // ],
           ],
         ),
       ),

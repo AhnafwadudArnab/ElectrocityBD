@@ -21,6 +21,8 @@ class Order {
         try {
             $this->conn->beginTransaction();
             
+            error_log("Creating order for user_id: {$this->user_id}, total: {$this->total_amount}");
+            
             // Insert order
             $query = "INSERT INTO " . $this->table_name . "
                       (user_id, total_amount, payment_method, delivery_address, transaction_id, estimated_delivery)
@@ -35,60 +37,63 @@ class Order {
             $stmt->bindParam(":estimated_delivery", $this->estimated_delivery);
             
             if (!$stmt->execute()) {
-                throw new Exception("Failed to create order");
+                $errorInfo = $stmt->errorInfo();
+                error_log("Order insert failed: " . json_encode($errorInfo));
+                throw new Exception("Failed to create order: " . $errorInfo[2]);
             }
             
             $this->order_id = $this->conn->lastInsertId();
+            error_log("Order created with ID: {$this->order_id}");
             
             // Insert order items
             foreach ($cart_items as $item) {
                 $item_query = "INSERT INTO order_items
                               (order_id, product_id, product_name, quantity, price_at_purchase, image_url)
-                              VALUES (:order_id, :product_id, :product_name, :quantity, :price, :image)";
+                              VALUES (?, ?, ?, ?, ?, ?)";
                 
                 $item_stmt = $this->conn->prepare($item_query);
-                $item_stmt->bindParam(":order_id", $this->order_id);
-                $item_stmt->bindParam(":product_id", $item['product_id']);
-                $item_stmt->bindParam(":product_name", $item['product_name']);
-                $item_stmt->bindParam(":quantity", $item['quantity']);
-                $item_stmt->bindParam(":price", $item['discounted_price'] ?? $item['price']);
-                $item_stmt->bindParam(":image", $item['image_url']);
                 
-                if (!$item_stmt->execute()) {
-                    throw new Exception("Failed to create order items");
+                $price = $item['discounted_price'] ?? $item['price'];
+                
+                if (!$item_stmt->execute([
+                    $this->order_id,
+                    $item['product_id'],
+                    $item['product_name'],
+                    $item['quantity'],
+                    $price,
+                    $item['image_url']
+                ])) {
+                    $errorInfo = $item_stmt->errorInfo();
+                    error_log("Order item insert failed: " . json_encode($errorInfo));
+                    throw new Exception("Failed to create order items: " . $errorInfo[2]);
                 }
                 
                 // Update stock only if product_id is valid
                 if (isset($item['product_id']) && (int)$item['product_id'] > 0) {
-                    $stock_query = "UPDATE products SET stock_quantity = stock_quantity - :qty
-                                   WHERE product_id = :product_id AND stock_quantity >= :qty";
+                    $stock_query = "UPDATE products SET stock_quantity = stock_quantity - ?
+                                   WHERE product_id = ? AND stock_quantity >= ?";
                     $stock_stmt = $this->conn->prepare($stock_query);
-                    $stock_stmt->bindParam(":qty", $item['quantity']);
-                    $stock_stmt->bindParam(":product_id", $item['product_id']);
-                    $stock_stmt->execute();
+                    $stock_stmt->execute([$item['quantity'], $item['product_id'], $item['quantity']]);
                 }
                 
                 // Update best_sellers
                 if ((int)$item['product_id'] > 0) {
                     $best_query = "INSERT INTO best_sellers (product_id, sales_count) 
-                                   VALUES (:product_id, :qty)
+                                   VALUES (?, ?)
                                    ON DUPLICATE KEY UPDATE 
-                                   sales_count = sales_count + :qty, last_updated = NOW()";
+                                   sales_count = sales_count + VALUES(sales_count), last_updated = NOW()";
                     $best_stmt = $this->conn->prepare($best_query);
-                    $best_stmt->bindParam(":product_id", $item['product_id']);
-                    $best_stmt->bindParam(":qty", $item['quantity']);
-                    $best_stmt->execute();
+                    $best_stmt->execute([$item['product_id'], $item['quantity']]);
                 }
                 
                 // Update trending score (simple algorithm: +1 for each purchase)
                 if ((int)$item['product_id'] > 0) {
                     $trend_query = "INSERT INTO trending_products (product_id, trending_score) 
-                                   VALUES (:product_id, 1)
+                                   VALUES (?, 1)
                                    ON DUPLICATE KEY UPDATE 
                                    trending_score = trending_score + 1, last_updated = NOW()";
                     $trend_stmt = $this->conn->prepare($trend_query);
-                    $trend_stmt->bindParam(":product_id", $item['product_id']);
-                    $trend_stmt->execute();
+                    $trend_stmt->execute([$item['product_id']]);
                 }
             }
             
@@ -99,6 +104,7 @@ class Order {
             $clear_stmt->execute();
             
             $this->conn->commit();
+            error_log("Order transaction committed successfully");
             return true;
             
         } catch (Exception $e) {
@@ -177,7 +183,15 @@ class Order {
     }
     
     public function getAllOrders($limit = 100, $offset = 0) {
-        $query = "SELECT o.*, u.full_name, u.email, u.phone_number
+        $query = "SELECT o.*, 
+                         u.full_name, 
+                         u.last_name,
+                         u.email, 
+                         u.phone_number,
+                         u.address as user_address,
+                         u.gender,
+                         u.role,
+                         u.created_at as user_created_at
                   FROM " . $this->table_name . " o
                   JOIN users u ON o.user_id = u.user_id
                   ORDER BY o.order_date DESC

@@ -283,7 +283,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                           "Order ID,Store,Method,Time Slot,Created,Status,Transaction ID,Total\n";
                       for (var o in filteredOrders) {
                         csv +=
-                            "${o['id'] ?? ''},${o['store'] ?? ''},${o['method'] ?? ''},${o['slot'] ?? ''},${o['created'] ?? ''},${o['status'] ?? ''},${o['transactionId'] ?? ''},${o['total'] ?? ''}\n";
+                            "${o['orderCode'] ?? o['id'] ?? ''},${o['store'] ?? ''},${o['method'] ?? ''},${o['slot'] ?? ''},${o['created'] ?? ''},${o['status'] ?? ''},${o['transactionId'] ?? ''},${o['total'] ?? ''}\n";
                       }
                       final bytes = utf8.encode(csv);
                       final blob = html.Blob([bytes], 'text/csv');
@@ -461,11 +461,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               child: Row(
                 children: const [
                   _TableHeader("Order ID", flex: 2),
-                  _TableHeader("Store", flex: 3),
+                  _TableHeader("Store", flex: 2),
                   _TableHeader("Method", flex: 2),
                   _TableHeader("Time Slot", flex: 2),
                   _TableHeader("Created", flex: 2),
-                  _TableHeader("Txn ID", flex: 3),
+                  _TableHeader("Txn ID", flex: 2),
                   _TableHeader("Last Status", flex: 3),
                 ],
               ),
@@ -542,157 +542,172 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final order = filteredOrders[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green[50],
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      order["id"]!,
-                                      style: const TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                          final fullOrder = ordersProvider.ordersNewestFirst
+                              .firstWhere((o) => o.orderId == order["id"]);
+                          
+                          return InkWell(
+                            onTap: () {
+                              _showOrderDetailsDialog(context, fullOrder, ordersProvider);
+                            },
+                            hoverColor: Colors.blue[50],
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    order["store"]!,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    order["method"]!,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    order["slot"]!,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    "Date: ${order["created"]}",
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    order["transactionId"]?.isNotEmpty == true
-                                        ? order["transactionId"]!
-                                        : "—",
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Row(
-                                    children: [
-                                      _statusChip(order["status"]!),
-                                      const SizedBox(width: 8),
-                                      PopupMenuButton<String>(
-                                        tooltip: "Update status",
-                                        onSelected: (value) async {
-                                          final id = int.tryParse(
-                                            order["id"] ?? "",
-                                          );
-                                          if (id == null) return;
-                                          try {
-                                            await ApiService.updateOrderStatus(
-                                              id,
-                                              value,
-                                            );
-                                            await ordersProvider
-                                                .updateOrderStatus(
-                                                  order["id"]!,
-                                                  value,
-                                                );
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  "Order #${order["id"]} status updated to $value",
-                                                ),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                          } catch (e) {
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  "Failed to update status: $e",
-                                                ),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        itemBuilder: (context) => const [
-                                          PopupMenuItem(
-                                            value: "pending",
-                                            child: Text("Mark as Pending"),
-                                          ),
-                                          PopupMenuItem(
-                                            value: "processing",
-                                            child: Text("Mark as Processing"),
-                                          ),
-                                          PopupMenuItem(
-                                            value: "shipped",
-                                            child: Text("Mark as Shipped"),
-                                          ),
-                                          PopupMenuItem(
-                                            value: "delivered",
-                                            child: Text("Mark as Delivered"),
-                                          ),
-                                          PopupMenuItem(
-                                            value: "cancelled",
-                                            child: Text("Mark as Cancelled"),
-                                          ),
-                                        ],
-                                        icon: const Icon(
-                                          Icons.more_vert,
-                                          size: 20,
-                                          color: Colors.grey,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green[50],
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        order["orderCode"] ?? order["id"]!,
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      order["store"]!,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      order["method"]!,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      order["slot"]!,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      "Date: ${order["created"]}",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      order["transactionId"]?.isNotEmpty == true
+                                          ? order["transactionId"]!
+                                          : "—",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Row(
+                                      children: [
+                                        _statusChip(order["status"]!),
+                                        const SizedBox(width: 8),
+                                        PopupMenuButton<String>(
+                                          tooltip: "Update status",
+                                          onSelected: (value) async {
+                                            final id = int.tryParse(
+                                              order["id"] ?? "",
+                                            );
+                                            if (id == null) return;
+                                            try {
+                                              await ApiService.updateOrderStatus(
+                                                id,
+                                                value,
+                                              );
+                                              await ordersProvider
+                                                  .updateOrderStatus(
+                                                    order["id"]!,
+                                                    value,
+                                                  );
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "Order #${order["id"]} status updated to $value",
+                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "Failed to update status: $e",
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          itemBuilder: (context) => const [
+                                            PopupMenuItem(
+                                              value: "pending",
+                                              child: Text("Mark as Pending"),
+                                            ),
+                                            PopupMenuItem(
+                                              value: "processing",
+                                              child: Text("Mark as Processing"),
+                                            ),
+                                            PopupMenuItem(
+                                              value: "shipped",
+                                              child: Text("Mark as Shipped"),
+                                            ),
+                                            PopupMenuItem(
+                                              value: "delivered",
+                                              child: Text("Mark as Delivered"),
+                                            ),
+                                            PopupMenuItem(
+                                              value: "cancelled",
+                                              child: Text("Mark as Cancelled"),
+                                            ),
+                                          ],
+                                          icon: const Icon(
+                                            Icons.more_vert,
+                                            size: 20,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -703,6 +718,484 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         ),
       ),
     );
+  }
+
+  void _showOrderDetailsDialog(BuildContext context, PlacedOrder order, OrdersProvider ordersProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 600,
+          constraints: const BoxConstraints(maxHeight: 700),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.blue[600],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt_long, color: Colors.white, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Order Details",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Order ID: ${order.orderId}",
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Order Code
+                      _buildDetailCard(
+                        icon: Icons.qr_code,
+                        title: "Order Code",
+                        content: order.toAdminRow()['orderCode'] ?? order.orderId,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(height: 16),
+                      // User Information Section
+                      const Text(
+                        "Customer Information",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.person,
+                        title: "Customer Name",
+                        content: "${order.customerName ?? 'Not provided'}${order.customerLastName != null && order.customerLastName!.isNotEmpty ? ' ${order.customerLastName}' : ''}",
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.email,
+                        title: "Email Address",
+                        content: order.customerEmail ?? "Not provided",
+                        color: Colors.deepPurple,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.phone,
+                        title: "Phone Number",
+                        content: order.customerPhone ?? "Not provided",
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.home,
+                        title: "User Address",
+                        content: order.customerAddress ?? "Not provided",
+                        color: Colors.brown,
+                      ),
+                      const SizedBox(height: 12),
+                      if (order.customerGender != null && order.customerGender!.isNotEmpty)
+                        _buildDetailCard(
+                          icon: order.customerGender?.toLowerCase() == 'male' 
+                              ? Icons.male 
+                              : order.customerGender?.toLowerCase() == 'female'
+                                  ? Icons.female
+                                  : Icons.person_outline,
+                          title: "Gender",
+                          content: order.customerGender!,
+                          color: Colors.pink,
+                        ),
+                      if (order.customerGender != null && order.customerGender!.isNotEmpty) 
+                        const SizedBox(height: 12),
+                      if (order.customerRole != null && order.customerRole!.isNotEmpty)
+                        _buildDetailCard(
+                          icon: Icons.badge,
+                          title: "User Role",
+                          content: order.customerRole!.toUpperCase(),
+                          color: Colors.indigo,
+                        ),
+                      if (order.customerRole != null && order.customerRole!.isNotEmpty) 
+                        const SizedBox(height: 16),
+                      // Delivery Address (if different from user address)
+                      if (order.shippingAddress != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Delivery Address",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildDetailCard(
+                              icon: Icons.local_shipping,
+                              title: "Shipping Address",
+                              content: _formatAddress(order.shippingAddress!),
+                              color: Colors.red,
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      // Payment Information Section
+                      const Text(
+                        "Payment Information",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.payment,
+                        title: "Payment Method",
+                        content: order.paymentMethod,
+                        color: Colors.purple,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.receipt,
+                        title: "Transaction ID",
+                        content: order.transactionId.isNotEmpty 
+                            ? order.transactionId 
+                            : "Not available",
+                        color: Colors.teal,
+                      ),
+                      const SizedBox(height: 16),
+                      // Order Information Section
+                      const Text(
+                        "Order Information",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.access_time,
+                        title: "Order Placed Time",
+                        content: order.createdAt,
+                        color: Colors.indigo,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: order.getStatusIcon(),
+                        title: "Order Status",
+                        content: order.status.toUpperCase(),
+                        color: order.getStatusColor(),
+                      ),
+                      const SizedBox(height: 12),
+                      if (order.estimatedDelivery != null && order.estimatedDelivery!.isNotEmpty)
+                        _buildDetailCard(
+                          icon: Icons.local_shipping_outlined,
+                          title: "Estimated Delivery",
+                          content: order.estimatedDelivery!,
+                          color: Colors.cyan,
+                        ),
+                      if (order.estimatedDelivery != null && order.estimatedDelivery!.isNotEmpty)
+                        const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.attach_money,
+                        title: "Total Amount",
+                        content: "৳${order.total.toStringAsFixed(2)}",
+                        color: Colors.green[700]!,
+                      ),
+                      const SizedBox(height: 24),
+                      // Order Items
+                      const Text(
+                        "Order Items",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (order.items.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "No items information available",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      else
+                        ...order.items.map((item) => _buildOrderItem(item)),
+                    ],
+                  ),
+                ),
+              ),
+              // Footer Actions
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final newStatus = await showDialog<String>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Update Order Status"),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  title: const Text("Pending"),
+                                  onTap: () => Navigator.pop(context, "pending"),
+                                ),
+                                ListTile(
+                                  title: const Text("Processing"),
+                                  onTap: () => Navigator.pop(context, "processing"),
+                                ),
+                                ListTile(
+                                  title: const Text("Shipped"),
+                                  onTap: () => Navigator.pop(context, "shipped"),
+                                ),
+                                ListTile(
+                                  title: const Text("Delivered"),
+                                  onTap: () => Navigator.pop(context, "delivered"),
+                                ),
+                                ListTile(
+                                  title: const Text("Cancelled"),
+                                  onTap: () => Navigator.pop(context, "cancelled"),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                        if (newStatus != null) {
+                          try {
+                            final id = int.tryParse(order.orderId);
+                            if (id != null) {
+                              await ApiService.updateOrderStatus(id, newStatus);
+                            }
+                            await ordersProvider.updateOrderStatus(order.orderId, newStatus);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Order status updated to $newStatus"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Failed to update status: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text("Update Status"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[600],
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailCard({
+    required IconData icon,
+    required String title,
+    required String content,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  content,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderItem(Map<String, dynamic> item) {
+    final name = item['name']?.toString() ?? item['product_name']?.toString() ?? 'Unknown Item';
+    final quantity = item['quantity']?.toString() ?? '1';
+    final price = item['price']?.toString() ?? item['unit_price']?.toString() ?? '0';
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.shopping_bag, color: Colors.grey),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Quantity: $quantity",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            "৳$price",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.green,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatAddress(Map<String, dynamic> address) {
+    // If it's a simple address string
+    if (address.containsKey('address') && address.length == 1) {
+      return address['address'].toString();
+    }
+    
+    // Otherwise format as structured address
+    final parts = <String>[];
+    if (address['street'] != null && address['street'].toString().isNotEmpty) {
+      parts.add(address['street'].toString());
+    }
+    if (address['city'] != null && address['city'].toString().isNotEmpty) {
+      parts.add(address['city'].toString());
+    }
+    if (address['state'] != null && address['state'].toString().isNotEmpty) {
+      parts.add(address['state'].toString());
+    }
+    if (address['zip'] != null && address['zip'].toString().isNotEmpty) {
+      parts.add(address['zip'].toString());
+    }
+    if (address['country'] != null && address['country'].toString().isNotEmpty) {
+      parts.add(address['country'].toString());
+    }
+    
+    return parts.isEmpty ? "Not provided" : parts.join(", ");
   }
 
   Widget _statusChip(String status) {

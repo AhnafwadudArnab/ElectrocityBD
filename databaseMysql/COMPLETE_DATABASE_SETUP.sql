@@ -389,6 +389,50 @@ CREATE INDEX idx_customer_support_status ON customer_support(status);
 CREATE INDEX idx_reviews_product ON reviews(product_id);
 CREATE INDEX idx_reviews_user ON reviews(user_id);
 
+
+-- Payment Methods Table
+CREATE TABLE IF NOT EXISTS payment_methods (
+  method_id INT AUTO_INCREMENT PRIMARY KEY,
+  method_name VARCHAR(100) NOT NULL,
+  method_type VARCHAR(50) NOT NULL DEFAULT 'mobile_banking',
+  is_enabled TINYINT(1) DEFAULT 1,
+  account_number VARCHAR(50),
+  display_order INT DEFAULT 0,
+  icon_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert default payment methods
+INSERT INTO payment_methods (method_name, method_type, is_enabled, account_number, display_order) VALUES
+('bKash', 'mobile_banking', 1, '019-XXXXXXXX', 1),
+('Nagad', 'mobile_banking', 0, '019-XXXXXXXX', 2),
+('Cash on Delivery', 'cash', 1, '', 3);
+
+
+
+
+-- Password Reset Tokens Table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  token_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  used TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  INDEX idx_token (token),
+  INDEX idx_email (email),
+  INDEX idx_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
+
+
+
 -- ============================================================
 -- SAMPLE DATA INSERTION
 -- ============================================================

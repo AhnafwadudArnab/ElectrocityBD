@@ -17,6 +17,40 @@ class ApiException implements Exception {
 class ApiService {
   static const String baseUrl = 'http://localhost:8000/api';
 
+  static Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      final dynamic decoded = response.body.isNotEmpty
+          ? jsonDecode(response.body)
+          : {};
+
+      if (decoded is Map<String, dynamic>) {
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return decoded;
+        }
+
+        throw ApiException(
+          (decoded['error'] ?? decoded['message'] ?? 'Request failed')
+              .toString(),
+          response.statusCode,
+        );
+      }
+
+      throw ApiException('Invalid response format', response.statusCode);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Network error: $e');
+    }
+  }
+
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,

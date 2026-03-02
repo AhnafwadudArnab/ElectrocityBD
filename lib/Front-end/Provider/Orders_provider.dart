@@ -26,9 +26,16 @@ class PlacedOrder {
   final String? estimatedDelivery;
   final List<Map<String, dynamic>> items;
 
-  // Additional fields for better tracking
+  // User details from users table
   final String? customerName;
+  final String? customerLastName;
+  final String? customerEmail;
   final String? customerPhone;
+  final String? customerAddress;
+  final String? customerGender;
+  final String? customerRole;
+  
+  // Shipping/delivery address from order
   final Map<String, dynamic>? shippingAddress;
 
   PlacedOrder({
@@ -42,7 +49,12 @@ class PlacedOrder {
     this.estimatedDelivery,
     this.items = const [],
     this.customerName,
+    this.customerLastName,
+    this.customerEmail,
     this.customerPhone,
+    this.customerAddress,
+    this.customerGender,
+    this.customerRole,
     this.shippingAddress,
   }) : createdAtMillis =
            createdAtMillis ?? DateTime.now().millisecondsSinceEpoch;
@@ -58,7 +70,12 @@ class PlacedOrder {
     'estimatedDelivery': estimatedDelivery,
     'items': items,
     'customerName': customerName,
+    'customerLastName': customerLastName,
+    'customerEmail': customerEmail,
     'customerPhone': customerPhone,
+    'customerAddress': customerAddress,
+    'customerGender': customerGender,
+    'customerRole': customerRole,
     'shippingAddress': shippingAddress,
   };
 
@@ -80,25 +97,52 @@ class PlacedOrder {
               .toList() ??
           [],
       customerName: json['customerName']?.toString(),
+      customerLastName: json['customerLastName']?.toString(),
+      customerEmail: json['customerEmail']?.toString(),
       customerPhone: json['customerPhone']?.toString(),
+      customerAddress: json['customerAddress']?.toString(),
+      customerGender: json['customerGender']?.toString(),
+      customerRole: json['customerRole']?.toString(),
       shippingAddress: json['shippingAddress'] as Map<String, dynamic>?,
     );
   }
 
   /// For admin table row: id, store, method, slot, created, status
-  Map<String, String> toAdminRow() => {
-    'id': orderId,
-    'store': 'Electrocity BD',
-    'method': paymentMethod,
-    'slot': estimatedDelivery ?? '—',
-    'created': createdAt,
-    'status': status,
-    'transactionId': transactionId,
-    'total': total.toStringAsFixed(2),
-    'createdAtMillis': createdAtMillis.toString(),
-    'customerName': customerName ?? '—',
-    'customerPhone': customerPhone ?? '—',
-  };
+  Map<String, String> toAdminRow() {
+    // Format order ID as order code (EC-YYYYMMDD-ID)
+    String orderCode = orderId;
+    
+    // Try to format as EC-YYYYMMDD-ID if orderId is numeric
+    if (int.tryParse(orderId) != null) {
+      try {
+        final date = DateTime.fromMillisecondsSinceEpoch(createdAtMillis);
+        final dateStr = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+        orderCode = 'EC-$dateStr-$orderId';
+      } catch (e) {
+        // If date parsing fails, use orderId as is
+        orderCode = orderId;
+      }
+    }
+    
+    return {
+      'id': orderId, // Database ID
+      'orderCode': orderCode, // Formatted order code
+      'store': 'Electrocity BD',
+      'method': paymentMethod,
+      'slot': estimatedDelivery ?? '—',
+      'created': createdAt,
+      'status': status,
+      'transactionId': transactionId,
+      'total': total.toStringAsFixed(2),
+      'createdAtMillis': createdAtMillis.toString(),
+      'customerName': customerName ?? '—',
+      'customerLastName': customerLastName ?? '',
+      'customerEmail': customerEmail ?? '—',
+      'customerPhone': customerPhone ?? '—',
+      'customerAddress': customerAddress ?? '—',
+      'customerGender': customerGender ?? '—',
+    };
+  }
 
   /// Get status color for UI
   Color getStatusColor() {
@@ -496,16 +540,65 @@ class OrdersProvider extends ChangeNotifier {
         'estimatedDelivery',
       ], null),
       items: items,
+      // User details from users table
       customerName: _getStringValue(row, [
-        'customer_name',
+        'full_name',
         'customerName',
       ], null),
+      customerLastName: _getStringValue(row, [
+        'last_name',
+        'customerLastName',
+      ], null),
+      customerEmail: _getStringValue(row, [
+        'email',
+        'customerEmail',
+      ], null),
       customerPhone: _getStringValue(row, [
-        'customer_phone',
+        'phone_number',
         'customerPhone',
       ], null),
-      shippingAddress: row['shipping_address'] as Map<String, dynamic>?,
+      customerAddress: _getStringValue(row, [
+        'user_address',
+        'address',
+        'customerAddress',
+      ], null),
+      customerGender: _getStringValue(row, [
+        'gender',
+        'customerGender',
+      ], null),
+      customerRole: _getStringValue(row, [
+        'role',
+        'customerRole',
+      ], null),
+      // Shipping address from order (delivery_address field)
+      shippingAddress: _parseShippingAddress(row['delivery_address']),
     );
+  }
+
+  /// Parse shipping address
+  Map<String, dynamic>? _parseShippingAddress(dynamic address) {
+    if (address == null) return null;
+    
+    try {
+      if (address is Map) {
+        return Map<String, dynamic>.from(address);
+      } else if (address is String && address.isNotEmpty) {
+        // If it's a JSON string, try to parse it
+        try {
+          final decoded = jsonDecode(address);
+          if (decoded is Map) {
+            return Map<String, dynamic>.from(decoded);
+          }
+        } catch (e) {
+          // If not JSON, treat as plain text address
+          return {'address': address};
+        }
+      }
+    } catch (e) {
+      print('Shipping address parse error: $e');
+    }
+    
+    return null;
   }
 
   /// Helper: Get string value from multiple possible keys
@@ -702,7 +795,12 @@ class OrdersProvider extends ChangeNotifier {
         estimatedDelivery: old.estimatedDelivery,
         items: old.items,
         customerName: old.customerName,
+        customerLastName: old.customerLastName,
+        customerEmail: old.customerEmail,
         customerPhone: old.customerPhone,
+        customerAddress: old.customerAddress,
+        customerGender: old.customerGender,
+        customerRole: old.customerRole,
         shippingAddress: old.shippingAddress,
       );
 

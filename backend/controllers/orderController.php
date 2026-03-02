@@ -12,8 +12,13 @@ class OrderController {
     }
     
     public function createOrder($user_id, $data) {
+        // Log the incoming request for debugging
+        error_log("Order creation attempt - User ID: $user_id");
+        error_log("Order data: " . json_encode($data));
+        
         if (!isset($data['payment_method']) || !isset($data['delivery_address'])) {
             http_response_code(400);
+            error_log("Order creation failed: Missing payment_method or delivery_address");
             return ['message' => 'Payment method and delivery address required'];
         }
         
@@ -42,6 +47,7 @@ class OrderController {
             }
             if (empty($cart_items)) {
                 http_response_code(400);
+                error_log("Order creation failed: No valid items in request");
                 return ['message' => 'No valid items in request'];
             }
         } else {
@@ -50,6 +56,7 @@ class OrderController {
             $cart_items = $cart->getUserCart($user_id);
             if (empty($cart_items)) {
                 http_response_code(400);
+                error_log("Order creation failed: Cart is empty for user $user_id");
                 return ['message' => 'Cart is empty'];
             }
             $total = $cart->getCartTotal($user_id);
@@ -71,6 +78,7 @@ class OrderController {
         if ($this->order->create($cart_items)) {
             $orderId = $this->order->order_id;
             $code = 'EC-' . date('Ymd') . '-' . $orderId;
+            error_log("Order created successfully - Order ID: $orderId, Code: $code");
             return [
                 'message' => 'Order created successfully',
                 'order_id' => $orderId,
@@ -79,6 +87,7 @@ class OrderController {
         }
         
         http_response_code(500);
+        error_log("Order creation failed: Database error");
         return ['message' => 'Failed to create order'];
     }
     
