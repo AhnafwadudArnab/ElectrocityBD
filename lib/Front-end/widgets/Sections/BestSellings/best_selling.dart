@@ -27,6 +27,13 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     _loadFromDb();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload when dependencies change (e.g., when admin adds product)
+    _loadFromDb();
+  }
+
   Future<void> _loadFromDb() async {
     try {
       // Use best-sellers action endpoint

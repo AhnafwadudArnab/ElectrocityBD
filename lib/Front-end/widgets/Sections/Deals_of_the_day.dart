@@ -35,6 +35,13 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload when dependencies change (e.g., when admin adds product)
+    _loadDealsFromDb();
+  }
+
+  @override
   void dispose() {
     _timer.cancel();
     _scrollController.dispose();

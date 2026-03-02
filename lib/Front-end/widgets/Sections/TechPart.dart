@@ -64,6 +64,13 @@ class _TechpartState extends State<Techpart> {
     _loadFromDb();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload when dependencies change (e.g., when admin adds product)
+    _loadFromDb();
+  }
+
   // অ্যাডমিন প্রোডাক্টকে স্ট্যান্ডার্ড ফরম্যাটে কনভার্ট করা
   List<Map<String, dynamic>> _convertAdminProducts(
     List<Map<String, dynamic>> adminProducts,

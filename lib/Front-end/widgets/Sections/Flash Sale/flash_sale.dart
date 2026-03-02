@@ -45,6 +45,13 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
     _loadFromDb();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload when dependencies change (e.g., when admin adds product)
+    _loadFromDb();
+  }
+
   Future<void> _loadFromDb() async {
     try {
       final res = await ApiService.getProducts(section: 'flash_sale', category: 'Flash Sale', limit: 20);
