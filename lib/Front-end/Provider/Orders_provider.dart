@@ -34,7 +34,7 @@ class PlacedOrder {
   final String? customerAddress;
   final String? customerGender;
   final String? customerRole;
-  
+
   // Shipping/delivery address from order
   final Map<String, dynamic>? shippingAddress;
 
@@ -111,19 +111,20 @@ class PlacedOrder {
   Map<String, String> toAdminRow() {
     // Format order ID as order code (EC-YYYYMMDD-ID)
     String orderCode = orderId;
-    
+
     // Try to format as EC-YYYYMMDD-ID if orderId is numeric
     if (int.tryParse(orderId) != null) {
       try {
         final date = DateTime.fromMillisecondsSinceEpoch(createdAtMillis);
-        final dateStr = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+        final dateStr =
+            '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
         orderCode = 'EC-$dateStr-$orderId';
       } catch (e) {
         // If date parsing fails, use orderId as is
         orderCode = orderId;
       }
     }
-    
+
     return {
       'id': orderId, // Database ID
       'orderCode': orderCode, // Formatted order code
@@ -378,23 +379,6 @@ class OrdersProvider extends ChangeNotifier {
 
   /// Format date helper
   String _formatDate(DateTime date) {
-        customerPhone: '9876543212',
-        items: [
-          {
-            'name': 'Bluetooth Speaker',
-            'quantity': 2,
-            'price': 399.99,
-            'image': 'speaker.png',
-          },
-        ],
-      ),
-    ]);
-
-    notifyListeners();
-    await _persist();
-  }
-
-  String _formatDate(DateTime date) {
     const months = [
       'Jan',
       'Feb',
@@ -486,18 +470,12 @@ class OrdersProvider extends ChangeNotifier {
       ], null),
       items: items,
       // User details from users table
-      customerName: _getStringValue(row, [
-        'full_name',
-        'customerName',
-      ], null),
+      customerName: _getStringValue(row, ['full_name', 'customerName'], null),
       customerLastName: _getStringValue(row, [
         'last_name',
         'customerLastName',
       ], null),
-      customerEmail: _getStringValue(row, [
-        'email',
-        'customerEmail',
-      ], null),
+      customerEmail: _getStringValue(row, ['email', 'customerEmail'], null),
       customerPhone: _getStringValue(row, [
         'phone_number',
         'customerPhone',
@@ -507,14 +485,8 @@ class OrdersProvider extends ChangeNotifier {
         'address',
         'customerAddress',
       ], null),
-      customerGender: _getStringValue(row, [
-        'gender',
-        'customerGender',
-      ], null),
-      customerRole: _getStringValue(row, [
-        'role',
-        'customerRole',
-      ], null),
+      customerGender: _getStringValue(row, ['gender', 'customerGender'], null),
+      customerRole: _getStringValue(row, ['role', 'customerRole'], null),
       // Shipping address from order (delivery_address field)
       shippingAddress: _parseShippingAddress(row['delivery_address']),
     );
@@ -523,7 +495,7 @@ class OrdersProvider extends ChangeNotifier {
   /// Parse shipping address
   Map<String, dynamic>? _parseShippingAddress(dynamic address) {
     if (address == null) return null;
-    
+
     try {
       if (address is Map) {
         return Map<String, dynamic>.from(address);
@@ -542,7 +514,7 @@ class OrdersProvider extends ChangeNotifier {
     } catch (e) {
       print('Shipping address parse error: $e');
     }
-    
+
     return null;
   }
 

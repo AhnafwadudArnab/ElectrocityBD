@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/../models/password_reset.php';
 
+// Get database connection using the db() function from bootstrap
+$conn = db();
+
 $passwordReset = new PasswordReset($conn);
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);

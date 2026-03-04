@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../API/api_service.dart';
 import '../../Dimensions/responsive_dimensions.dart';
 import 'login.dart';
@@ -62,10 +63,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Reset code generated! Code: ${response['token']?.substring(0, 8)}...\n(In production, this would be sent to your email)',
+              'Reset token generated successfully!\nScroll down to see the full token.',
             ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 10),
+            duration: const Duration(seconds: 5),
           ),
         );
       } else {
@@ -271,23 +272,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
             if (showText) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Reset Your\nPassword',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: AppDimensions.titleFont(context) * 0.85,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              // Container(
+              //   width: double.infinity,
+              //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              //   decoration: BoxDecoration(
+              //     border: Border.all(color: Colors.white, width: 3),
+              //     borderRadius: BorderRadius.circular(8),
+              //   ),
+              //   // child: Text(
+              //   //   'Reset Your\nPassword',
+              //   //   textAlign: TextAlign.center,
+              //   //   style: TextStyle(
+              //   //     color: Colors.white,
+              //   //     fontSize: AppDimensions.titleFont(context) * 0.85,
+              //   //     fontWeight: FontWeight.bold,
+              //   //   ),
+              //   // ),
+              // ),
             ],
           ],
         ),
@@ -368,6 +369,85 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
               ),
             ] else ...[
+              // Token Display Box (Development Mode)
+              if (_resetToken != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade300, width: 2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Your Reset Token (Development Mode)',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange.shade900,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.copy, size: 18),
+                            onPressed: () {
+                              // Copy to clipboard
+                              final data = ClipboardData(text: _resetToken!);
+                              Clipboard.setData(data);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Token copied to clipboard!'),
+                                  duration: Duration(seconds: 2),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            },
+                            tooltip: 'Copy token',
+                            color: Colors.orange.shade700,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: SelectableText(
+                          _resetToken!,
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '⚠️ In production, this token will be sent to your email.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade700,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
               _buildInputField(
                 'Reset Code',
                 controller: _tokenController,
