@@ -22,10 +22,10 @@ class DealsOfTheDay extends StatefulWidget {
 }
 
 class _DealsOfTheDayState extends State<DealsOfTheDay> {
-  late Timer _timer;
+  Timer? _timer;
   late ScrollController _scrollController;
   List<Map<String, dynamic>> _dbDeals = [];
-  Duration _remaining = const Duration(days: 0);
+  Duration _remaining = const Duration(days: 3, hours: 11, minutes: 15);
 
   @override
   void initState() {
@@ -44,7 +44,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -114,13 +114,14 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   }
 
   void _startCountdown() {
+    _timer?.cancel(); // Cancel any existing timer
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
         setState(() {
           if (_remaining.inSeconds > 0) {
             _remaining = _remaining - const Duration(seconds: 1);
           } else {
-            _timer.cancel();
+            _timer?.cancel();
           }
         });
       }
