@@ -5,9 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 import '../Provider/Banner_provider.dart';
 import '../pages/home_page.dart';
+import '../utils/api_service.dart';
+import '../utils/constants.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_Settings.dart';
@@ -34,6 +37,7 @@ class AdminBannersPage extends StatefulWidget {
 class _AdminBannersPageState extends State<AdminBannersPage> {
   File? _pickedHeroImageFile;
   bool _uploading = false;
+  
   Future<void> _pickHeroImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null && result.files.single.path != null) {
@@ -42,7 +46,8 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
         _uploading = true;
       });
       try {
-        final url = Uri.parse('http://localhost:8000/api/upload');
+        // Use dynamic API base URL from ApiService
+        final url = Uri.parse(ApiService.getUploadUrl());
         final request = http.MultipartRequest('POST', url);
         request.files.add(
           await http.MultipartFile.fromPath('image', result.files.single.path!),
@@ -66,22 +71,34 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
             setState(() {
               _heroImageController.text = imgUrl!;
             });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Image uploaded successfully!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
           }
         } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Upload failed: ${response.statusCode}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Image upload failed'),
+            SnackBar(
+              content: Text('Upload error: $e'),
               backgroundColor: Colors.red,
             ),
           );
         }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Upload error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
       } finally {
         setState(() {
           _uploading = false;
@@ -357,7 +374,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                                         path.startsWith('/uploads/')) {
                                       return Image.network(
                                         path.startsWith('/uploads/')
-                                            ? 'http://localhost:8000$path'
+                                            ? AppConfig.uploadPath(path)
                                             : path,
                                         fit: BoxFit.contain,
                                         errorBuilder: (_, __, ___) =>
@@ -628,9 +645,8 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                               if (result != null &&
                                   result.files.single.path != null) {
                                 try {
-                                  final url = Uri.parse(
-                                    'http://localhost:8000/api/upload',
-                                  );
+                                  // Use dynamic API base URL
+                                  final url = Uri.parse(ApiService.getUploadUrl());
                                   final request = http.MultipartRequest(
                                     'POST',
                                     url,
@@ -660,22 +676,34 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
                                       setState(() {
                                         _midControllers[i].text = imgUrl!;
                                       });
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Image uploaded successfully!'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      }
                                     }
                                   } else {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Upload failed: ${response.statusCode}'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Upload failed'),
+                                      SnackBar(
+                                        content: Text('Upload error: $e'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
                                   }
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Upload error: $e'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
                                 }
                               }
                             },

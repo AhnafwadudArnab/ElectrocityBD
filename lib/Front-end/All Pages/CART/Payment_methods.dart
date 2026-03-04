@@ -120,6 +120,48 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   }
 
   void _completePayment(PaymentMethod method, String transactionId) async {
+    final cartProvider = context.read<CartProvider>();
+    
+    // ✅ Stock Validation - Check before placing order
+    try {
+      for (final item in cartProvider.items) {
+        final productId = int.tryParse(item.productId);
+        if (productId == null) continue;
+        
+        // Get product details to check stock
+        final product = await ApiService.getProduct(productId);
+        final availableStock = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
+        
+        if (availableStock < item.quantity) {
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('⚠️ Insufficient Stock'),
+              content: Text(
+                '${item.name}\n\n'
+                'Requested: ${item.quantity} units\n'
+                'Available: $availableStock units\n\n'
+                'Please update your cart and try again.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Failed to verify stock availability. Please try again.');
+      return;
+    }
+    
+    // Continue with payment if stock is available
     final now = DateTime.now();
     final deliveryDate = now.add(const Duration(days: 5));
     const months = [
@@ -142,7 +184,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         '${now.day} ${months[now.month - 1]} ${now.year}, '
         '${now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour)}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
 
-    final cartProvider = context.read<CartProvider>();
+    context.read<CartProvider>();
     final ordersProvider = context.read<OrdersProvider>();
     final orderItems = cartProvider.items
         .map(

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
+import '../../utils/api_service.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../home_page.dart';
@@ -77,7 +78,95 @@ class _WishlistPageState extends State<WishlistPage> {
     );
   }
 
-  void _addItemToCart(
+  Future<void> _addItemToCart(
+    String productId,
+    String productName,
+    double price,
+    String imageUrl,
+    String category,
+    WishlistProvider wishlistProvider,
+  ) async {
+    // ✅ Stock Validation - Check before adding to cart
+    try {
+      final pid = int.tryParse(productId);
+      if (pid != null) {
+        final product = await ApiService.getProduct(pid);
+        final availableStock = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
+        
+        if (availableStock <= 0) {
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('⚠️ Out of Stock'),
+              content: Text(
+                '$productName is currently out of stock.\n\n'
+                'This item cannot be added to cart.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+        
+        if (availableStock < 1) {
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('⚠️ Low Stock'),
+              content: Text(
+                '$productName\n\n'
+                'Only $availableStock unit${availableStock > 1 ? 's' : ''} available in stock.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _proceedToAddToCart(
+                      productId,
+                      productName,
+                      price,
+                      imageUrl,
+                      category,
+                      wishlistProvider,
+                    );
+                  },
+                  child: const Text('Add Anyway'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage('Failed to verify stock. Please try again.');
+      return;
+    }
+    
+    // If stock is available, proceed to add
+    _proceedToAddToCart(
+      productId,
+      productName,
+      price,
+      imageUrl,
+      category,
+      wishlistProvider,
+    );
+  }
+  
+  void _proceedToAddToCart(
     String productId,
     String productName,
     double price,
@@ -437,9 +526,83 @@ class _WishlistPageState extends State<WishlistPage> {
                         ],
                       ),
                       ElevatedButton.icon(
-                        onPressed: () {
-                          final count = items.length;
+                        onPressed: () async {
+                          // ✅ Stock Validation for "Add All To Cart"
+                          final itemsToAdd = <WishlistItem>[];
+                          final outOfStockItems = <String>[];
+                          
                           for (var item in items) {
+                            try {
+                              final pid = int.tryParse(item.productId);
+                              if (pid != null) {
+                                final product = await ApiService.getProduct(pid);
+                                final availableStock = int.tryParse(
+                                  product['stock_quantity']?.toString() ?? '0',
+                                ) ?? 0;
+                                
+                                if (availableStock > 0) {
+                                  itemsToAdd.add(item);
+                                } else {
+                                  outOfStockItems.add(item.name);
+                                }
+                              } else {
+                                itemsToAdd.add(item);
+                              }
+                            } catch (e) {
+                              // If error checking stock, skip this item
+                              outOfStockItems.add(item.name);
+                            }
+                          }
+                          
+                          if (!mounted) return;
+                          
+                          // Show warning if some items are out of stock
+                          if (outOfStockItems.isNotEmpty) {
+                            final shouldContinue = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('⚠️ Some Items Out of Stock'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'The following items are out of stock and will be skipped:',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...outOfStockItems.map(
+                                      (name) => Text(
+                                        '• $name',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      '${itemsToAdd.length} item${itemsToAdd.length > 1 ? 's' : ''} will be added to cart.',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Continue'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            
+                            if (shouldContinue != true) return;
+                          }
+                          
+                          // Add available items to cart
+                          for (var item in itemsToAdd) {
                             context.read<CartProvider>().addToCart(
                               productId: item.productId,
                               name: item.name,
@@ -449,10 +612,16 @@ class _WishlistPageState extends State<WishlistPage> {
                             );
                             wishlistProvider.removeFromWishlist(item.productId);
                           }
+                          
                           setState(() => _selectedItems.clear());
-                          _showMessage(
-                            '$count item${count > 1 ? 's' : ''} added to cart and removed from wishlist',
-                          );
+                          
+                          if (itemsToAdd.isEmpty) {
+                            _showMessage('All items are out of stock');
+                          } else {
+                            _showMessage(
+                              '${itemsToAdd.length} item${itemsToAdd.length > 1 ? 's' : ''} added to cart',
+                            );
+                          }
                         },
                         icon: const Icon(Icons.shopping_cart),
                         label: const Text('Add All To Cart'),
@@ -574,8 +743,8 @@ class _WishlistPageState extends State<WishlistPage> {
                 ElevatedButton(
                   onPressed: isInCart
                       ? null
-                      : () {
-                          _addItemToCart(
+                      : () async {
+                          await _addItemToCart(
                             item.productId,
                             item.name,
                             item.price,

@@ -34,6 +34,31 @@ class OrderController {
                 $disc = isset($it['discounted_price']) ? (float)$it['discounted_price'] : null;
                 $img = ($it['image_url'] ?? $it['imageUrl'] ?? '');
                 if ($qty <= 0) continue;
+                
+                // ✅ Stock Validation - Check if product has enough stock
+                if ($pid > 0) {
+                    $stock_query = "SELECT stock_quantity FROM products WHERE product_id = ?";
+                    $stmt = $this->db->prepare($stock_query);
+                    $stmt->execute([$pid]);
+                    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($product) {
+                        $available_stock = (int)$product['stock_quantity'];
+                        if ($available_stock < $qty) {
+                            http_response_code(400);
+                            error_log("Order creation failed: Insufficient stock for product $pid. Requested: $qty, Available: $available_stock");
+                            return [
+                                'message' => "Insufficient stock for $name. Available: $available_stock, Requested: $qty",
+                                'error_type' => 'insufficient_stock',
+                                'product_id' => $pid,
+                                'product_name' => $name,
+                                'available_stock' => $available_stock,
+                                'requested_quantity' => $qty
+                            ];
+                        }
+                    }
+                }
+                
                 $cart_items[] = [
                     'product_id' => $pid, // 0 allowed for non-DB items
                     'product_name' => $name,
@@ -51,7 +76,7 @@ class OrderController {
                 return ['message' => 'No valid items in request'];
             }
         } else {
-            // Fallback: use server-side cart
+            // Fallback: use server-side cart with stock validation
             $cart = new Cart($this->db);
             $cart_items = $cart->getUserCart($user_id);
             if (empty($cart_items)) {
@@ -59,6 +84,36 @@ class OrderController {
                 error_log("Order creation failed: Cart is empty for user $user_id");
                 return ['message' => 'Cart is empty'];
             }
+            
+            // ✅ Validate stock for cart items
+            foreach ($cart_items as $item) {
+                $pid = (int)$item['product_id'];
+                $qty = (int)$item['quantity'];
+                
+                if ($pid > 0) {
+                    $stock_query = "SELECT stock_quantity, product_name FROM products WHERE product_id = ?";
+                    $stmt = $this->db->prepare($stock_query);
+                    $stmt->execute([$pid]);
+                    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($product) {
+                        $available_stock = (int)$product['stock_quantity'];
+                        if ($available_stock < $qty) {
+                            http_response_code(400);
+                            error_log("Order creation failed: Insufficient stock for product $pid");
+                            return [
+                                'message' => "Insufficient stock for {$product['product_name']}. Available: $available_stock, Requested: $qty",
+                                'error_type' => 'insufficient_stock',
+                                'product_id' => $pid,
+                                'product_name' => $product['product_name'],
+                                'available_stock' => $available_stock,
+                                'requested_quantity' => $qty
+                            ];
+                        }
+                    }
+                }
+            }
+            
             $total = $cart->getCartTotal($user_id);
         }
         

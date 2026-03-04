@@ -1,34 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 class AppConstants {
   // App Info
   static const String appName = 'ElectroCityBD';
   static const String appVersion = '1.0.0';
 
-  // API URL - configurable for production and development
-  // Set 'API_BASE_URL' in --dart-define or use a config file for deployment
-  static String get baseUrl {
-    const String envApiUrl = String.fromEnvironment(
-      'API_BASE_URL',
-      defaultValue: '',
-    );
-    if (envApiUrl.isNotEmpty) return envApiUrl;
-    
-    // 🔧 HOSTING CONFIGURATION
-    // For production hosting (InfinityFree/cPanel):
-    // Uncomment the line below and replace with your domain
-    // return 'https://yourdomain.com/api';
-    
-    // For local development:
-    return 'http://localhost:8000/api';
-  }
+  // API URL - Now using centralized AppConfig
+  static String get baseUrl => AppConfig.apiBaseUrl;
 
-  /// Base URL for images (product images from backend uploads). API returns full URL; use this if you have relative path.
-  static String get baseUrlImages {
-    final api = baseUrl;
-    if (api.endsWith('/api')) return api.replaceAll('/api', '');
-    return api.replaceAll(RegExp(r'/api.*'), '');
-  }
+  /// Base URL for images (product images from backend uploads)
+  static String get baseUrlImages => AppConfig.baseUrl;
 
   // Default Values
   static const int cartItemCount = 3;

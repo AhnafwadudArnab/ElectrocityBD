@@ -477,6 +477,387 @@ SELECT 'All tables now have created_at columns for proper sorting' as Info;
 
 
 
+-- ============================================================================
+-- STOCK MANAGEMENT SYSTEM - Enhanced Schema
+-- ---------------------------------------------------------------------------
+-- 1. Stock Movements Table (Stock In/Out History)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS stock_movements (
+  movement_id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  movement_type ENUM('IN', 'OUT', 'ADJUSTMENT') NOT NULL,
+  quantity INT NOT NULL,
+  previous_stock INT NOT NULL,
+  new_stock INT NOT NULL,
+  reference_type ENUM('PURCHASE', 'SALE', 'RETURN', 'DAMAGE', 'ADJUSTMENT', 'INITIAL') DEFAULT 'ADJUSTMENT',
+  reference_id INT DEFAULT NULL COMMENT 'Order ID or other reference',
+  notes TEXT,
+  created_by INT DEFAULT NULL COMMENT 'Admin user who made the change',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL,
+  INDEX idx_product_date (product_id, created_at),
+  INDEX idx_movement_type (movement_type),
+  INDEX idx_reference (reference_type, reference_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- 2. Stock Alerts Table (Low Stock Notifications)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS stock_alerts (
+  alert_id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  alert_type ENUM('LOW_STOCK', 'OUT_OF_STOCK', 'OVERSTOCK') NOT NULL,
+  threshold_quantity INT DEFAULT 5,
+  current_quantity INT NOT NULL,
+  is_resolved BOOLEAN DEFAULT FALSE,
+  resolved_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+  INDEX idx_unresolved (is_resolved, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- 3. Add Stock Threshold to Products Table (if not exists)
+-- ---------------------------------------------------------------------------
+ALTER TABLE products 
+ADD COLUMN IF NOT EXISTS min_stock_threshold INT DEFAULT 5 COMMENT 'Minimum stock before alert',
+ADD COLUMN IF NOT EXISTS max_stock_threshold INT DEFAULT 1000 COMMENT 'Maximum stock capacity',
+ADD COLUMN IF NOT EXISTS stock_status ENUM('IN_STOCK', 'LOW_STOCK', 'OUT_OF_STOCK') 
+  GENERATED ALWAYS AS (
+    CASE 
+      WHEN stock_quantity <= 0 THEN 'OUT_OF_STOCK'
+      WHEN stock_quantity <= min_stock_threshold THEN 'LOW_STOCK'
+      ELSE 'IN_STOCK'
+    END
+  ) STORED;
+
+-- ---------------------------------------------------------------------------
+-- 4. Trigger: Auto-create stock movement on product stock change
+-- ---------------------------------------------------------------------------
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS after_product_stock_update$$
+CREATE TRIGGER after_product_stock_update
+AFTER UPDATE ON products
+FOR EACH ROW
+BEGIN
+  IF OLD.stock_quantity != NEW.stock_quantity THEN
+    INSERT INTO stock_movements (
+      product_id,
+      movement_type,
+      quantity,
+      previous_stock,
+      new_stock,
+      reference_type,
+      notes
+    ) VALUES (
+      NEW.product_id,
+      IF(NEW.stock_quantity > OLD.stock_quantity, 'IN', 'OUT'),
+      ABS(NEW.stock_quantity - OLD.stock_quantity),
+      OLD.stock_quantity,
+      NEW.stock_quantity,
+      'ADJUSTMENT',
+      CONCAT('Auto-tracked: Stock changed from ', OLD.stock_quantity, ' to ', NEW.stock_quantity)
+    );
+  END IF;
+END$$
+
+DELIMITER ;
+
+-- ---------------------------------------------------------------------------
+-- 5. Trigger: Auto-create stock alert on low/out of stock
+-- ---------------------------------------------------------------------------
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS after_stock_movement_insert$$
+CREATE TRIGGER after_stock_movement_insert
+AFTER INSERT ON stock_movements
+FOR EACH ROW
+BEGIN
+  DECLARE current_stock INT;
+  DECLARE min_threshold INT;
+  DECLARE alert_type_val VARCHAR(20);
+  
+  -- Get current stock and threshold
+  SELECT stock_quantity, min_stock_threshold 
+  INTO current_stock, min_threshold
+  FROM products 
+  WHERE product_id = NEW.product_id;
+  
+  -- Determine alert type
+  IF current_stock <= 0 THEN
+    SET alert_type_val = 'OUT_OF_STOCK';
+  ELSEIF current_stock <= min_threshold THEN
+    SET alert_type_val = 'LOW_STOCK';
+  ELSE
+    SET alert_type_val = NULL;
+  END IF;
+  
+  -- Create alert if needed
+  IF alert_type_val IS NOT NULL THEN
+    INSERT INTO stock_alerts (
+      product_id,
+      alert_type,
+      threshold_quantity,
+      current_quantity,
+      is_resolved
+    ) VALUES (
+      NEW.product_id,
+      alert_type_val,
+      min_threshold,
+      current_stock,
+      FALSE
+    )
+    ON DUPLICATE KEY UPDATE
+      current_quantity = current_stock,
+      is_resolved = FALSE,
+      created_at = CURRENT_TIMESTAMP;
+  END IF;
+END$$
+
+DELIMITER ;
+
+-- ---------------------------------------------------------------------------
+-- 6. Stored Procedure: Add Stock (Stock In)
+-- ---------------------------------------------------------------------------
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sp_stock_in$$
+CREATE PROCEDURE sp_stock_in(
+  IN p_product_id INT,
+  IN p_quantity INT,
+  IN p_reference_type VARCHAR(20),
+  IN p_reference_id INT,
+  IN p_notes TEXT,
+  IN p_created_by INT
+)
+BEGIN
+  DECLARE current_stock INT;
+  DECLARE new_stock INT;
+  
+  -- Get current stock
+  SELECT stock_quantity INTO current_stock
+  FROM products
+  WHERE product_id = p_product_id;
+  
+  -- Calculate new stock
+  SET new_stock = current_stock + p_quantity;
+  
+  -- Update product stock
+  UPDATE products
+  SET stock_quantity = new_stock
+  WHERE product_id = p_product_id;
+  
+  -- Record movement (trigger will handle this automatically)
+  -- But we can add manual entry with more details
+  INSERT INTO stock_movements (
+    product_id,
+    movement_type,
+    quantity,
+    previous_stock,
+    new_stock,
+    reference_type,
+    reference_id,
+    notes,
+    created_by
+  ) VALUES (
+    p_product_id,
+    'IN',
+    p_quantity,
+    current_stock,
+    new_stock,
+    p_reference_type,
+    p_reference_id,
+    p_notes,
+    p_created_by
+  );
+  
+  -- Return success
+  SELECT 
+    'SUCCESS' as status,
+    p_product_id as product_id,
+    current_stock as previous_stock,
+    new_stock as current_stock,
+    p_quantity as quantity_added;
+END$$
+
+DELIMITER ;
+
+-- ---------------------------------------------------------------------------
+-- 7. Stored Procedure: Remove Stock (Stock Out)
+-- ---------------------------------------------------------------------------
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sp_stock_out$$
+CREATE PROCEDURE sp_stock_out(
+  IN p_product_id INT,
+  IN p_quantity INT,
+  IN p_reference_type VARCHAR(20),
+  IN p_reference_id INT,
+  IN p_notes TEXT,
+  IN p_created_by INT
+)
+BEGIN
+  DECLARE current_stock INT;
+  DECLARE new_stock INT;
+  
+  -- Get current stock
+  SELECT stock_quantity INTO current_stock
+  FROM products
+  WHERE product_id = p_product_id;
+  
+  -- Check if sufficient stock
+  IF current_stock < p_quantity THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Insufficient stock available';
+  END IF;
+  
+  -- Calculate new stock
+  SET new_stock = current_stock - p_quantity;
+  
+  -- Update product stock
+  UPDATE products
+  SET stock_quantity = new_stock
+  WHERE product_id = p_product_id;
+  
+  -- Record movement
+  INSERT INTO stock_movements (
+    product_id,
+    movement_type,
+    quantity,
+    previous_stock,
+    new_stock,
+    reference_type,
+    reference_id,
+    notes,
+    created_by
+  ) VALUES (
+    p_product_id,
+    'OUT',
+    p_quantity,
+    current_stock,
+    new_stock,
+    p_reference_type,
+    p_reference_id,
+    p_notes,
+    p_created_by
+  );
+  
+  -- Return success
+  SELECT 
+    'SUCCESS' as status,
+    p_product_id as product_id,
+    current_stock as previous_stock,
+    new_stock as current_stock,
+    p_quantity as quantity_removed;
+END$$
+
+DELIMITER ;
+
+-- ---------------------------------------------------------------------------
+-- 8. View: Stock Summary Report
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE VIEW v_stock_summary AS
+SELECT 
+  p.product_id,
+  p.product_name,
+  c.category_name,
+  b.brand_name,
+  p.stock_quantity,
+  p.min_stock_threshold,
+  p.stock_status,
+  COALESCE(SUM(CASE WHEN sm.movement_type = 'IN' THEN sm.quantity ELSE 0 END), 0) as total_stock_in,
+  COALESCE(SUM(CASE WHEN sm.movement_type = 'OUT' THEN sm.quantity ELSE 0 END), 0) as total_stock_out,
+  COUNT(DISTINCT sm.movement_id) as total_movements,
+  MAX(sm.created_at) as last_movement_date
+FROM products p
+LEFT JOIN categories c ON p.category_id = c.category_id
+LEFT JOIN brands b ON p.brand_id = b.brand_id
+LEFT JOIN stock_movements sm ON p.product_id = sm.product_id
+GROUP BY p.product_id, p.product_name, c.category_name, b.brand_name, 
+         p.stock_quantity, p.min_stock_threshold, p.stock_status;
+
+-- ---------------------------------------------------------------------------
+-- 9. View: Active Stock Alerts
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE VIEW v_active_stock_alerts AS
+SELECT 
+  sa.alert_id,
+  sa.product_id,
+  p.product_name,
+  c.category_name,
+  b.brand_name,
+  sa.alert_type,
+  sa.threshold_quantity,
+  sa.current_quantity,
+  sa.created_at,
+  DATEDIFF(NOW(), sa.created_at) as days_pending
+FROM stock_alerts sa
+JOIN products p ON sa.product_id = p.product_id
+LEFT JOIN categories c ON p.category_id = c.category_id
+LEFT JOIN brands b ON p.brand_id = b.brand_id
+WHERE sa.is_resolved = FALSE
+ORDER BY sa.created_at DESC;
+
+-- ---------------------------------------------------------------------------
+-- 10. Sample Data: Initialize stock movements for existing products
+-- ---------------------------------------------------------------------------
+INSERT INTO stock_movements (
+  product_id,
+  movement_type,
+  quantity,
+  previous_stock,
+  new_stock,
+  reference_type,
+  notes
+)
+SELECT 
+  product_id,
+  'IN',
+  stock_quantity,
+  0,
+  stock_quantity,
+  'INITIAL',
+  'Initial stock entry from existing data'
+FROM products
+WHERE stock_quantity > 0
+ON DUPLICATE KEY UPDATE movement_id = movement_id;
+
+-- ---------------------------------------------------------------------------
+-- 11. Indexes for Performance
+-- ---------------------------------------------------------------------------
+ALTER TABLE products ADD INDEX idx_stock_status (stock_status);
+ALTER TABLE products ADD INDEX idx_stock_quantity (stock_quantity);
+
+-- ============================================================================
+-- USAGE EXAMPLES
+-- ============================================================================
+
+-- Example 1: Add stock (Stock In)
+-- CALL sp_stock_in(1, 50, 'PURCHASE', NULL, 'Received from supplier', 1);
+
+-- Example 2: Remove stock (Stock Out)
+-- CALL sp_stock_out(1, 10, 'SALE', 123, 'Sold via order #123', 1);
+
+-- Example 3: View stock summary
+-- SELECT * FROM v_stock_summary WHERE stock_status = 'LOW_STOCK';
+
+-- Example 4: View active alerts
+-- SELECT * FROM v_active_stock_alerts;
+
+-- Example 5: Get stock movement history for a product
+-- SELECT * FROM stock_movements WHERE product_id = 1 ORDER BY created_at DESC;
+
+-- ============================================================================
+-- VERIFICATION
+-- ============================================================================
+
+SELECT 
+  'Stock Management Schema Installed Successfully!' as message,
+  (SELECT COUNT(*) FROM stock_movements) as total_movements,
+  (SELECT COUNT(*) FROM stock_alerts) as total_alerts,
+  (SELECT COUNT(*) FROM v_stock_summary) as products_tracked;
 
 
 

@@ -9,12 +9,13 @@ import 'Front-end/Provider/Banner_provider.dart';
 import 'Front-end/Provider/Orders_provider.dart';
 import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 import 'Front-end/utils/api_service.dart';
+import 'config/app_config.dart';
 
 void main() async {
   // Force API base URL for web platform
   if (kIsWeb) {
-    ApiService.setBaseUrl('http://localhost:8000/api');
-    print('🌐 Running on Web - API URL set to: http://localhost:8000/api');
+    ApiService.setBaseUrl(AppConfig.apiBaseUrl);
+    print('🌐 Running on Web - API URL set to: ${AppConfig.apiBaseUrl}');
   }
   
   runApp(
@@ -45,7 +46,7 @@ class _MyAppState extends State<MyApp> {
     if (kIsWeb) {
       // Check if API URL is already set (from main.dart)
       if (ApiService.overrideBaseUrl != null && 
-          ApiService.overrideBaseUrl!.contains('localhost:8000')) {
+          ApiService.overrideBaseUrl == AppConfig.apiBaseUrl) {
         print('✓ Using pre-configured API URL: ${ApiService.overrideBaseUrl}');
         return; // Don't override the URL set in main()
       }
@@ -54,11 +55,11 @@ class _MyAppState extends State<MyApp> {
       if (apiOverride != null && apiOverride.startsWith('http')) {
         ApiService.setBaseUrl(apiOverride);
       } else {
-        // Try localhost:8000 first (PHP backend)
+        // Try configured backend first
         try {
-          ApiService.setBaseUrl('http://localhost:8000/api');
+          ApiService.setBaseUrl(AppConfig.apiBaseUrl);
           await ApiService.get('/health', withAuth: false);
-          print('✓ Connected to PHP backend at http://localhost:8000/api');
+          print('✓ Connected to backend at ${AppConfig.apiBaseUrl}');
           return;
         } catch (_) {
           // Fallback to other ports
@@ -80,9 +81,9 @@ class _MyAppState extends State<MyApp> {
       }
       return;
     }
-    // Non-web: try common localhost ports
+    // Non-web: try configured URL first, then fallbacks
     final candidates = <String>[
-      'http://localhost:8000/api', // PHP backend
+      AppConfig.apiBaseUrl, // Configured backend
       'http://10.0.2.2:8000/api', // Android emulator
       'http://10.0.2.2:3002/api',
       'http://10.0.2.2:3001/api',

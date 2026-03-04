@@ -6,6 +6,7 @@ import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.d
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
@@ -73,7 +74,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   Future<void> _loadTimerFromApi() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8000/api/deals_timer'),
+        Uri.parse('${AppConfig.apiBaseUrl}/deals_timer'),
       );
 
       if (response.statusCode == 200) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 import '../../API/api_service.dart';
 import '../../Admin Panel/A_customers.dart';
@@ -147,7 +148,7 @@ class _LogInState extends State<LogIn> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Server connection failed. Please check if backend is running at http://localhost:8000',
+            'Server connection failed. Please check if backend is running at ${AppConfig.apiBaseUrl}',
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,

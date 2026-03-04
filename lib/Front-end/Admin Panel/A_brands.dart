@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
 import 'Admin_sidebar.dart';
@@ -356,7 +357,7 @@ class _BrandCard extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: logo.isNotEmpty
                   ? Image.network(
-                      'http://localhost:8000/$logo',
+                      AppConfig.uploadPath(logo),
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => const Icon(
                         Icons.broken_image,

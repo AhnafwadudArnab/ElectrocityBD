@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:electrocitybd1/config/app_config.dart';
 import 'package:http/http.dart' as http;
 
 import '../utils/auth_session.dart';
@@ -14,8 +15,24 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000/api';
+  static String get baseUrl => AppConfig.apiBaseUrl;
+
+  static Map<String, dynamic> _decodeResponseBody(
+    http.Response response,
+  ) {
+    if (response.body.trim().isEmpty) {
+      return {};
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+
+    throw ApiException('Invalid response format', response.statusCode);
+  }
 
   static Future<Map<String, dynamic>> post(
     String endpoint,
@@ -62,7 +79,7 @@ class ApiService {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      final data = jsonDecode(response.body);
+      final data = _decodeResponseBody(response);
 
       if (response.statusCode == 200) {
         return data;
@@ -89,7 +106,7 @@ class ApiService {
         body: jsonEncode({'username': username, 'password': password}),
       );
 
-      final data = jsonDecode(response.body);
+      final data = _decodeResponseBody(response);
 
       if (response.statusCode == 200) {
         return data;
@@ -127,7 +144,7 @@ class ApiService {
         }),
       );
 
-      final data = jsonDecode(response.body);
+      final data = _decodeResponseBody(response);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return data;
@@ -156,7 +173,7 @@ class ApiService {
         },
       );
 
-      final data = jsonDecode(response.body);
+      final data = _decodeResponseBody(response);
 
       if (response.statusCode == 200) {
         return data;

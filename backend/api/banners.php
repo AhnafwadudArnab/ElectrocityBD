@@ -66,14 +66,89 @@ if ($method === 'GET') {
 }
 
 if ($method === 'PUT' || $method === 'POST') {
+    require_once __DIR__ . '/../middleware/authmiddleware.php';
+    $admin = AuthMiddleware::authenticateAdmin();
+    
     $data = json_decode(file_get_contents('php://input'), true);
     if (!is_array($data)) $data = [];
+    
     try {
-        // Admin can update banners here if needed
-        echo json_encode(['message' => 'Banners update not implemented yet']);
+        // Clear existing banners if updating all
+        if (isset($data['clearAll']) && $data['clearAll']) {
+            $db->exec('DELETE FROM banners');
+        }
+        
+        // Update hero banners
+        if (isset($data['hero']) && is_array($data['hero'])) {
+            // Delete existing hero banners
+            $db->exec("DELETE FROM banners WHERE banner_type = 'hero'");
+            
+            // Insert new hero banners
+            $stmt = $db->prepare('
+                INSERT INTO banners (banner_type, image_url, link_url, title, description, button_text, display_order, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
+            ');
+            
+            foreach ($data['hero'] as $index => $banner) {
+                $stmt->execute([
+                    'hero',
+                    $banner['image'] ?? $banner['img'] ?? '',
+                    $banner['link'] ?? '',
+                    $banner['label'] ?? $banner['title'] ?? '',
+                    $banner['description'] ?? '',
+                    $banner['buttonText'] ?? '',
+                    $index
+                ]);
+            }
+        }
+        
+        // Update mid banners
+        if (isset($data['mid']) && is_array($data['mid'])) {
+            $db->exec("DELETE FROM banners WHERE banner_type = 'mid'");
+            
+            $stmt = $db->prepare('
+                INSERT INTO banners (banner_type, image_url, link_url, title, description, button_text, display_order, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
+            ');
+            
+            foreach ($data['mid'] as $index => $banner) {
+                $stmt->execute([
+                    'mid',
+                    $banner['img'] ?? $banner['image'] ?? '',
+                    $banner['link'] ?? '',
+                    $banner['title'] ?? '',
+                    $banner['description'] ?? '',
+                    $banner['buttonText'] ?? '',
+                    $index
+                ]);
+            }
+        }
+        
+        // Update sidebar promo
+        if (isset($data['sidebar']) && is_array($data['sidebar'])) {
+            $db->exec("DELETE FROM banners WHERE banner_type = 'sidebar'");
+            
+            $stmt = $db->prepare('
+                INSERT INTO banners (banner_type, image_url, link_url, title, description, button_text, display_order, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
+            ');
+            
+            $stmt->execute([
+                'sidebar',
+                $data['sidebar']['image'] ?? $data['sidebar']['img'] ?? '',
+                $data['sidebar']['link'] ?? '',
+                $data['sidebar']['title'] ?? 'FLASH SALE',
+                $data['sidebar']['subtitle'] ?? $data['sidebar']['description'] ?? '',
+                $data['sidebar']['buttonText'] ?? 'VIEW ALL',
+                0
+            ]);
+        }
+        
+        echo json_encode(['success' => true, 'message' => 'Banners updated successfully']);
     } catch (Throwable $e) {
+        error_log("Banner save error: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['message' => 'Save failed']);
+        echo json_encode(['message' => 'Save failed: ' . $e->getMessage()]);
     }
     exit;
 }

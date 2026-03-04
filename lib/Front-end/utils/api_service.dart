@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 import 'constants.dart';
 
-String _apiBase() => ApiService.overrideBaseUrl ?? AppConstants.baseUrl;
+String _apiBase() => ApiService.overrideBaseUrl ?? AppConfig.apiBaseUrl;
 
 class ApiService {
   static const String _tokenKey = 'electrocity_jwt_token';
@@ -20,12 +21,20 @@ class ApiService {
     }
   }
   
+  /// Get the upload endpoint URL
+  static String getUploadUrl() {
+    final base = overrideBaseUrl ?? AppConstants.baseUrl;
+    if (base.endsWith('/api')) {
+      return base.replaceAll('/api', '/api/upload');
+    }
+    return '$base/upload';
+  }
+  
   static Future<String?> _reprobeBase() async {
     final candidates = <String>{
       if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty)
         overrideBaseUrl!,
-      AppConstants.baseUrl,
-      'http://localhost:8000/api',
+      AppConfig.apiBaseUrl,
       'http://127.0.0.1:8000/api',
       'http://localhost:3002/api',
       'http://localhost:3001/api',
@@ -58,9 +67,9 @@ class ApiService {
       }
     }
     if (kDebugMode) {
-      print('⚠ No backend found, using default: ${AppConstants.baseUrl}');
+      print('⚠ No backend found, using default: ${AppConfig.apiBaseUrl}');
     }
-    return AppConstants.baseUrl; // Return default instead of null
+    return AppConfig.apiBaseUrl; // Return default instead of null
   }
 
   // ─── Token Management ───

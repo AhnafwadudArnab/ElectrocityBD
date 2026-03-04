@@ -363,6 +363,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
   }
 
   Widget _buildProductInfo(AppResponsive r) {
+    // Get stock information from product data
+    final stockInfo = widget.product.additionalInfo['stock'] ?? 
+                      widget.product.additionalInfo['stock_quantity'];
+    final stockQuantity = int.tryParse(stockInfo?.toString() ?? '0') ?? 0;
+    final isInStock = stockQuantity > 0;
+    final isLowStock = stockQuantity > 0 && stockQuantity <= 5;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -377,6 +384,81 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
               desktop: 38.0,
             ),
             fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(
+          height: r.value(
+            smallMobile: 10,
+            mobile: 10,
+            tablet: 12,
+            smallDesktop: 13,
+            desktop: 15,
+          ),
+        ),
+        // Stock Status Badge
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: r.value(
+              smallMobile: 10.0,
+              mobile: 10.0,
+              tablet: 12.0,
+              smallDesktop: 13.0,
+              desktop: 14.0,
+            ),
+            vertical: r.value(
+              smallMobile: 6.0,
+              mobile: 6.0,
+              tablet: 7.0,
+              smallDesktop: 7.5,
+              desktop: 8.0,
+            ),
+          ),
+          decoration: BoxDecoration(
+            color: isInStock 
+                ? (isLowStock ? Colors.orange.shade50 : Colors.green.shade50)
+                : Colors.red.shade50,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isInStock 
+                  ? (isLowStock ? Colors.orange : Colors.green)
+                  : Colors.red,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isInStock 
+                    ? (isLowStock ? Icons.warning_amber_rounded : Icons.check_circle)
+                    : Icons.cancel,
+                size: r.value(
+                  smallMobile: 16.0,
+                  mobile: 16.0,
+                  tablet: 17.0,
+                  smallDesktop: 17.5,
+                  desktop: 18.0,
+                ),
+                color: isInStock 
+                    ? (isLowStock ? Colors.orange : Colors.green)
+                    : Colors.red,
+              ),
+              SizedBox(width: 6),
+              Text(
+                isInStock 
+                    ? (isLowStock 
+                        ? 'Low Stock ($stockQuantity left)' 
+                        : 'In Stock ($stockQuantity available)')
+                    : 'Out of Stock',
+                style: TextStyle(
+                  fontSize: AppDimensions.smallFont(context),
+                  fontWeight: FontWeight.w600,
+                  color: isInStock 
+                      ? (isLowStock ? Colors.orange.shade800 : Colors.green.shade800)
+                      : Colors.red.shade800,
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(
@@ -490,12 +572,12 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             desktop: 40,
           ),
         ),
-        _buildQuantityAndActions(r),
+        _buildQuantityAndActions(r, isInStock, stockQuantity),
       ],
     );
   }
 
-  Widget _buildQuantityAndActions(AppResponsive r) {
+  Widget _buildQuantityAndActions(AppResponsive r, bool isInStock, int stockQuantity) {
     return Column(
       children: [
         Row(
@@ -525,13 +607,13 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                 children: [
                   _quantityButton(
                     icon: Icons.remove,
-                    onTap: () {
+                    onTap: isInStock ? () {
                       setState(() {
                         if (_quantity > 1) {
                           _quantity -= 1;
                         }
                       });
-                    },
+                    } : null,
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(
@@ -552,11 +634,11 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   ),
                   _quantityButton(
                     icon: Icons.add,
-                    onTap: () {
+                    onTap: isInStock && _quantity < stockQuantity ? () {
                       setState(() {
                         _quantity += 1;
                       });
-                    },
+                    } : null,
                   ),
                 ],
               ),
@@ -572,7 +654,18 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
             Expanded(
               child: ElevatedButton(
-                onPressed: () async {
+                onPressed: isInStock ? () async {
+                  if (_quantity > stockQuantity) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Only $stockQuantity items available in stock'),
+                        backgroundColor: Colors.orange,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                    return;
+                  }
+                  
                   await context.read<CartProvider>().addToCart(
                     productId: widget.product.id,
                     name: widget.product.name,
@@ -591,9 +684,9 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                       duration: const Duration(seconds: 1),
                     ),
                   );
-                },
+                } : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: isInStock ? Colors.orange : Colors.grey,
                   padding: EdgeInsets.symmetric(
                     horizontal: r.value(
                       smallMobile: 20.0,
@@ -615,7 +708,7 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
                   ),
                 ),
                 child: Text(
-                  "ADD TO BAG",
+                  isInStock ? "ADD TO BAG" : "OUT OF STOCK",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -626,6 +719,56 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
             ),
           ],
         ),
+        if (!isInStock)
+          Padding(
+            padding: EdgeInsets.only(
+              top: r.value(
+                smallMobile: 8.0,
+                mobile: 8.0,
+                tablet: 10.0,
+                smallDesktop: 11.0,
+                desktop: 12.0,
+              ),
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: r.value(
+                  smallMobile: 12.0,
+                  mobile: 12.0,
+                  tablet: 14.0,
+                  smallDesktop: 15.0,
+                  desktop: 16.0,
+                ),
+                vertical: r.value(
+                  smallMobile: 8.0,
+                  mobile: 8.0,
+                  tablet: 9.0,
+                  smallDesktop: 9.5,
+                  desktop: 10.0,
+                ),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: Colors.red.shade700),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This product is currently unavailable. Check back later!',
+                      style: TextStyle(
+                        fontSize: AppDimensions.smallFont(context),
+                        color: Colors.red.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         SizedBox(
           height: r.value(
             smallMobile: 12,
@@ -701,12 +844,15 @@ class _UniversalProductDetailsState extends State<UniversalProductDetails>
 
   Widget _quantityButton({
     required IconData icon,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
-      child: SizedBox(width: 28, height: 28, child: Icon(icon, size: 18)),
+      child: Opacity(
+        opacity: onTap == null ? 0.3 : 1.0,
+        child: SizedBox(width: 28, height: 28, child: Icon(icon, size: 18)),
+      ),
     );
   }
 

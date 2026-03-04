@@ -4,6 +4,7 @@ import 'package:electrocitybd1/Front-end/widgets/Sidebar/sidebar.dart';
 import 'package:electrocitybd1/Front-end/widgets/footer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 import '../Dimensions/responsive_dimensions.dart';
 import '../Provider/Admin_product_provider.dart';
@@ -137,7 +138,7 @@ class _MainContentState extends State<_MainContent> {
         return NetworkImage(path);
       }
       if (path.startsWith('/uploads/')) {
-        return NetworkImage('http://localhost:8000$path');
+        return NetworkImage(AppConfig.uploadPath(path));
       }
       return AssetImage(path);
     }

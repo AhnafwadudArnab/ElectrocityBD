@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 
 import '../../Dimensions/responsive_dimensions.dart';
 import '../../utils/api_service.dart';
@@ -220,7 +221,7 @@ class _FeaturedBrandsStripState extends State<FeaturedBrandsStrip> {
                         },
                       )
                     : Image.network(
-                        'http://localhost:8000/$logoPath',
+                        AppConfig.uploadPath(logoPath),
                         fit: BoxFit.contain,
                         width: 100,
                         height: 70,

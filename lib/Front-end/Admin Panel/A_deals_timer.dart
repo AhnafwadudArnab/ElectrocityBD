@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:electrocitybd1/config/app_config.dart';
 
 class AdminDealsTimerPage extends StatefulWidget {
   const AdminDealsTimerPage({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
     setState(() => _loading = true);
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8000/api/deals_timer'),
+        Uri.parse('${AppConfig.apiBaseUrl}/deals_timer'),
       );
 
       if (response.statusCode == 200) {
@@ -71,7 +72,7 @@ class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
     setState(() => _loading = true);
     try {
       final response = await http.put(
-        Uri.parse('http://localhost:8000/api/deals_timer'),
+        Uri.parse('${AppConfig.apiBaseUrl}/deals_timer'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'days': int.tryParse(_daysController.text) ?? 3,
