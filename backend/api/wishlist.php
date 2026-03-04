@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/../middleware/authmiddleware.php';
 
 $db = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -10,61 +9,100 @@ if ($method === 'OPTIONS') {
     exit;
 }
 
-$userId = authenticate();
+// Get user from token
+$token = getBearerToken();
+if (!$token) {
+    http_response_code(401);
+    echo json_encode(['message' => 'Unauthorized']);
+    exit;
+}
+
+$decoded = JWT::verify($token);
+if (!$decoded) {
+    http_response_code(401);
+    echo json_encode(['message' => 'Invalid token']);
+    exit;
+}
+
+$user_id = $decoded['user_id'];
 
 switch ($method) {
     case 'GET':
-        // Get user's wishlist with product details
+        // Get user's wishlist
         $stmt = $db->prepare("
-            SELECT w.*, p.*, w.added_at as wishlist_added_at
-            FROM wishlists w
-            INNER JOIN products p ON w.product_id = p.product_id
+            SELECT w.*, p.product_name, p.price, p.image_url, c.category_name
+            FROM wishlist w
+            LEFT JOIN products p ON w.product_id = p.product_id
+            LEFT JOIN categories c ON p.category_id = c.category_id
             WHERE w.user_id = ?
-            ORDER BY w.added_at DESC
+            ORDER BY w.created_at DESC
         ");
-        $stmt->execute([$userId]);
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt->execute([$user_id]);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode(['items' => $items]);
         break;
         
     case 'POST':
+        // Add to wishlist
         $data = json_decode(file_get_contents('php://input'), true);
         
-        // Check if already in wishlist
-        $stmt = $db->prepare("
-            SELECT * FROM wishlists 
-            WHERE user_id = ? AND product_id = ?
-        ");
-        $stmt->execute([$userId, $data['product_id']]);
-        
-        if ($stmt->fetch()) {
-            echo json_encode(['message' => 'Product already in wishlist']);
+        if (!isset($data['product_id'])) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Product ID required']);
             exit;
         }
         
-        $stmt = $db->prepare("
-            INSERT INTO wishlists (user_id, product_id)
-            VALUES (?, ?)
-        ");
-        $stmt->execute([$userId, $data['product_id']]);
-        echo json_encode(['message' => 'Added to wishlist', 'id' => $db->lastInsertId()]);
+        $product_id = (int)$data['product_id'];
+        
+        // Check if already in wishlist
+        $stmt = $db->prepare("SELECT wishlist_id FROM wishlist WHERE user_id = ? AND product_id = ?");
+        $stmt->execute([$user_id, $product_id]);
+        
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(['message' => 'Already in wishlist']);
+            exit;
+        }
+        
+        // Add to wishlist
+        $stmt = $db->prepare("INSERT INTO wishlist (user_id, product_id) VALUES (?, ?)");
+        if ($stmt->execute([$user_id, $product_id])) {
+            http_response_code(201);
+            echo json_encode(['message' => 'Added to wishlist']);
+        } else {
+            http_response_code(500);
+            echo json_encode(['message' => 'Failed to add to wishlist']);
+        }
         break;
         
     case 'DELETE':
+        // Remove from wishlist
         if (isset($_GET['product_id'])) {
-            $productId = (int)$_GET['product_id'];
-            $stmt = $db->prepare("
-                DELETE FROM wishlists 
-                WHERE user_id = ? AND product_id = ?
-            ");
-            $stmt->execute([$userId, $productId]);
+            $product_id = (int)$_GET['product_id'];
+            
+            $stmt = $db->prepare("DELETE FROM wishlist WHERE user_id = ? AND product_id = ?");
+            if ($stmt->execute([$user_id, $product_id])) {
+                echo json_encode(['message' => 'Removed from wishlist']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'Failed to remove from wishlist']);
+            }
+        } elseif (isset($_GET['clear']) && $_GET['clear'] === 'true') {
+            // Clear entire wishlist
+            $stmt = $db->prepare("DELETE FROM wishlist WHERE user_id = ?");
+            if ($stmt->execute([$user_id])) {
+                echo json_encode(['message' => 'Wishlist cleared']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'Failed to clear wishlist']);
+            }
         } else {
-            $id = (int)$_GET['id'];
-            $stmt = $db->prepare("
-                DELETE FROM wishlists 
-                WHERE wishlist_id = ? AND user_id = ?
-            ");
-            $stmt->execute([$id, $userId]);
+            http_response_code(400);
+            echo json_encode(['message' => 'Product ID required']);
         }
-        echo json_encode(['message' => 'Removed from wishlist']);
         break;
+        
+    default:
+        http_response_code(405);
+        echo json_encode(['message' => 'Method not allowed']);
 }
