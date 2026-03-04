@@ -863,6 +863,15 @@ SELECT
 
 
 
+ALTER TABLE password_reset_tokens 
+ADD COLUMN reset_code VARCHAR(6) NULL AFTER token,
+ADD INDEX idx_reset_code (reset_code);
+
+-- Update existing records (optional, for testing)
+UPDATE password_reset_tokens 
+SET reset_code = LPAD(FLOOR(RAND() * 1000000), 6, '0')
+WHERE reset_code IS NULL AND used = 0;
+
 
 
 

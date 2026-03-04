@@ -1,116 +1,115 @@
 <?php
+/**
+ * Password Reset API Endpoint
+ * Clean architecture implementation with dependency injection
+ */
+
+// Define SECURE_ACCESS constant before including files
+define('SECURE_ACCESS', true);
+
+// Set headers
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
+// Load dependencies
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/../models/password_reset.php';
-
-// Get database connection using the db() function from bootstrap
-$conn = db();
-
-$passwordReset = new PasswordReset($conn);
-$method = $_SERVER['REQUEST_METHOD'];
-$input = json_decode(file_get_contents('php://input'), true);
+require_once __DIR__ . '/../services/EmailServiceInterface.php';
+require_once __DIR__ . '/../services/EmailServiceFactory.php';
+require_once __DIR__ . '/../controllers/PasswordResetController.php';
 
 try {
-    if ($method !== 'POST') {
+    // Only allow POST requests
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
         echo json_encode(['success' => false, 'message' => 'Method not allowed']);
         exit;
     }
     
+    // Get database connection
+    $conn = db();
+    
+    // Build configuration array from environment
+    $config = [
+        'smtp' => [
+            'host' => getenv('SMTP_HOST') ?: 'smtp.gmail.com',
+            'port' => (int)(getenv('SMTP_PORT') ?: 587),
+            'secure' => getenv('SMTP_SECURE') ?: 'tls',
+            'username' => getenv('SMTP_USERNAME') ?: '',
+            'password' => getenv('SMTP_PASSWORD') ?: ''
+        ],
+        'mail' => [
+            'from_address' => getenv('MAIL_FROM_ADDRESS') ?: 'noreply@electrocitybd.com',
+            'from_name' => getenv('MAIL_FROM_NAME') ?: 'ElectroCityBD'
+        ]
+    ];
+    
+    // Create dependencies using factory pattern
+    $passwordResetModel = new PasswordReset($conn);
+    $emailServiceFactory = EmailServiceFactory::getInstance($config);
+    $emailService = $emailServiceFactory->createEmailService();
+    
+    // Create controller with dependency injection
+    $controller = new PasswordResetController($passwordResetModel, $emailService);
+    
+    // Get request input
+    $input = json_decode(file_get_contents('php://input'), true);
     $action = $input['action'] ?? '';
     
+    // Route to appropriate controller method
     switch ($action) {
         case 'request_reset':
-            // Request password reset
-            $email = $input['email'] ?? '';
-            
-            if (empty($email)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Email is required']);
-                exit;
-            }
-            
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Invalid email format']);
-                exit;
-            }
-            
-            $result = $passwordReset->createResetToken($email);
-            
-            // For security, always return success even if email doesn't exist
-            // But include token only if email exists
-            if ($result['success']) {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'If this email exists, a reset link has been generated',
-                    'token' => $result['token'], // In production, send this via email
-                    'user_name' => $result['user_name'] ?? ''
-                ]);
-            } else {
-                // Still return success to prevent email enumeration
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'If this email exists, a reset link has been generated'
-                ]);
-            }
+            $result = $controller->requestReset($input);
             break;
             
         case 'verify_token':
-            // Verify reset token
-            $token = $input['token'] ?? '';
-            
-            if (empty($token)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Token is required']);
-                exit;
-            }
-            
-            $result = $passwordReset->verifyToken($token);
-            echo json_encode($result);
+            $result = $controller->verifyToken($input);
             break;
             
         case 'reset_password':
-            // Reset password with token
-            $token = $input['token'] ?? '';
-            $newPassword = $input['new_password'] ?? '';
-            
-            if (empty($token) || empty($newPassword)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Token and new password are required']);
-                exit;
-            }
-            
-            if (strlen($newPassword) < 4) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Password must be at least 4 characters']);
-                exit;
-            }
-            
-            $result = $passwordReset->resetPassword($token, $newPassword);
-            echo json_encode($result);
+            $result = $controller->resetPassword($input);
             break;
             
         default:
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            $result = [
+                'success' => false,
+                'message' => 'Invalid action',
+                'http_code' => 400
+            ];
             break;
     }
     
+    // Send response
+    $httpCode = $result['http_code'] ?? 200;
+    unset($result['http_code']);
+    
+    http_response_code($httpCode);
+    echo json_encode($result);
+    
+} catch (RuntimeException $e) {
+    // Handle email service not available
+    http_response_code(503);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Service temporarily unavailable. Please try again later.'
+    ]);
+    error_log('Password Reset API Error: ' . $e->getMessage());
+    
 } catch (Exception $e) {
+    // Handle other errors
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Server error: ' . $e->getMessage()
+        'message' => 'Server error occurred'
     ]);
+    error_log('Password Reset API Error: ' . $e->getMessage());
 }
 ?>
