@@ -1,7 +1,17 @@
 <?php
 class JWT {
-    private static $secret_key = 'ElectrocityBD_Secret_Key_2024';
     private static $algorithm = 'HS256';
+    
+    private static function getSecretKey() {
+        // Get secret from environment variable or config
+        $secret = getenv('JWT_SECRET') ?: getenv('ECITY_JWT_SECRET');
+        if (!$secret) {
+            // Fallback to config file
+            $config = require __DIR__ . '/../config.php';
+            $secret = $config['auth']['jwt_secret'] ?? 'ElectrocityBD_Secret_Key_2024';
+        }
+        return $secret;
+    }
     
     public static function generate($data) {
         $header = json_encode(['typ' => 'JWT', 'alg' => self::$algorithm]);
@@ -10,7 +20,7 @@ class JWT {
         $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
         $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
         
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::$secret_key, true);
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::getSecretKey(), true);
         $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         
         return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
@@ -28,7 +38,7 @@ class JWT {
         $base64UrlPayload = str_replace(['-', '_'], ['+', '/'], $payload);
         $base64UrlSignature = str_replace(['-', '_'], ['+', '/'], $signature);
         
-        $signature_check = hash_hmac('sha256', $header . "." . $payload, self::$secret_key, true);
+        $signature_check = hash_hmac('sha256', $header . "." . $payload, self::getSecretKey(), true);
         $base64UrlSignature_check = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature_check));
         
         if ($base64UrlSignature_check !== $signature) return false;

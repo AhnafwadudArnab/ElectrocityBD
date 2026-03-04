@@ -355,7 +355,7 @@ class OrdersProvider extends ChangeNotifier {
       final raw = prefs.getString(_storageKey);
 
       if (raw == null || raw.isEmpty) {
-        await _addSampleOrders(); // Add sample data for testing
+        // No local data and no API data - orders will be empty
         return;
       }
 
@@ -376,63 +376,8 @@ class OrdersProvider extends ChangeNotifier {
     }
   }
 
-  /// Add sample orders for testing
-  Future<void> _addSampleOrders() async {
-    final now = DateTime.now();
-
-    _orders.addAll([
-      PlacedOrder(
-        orderId: 'ORD1001',
-        transactionId: 'TXN1001',
-        paymentMethod: 'Credit Card',
-        total: 1299.99,
-        createdAt: _formatDate(now.subtract(Duration(days: 1))),
-        createdAtMillis: now.subtract(Duration(days: 1)).millisecondsSinceEpoch,
-        status: 'delivered',
-        estimatedDelivery: 'Delivered',
-        customerName: 'Rahul Kumar',
-        customerPhone: '9876543210',
-        items: [
-          {
-            'name': 'Smart TV 32"',
-            'quantity': 1,
-            'price': 1299.99,
-            'image': 'tv.png',
-          },
-        ],
-      ),
-      PlacedOrder(
-        orderId: 'ORD1002',
-        transactionId: 'TXN1002',
-        paymentMethod: 'Cash on Delivery',
-        total: 2499.50,
-        createdAt: _formatDate(now.subtract(Duration(hours: 12))),
-        createdAtMillis: now
-            .subtract(Duration(hours: 12))
-            .millisecondsSinceEpoch,
-        status: 'shipped',
-        estimatedDelivery: '2-3 days',
-        customerName: 'Priya Singh',
-        customerPhone: '9876543211',
-        items: [
-          {
-            'name': 'Refrigerator',
-            'quantity': 1,
-            'price': 2499.50,
-            'image': 'fridge.png',
-          },
-        ],
-      ),
-      PlacedOrder(
-        orderId: 'ORD1003',
-        transactionId: 'TXN1003',
-        paymentMethod: 'Bkash',
-        total: 799.99,
-        createdAt: _formatDate(now),
-        createdAtMillis: now.millisecondsSinceEpoch,
-        status: 'pending',
-        estimatedDelivery: '3-5 days',
-        customerName: 'Amit Das',
+  /// Format date helper
+  String _formatDate(DateTime date) {
         customerPhone: '9876543212',
         items: [
           {

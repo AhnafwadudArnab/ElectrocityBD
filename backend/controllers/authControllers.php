@@ -17,6 +17,18 @@ class AuthController {
             return ['message' => 'Missing required fields'];
         }
         
+        // Validate email format
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            return ['message' => 'Invalid email format'];
+        }
+        
+        // Validate password strength
+        if (strlen($data['password']) < 6) {
+            http_response_code(400);
+            return ['message' => 'Password must be at least 6 characters'];
+        }
+        
         // Check if email exists
         $this->user->email = $data['email'];
         if ($this->user->emailExists()) {
@@ -74,7 +86,8 @@ class AuthController {
             return ['message' => 'Invalid email or password'];
         }
         
-        if ($data['password'] !== $this->user->password && !password_verify($data['password'], $this->user->password)) {
+        // Verify password
+        if (!password_verify($data['password'], $this->user->password)) {
             http_response_code(401);
             return ['message' => 'Invalid email or password'];
         }
@@ -104,23 +117,16 @@ class AuthController {
             return ['message' => 'Username and password required'];
         }
         
-                $username = trim($data['username']);
-                $normalizedUsername = strtolower($username);
-
-                $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role
-                                    FROM users
-                                    WHERE role = 'admin'
-                                        AND (
-                                            email = :login_email
-                                            OR LOWER(full_name) = :login_full_name
-                                            OR LOWER(REPLACE(full_name, ' ', '')) = :login_compact_name
-                                        )
-                                    LIMIT 1";
-                $stmt = $this->db->prepare($query);
-                $stmt->bindParam(':login_email', $username);
-                $stmt->bindParam(':login_full_name', $normalizedUsername);
-                $stmt->bindParam(':login_compact_name', $normalizedUsername);
-                $stmt->execute();
+        // Admin login - only allow email-based login for security
+        $email = trim($data['username']);
+        
+        $query = "SELECT user_id, full_name, last_name, email, password, phone_number, address, gender, role
+                  FROM users
+                  WHERE role = 'admin' AND email = :email
+                  LIMIT 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
 
                 if ($stmt->rowCount() === 0) {
             http_response_code(401);
@@ -139,7 +145,8 @@ class AuthController {
                 $this->user->gender = $admin['gender'];
                 $this->user->role = $admin['role'];
         
-        if ($data['password'] !== $this->user->password && !password_verify($data['password'], $this->user->password)) {
+        // Verify admin password
+        if (!password_verify($data['password'], $this->user->password)) {
             http_response_code(401);
             return ['message' => 'Invalid admin credentials'];
         }

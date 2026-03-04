@@ -1,12 +1,36 @@
 <?php
-// Allow from any origin
-if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-    header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Max-Age: 86400');    // cache for 1 day
+// Secure CORS configuration
+$allowed_origins = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
+    // Add your production domain here
+    // 'https://yourdomain.com',
+];
+
+// Get environment-specific origins
+$env_origin = getenv('ALLOWED_ORIGIN');
+if ($env_origin) {
+    $allowed_origins[] = $env_origin;
 }
 
-// Access-Control headers are received during OPTIONS requests
+// Check if origin is allowed
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Credentials: true');
+} else {
+    // For development, allow localhost variations
+    if (strpos($origin, 'localhost') !== false || strpos($origin, '127.0.0.1') !== false) {
+        header("Access-Control-Allow-Origin: $origin");
+        header('Access-Control-Allow-Credentials: true');
+    }
+}
+
+header('Access-Control-Max-Age: 86400'); // cache for 1 day
+
+// Handle OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -18,6 +42,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');

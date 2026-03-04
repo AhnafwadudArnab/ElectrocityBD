@@ -16,10 +16,22 @@ class OrderController {
         error_log("Order creation attempt - User ID: $user_id");
         error_log("Order data: " . json_encode($data));
         
+        // Validate required fields
         if (!isset($data['payment_method']) || !isset($data['delivery_address'])) {
             http_response_code(400);
             error_log("Order creation failed: Missing payment_method or delivery_address");
             return ['message' => 'Payment method and delivery address required'];
+        }
+        
+        // Validate delivery address
+        $address = trim($data['delivery_address']);
+        if (strlen($address) < 10) {
+            http_response_code(400);
+            return ['message' => 'Delivery address is too short (minimum 10 characters)'];
+        }
+        if (strlen($address) > 500) {
+            http_response_code(400);
+            return ['message' => 'Delivery address is too long (maximum 500 characters)'];
         }
         
         // Prefer items provided by client; fallback to server cart
