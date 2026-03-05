@@ -68,8 +68,8 @@ Basic schema without data - useful for understanding table structure.
 ### electrocity_sample_data.sql (4,328 bytes)
 Sample data only - can be used to populate an existing schema.
 
-### complete_db.sql
-Removed as duplicate. Use COMPLETE_DATABASE_SETUP.sql.
+### complete_db.sql (67,689 bytes)
+Duplicate of COMPLETE_DATABASE_SETUP.sql for compatibility with older setup instructions.
 
 ## Setup Instructions
 
