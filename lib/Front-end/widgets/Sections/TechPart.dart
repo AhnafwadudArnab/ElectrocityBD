@@ -427,6 +427,31 @@ class _TechpartState extends State<Techpart> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  // Stock information
+                  if (product['stock'] != null || product['stock_quantity'] != null)
+                    Builder(
+                      builder: (context) {
+                        final stockQty = int.tryParse(
+                          product['stock']?.toString() ?? 
+                          product['stock_quantity']?.toString() ?? '0'
+                        ) ?? 0;
+                        return Text(
+                          stockQty > 0
+                              ? (stockQty <= 5
+                                  ? 'Only $stockQty left!'
+                                  : '$stockQty in stock')
+                              : 'Out of stock',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: stockQty > 0
+                                ? (stockQty <= 5 ? Colors.orange : Colors.green[700])
+                                : Colors.red,
+                            fontWeight: stockQty <= 5 ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        );
+                      },
+                    ),
                   const SizedBox(height: 8),
                   Text(
                     product['price'],

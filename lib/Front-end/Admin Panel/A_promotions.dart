@@ -55,11 +55,22 @@ class _AdminPromotionsPageState extends State<AdminPromotionsPage> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final list = await ApiService.getPromotions();
-      if (mounted) setState(() { _list = list.map((e) => Map<String, dynamic>.from(e as Map)).toList(); _loading = false; });
+      final response = await ApiService.get('/promotions', withAuth: true);
+      final list = response is List ? response : (response['promotions'] as List? ?? []);
+      if (mounted) {
+        setState(() {
+          _list = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() => _loading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e is ApiException ? e.message : 'Failed to load')));
+      print('Promotions load error: $e');
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load promotions: ${e.toString()}')),
+        );
+      }
     }
   }
 

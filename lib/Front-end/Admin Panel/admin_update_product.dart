@@ -135,7 +135,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       print('🔍 Loading products from API...');
       final res = await ApiService.getProducts(limit: 200);
       print('✅ API Response type: ${res.runtimeType}');
-      
+
       // Handle different response formats
       List<dynamic> list = [];
       if (res is List) {
@@ -145,28 +145,29 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       } else if (res is Map) {
         // Map response with products key
         print('📦 Map response');
-        list = (res['products'] as List<dynamic>?) ?? 
-               (res['data'] as List<dynamic>?) ?? 
-               [];
+        list =
+            (res['products'] as List<dynamic>?) ??
+            (res['data'] as List<dynamic>?) ??
+            [];
         print('📦 Extracted ${list.length} products from map');
       }
-      
+
       _dbProducts = list
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      
+
       print('✅ Loaded ${_dbProducts.length} products');
-      
+
       // Load section information for each product
       await _loadProductSections();
-      
+
       // Get total count
       if (res is Map) {
         _totalDb = (res['total'] as int?) ?? _dbProducts.length;
       } else {
         _totalDb = _dbProducts.length;
       }
-      
+
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_cacheKey, jsonEncode(_dbProducts));
@@ -205,13 +206,13 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
       final techPart = await ApiService.getTechPartProducts();
       final deals = await ApiService.getDeals();
       final flashSales = await ApiService.getFlashSales();
-      
+
       // Create maps for quick lookup
       final bestSellerIds = bestSellers.map((p) => p['product_id']).toSet();
       final trendingIds = trending.map((p) => p['product_id']).toSet();
       final techPartIds = techPart.map((p) => p['product_id']).toSet();
       final dealIds = deals.map((p) => p['product_id']).toSet();
-      
+
       // Extract flash sale product IDs
       final flashSaleIds = <int>{};
       for (var sale in flashSales) {
@@ -221,21 +222,21 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
           }
         }
       }
-      
+
       // Add section info to each product
       for (var product in _dbProducts) {
         final pid = product['product_id'];
         final sections = <String>[];
-        
+
         if (bestSellerIds.contains(pid)) sections.add('Best Sellers');
         if (trendingIds.contains(pid)) sections.add('Trending');
         if (techPartIds.contains(pid)) sections.add('Tech Part');
         if (dealIds.contains(pid)) sections.add('Deals');
         if (flashSaleIds.contains(pid)) sections.add('Flash Sale');
-        
+
         product['sections'] = sections;
       }
-      
+
       print('✅ Loaded section information for products');
     } catch (e) {
       print('⚠️ Failed to load section info: $e');
@@ -594,7 +595,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
           final sections = (p['sections'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList();
-          
+
           return _DbProductTile(
             productId: id is int ? id : int.tryParse(id?.toString() ?? ''),
             name: name,
@@ -603,6 +604,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
             rating: rating.isNotEmpty ? rating : null,
             reviews: reviews.isNotEmpty ? reviews : null,
             sections: sections,
+            onRefresh: _loadDbProducts,
             onDeleted: () {
               _dbProducts.removeAt(index);
               setState(() {});
@@ -626,7 +628,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
             child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
           );
         }
-        
+
         if (snapshot.hasError) {
           return Center(
             child: Padding(
@@ -646,20 +648,22 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                     onPressed: () => setState(() {}),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(backgroundColor: brandOrange),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: brandOrange,
+                    ),
                   ),
                 ],
               ),
             ),
           );
         }
-        
+
         final sections = snapshot.data ?? {};
         int total = 0;
         for (final list in sections.values) {
           total += list.length;
         }
-        
+
         if (total == 0) {
           return Center(
             child: Padding(
@@ -667,7 +671,11 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inventory_2_outlined, size: 48, color: Colors.white24),
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 48,
+                    color: Colors.white24,
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'No products in website sections yet.',
@@ -685,7 +693,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
             ),
           );
         }
-        
+
         return RefreshIndicator(
           onRefresh: () async => setState(() {}),
           color: brandOrange,
@@ -714,7 +722,10 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: brandOrange.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
@@ -755,7 +766,7 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
   Widget _getSectionIcon(String sectionName) {
     IconData icon;
     Color color;
-    
+
     switch (sectionName) {
       case 'Best Sellers':
         icon = Icons.star;
@@ -781,38 +792,38 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         icon = Icons.category;
         color = Colors.grey;
     }
-    
+
     return Icon(icon, color: color, size: 20);
   }
 
   Future<Map<String, List<Map<String, dynamic>>>> _loadWebsiteSections() async {
     final sections = <String, List<Map<String, dynamic>>>{};
-    
+
     try {
       // Load Best Sellers
       final bestSellers = await ApiService.getBestSellers(limit: 100);
       sections['Best Sellers'] = bestSellers
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      
+
       // Load Trending
       final trending = await ApiService.getTrendingProducts(limit: 100);
       sections['Trending'] = trending
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      
+
       // Load Tech Part
       final techPart = await ApiService.getTechPartProducts();
       sections['Tech Part'] = techPart
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      
+
       // Load Deals
       final deals = await ApiService.getDeals();
       sections['Deals'] = deals
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
-      
+
       // Load Flash Sales
       final flashSales = await ApiService.getFlashSales();
       final flashProducts = <Map<String, dynamic>>[];
@@ -824,17 +835,16 @@ class _AdminUpdateProductPageState extends State<AdminUpdateProductPage> {
         }
       }
       sections['Flash Sale'] = flashProducts;
-      
+
       print('✅ Loaded website sections:');
       sections.forEach((key, value) {
         print('  - $key: ${value.length} products');
       });
-      
     } catch (e) {
       print('❌ Error loading website sections: $e');
       rethrow;
     }
-    
+
     return sections;
   }
 }
@@ -845,6 +855,7 @@ class _DbProductTile extends StatelessWidget {
   final String price;
   final String imageUrl;
   final VoidCallback onDeleted;
+  final VoidCallback? onRefresh;
   final String? rating;
   final String? reviews;
   final List<String>? sections;
@@ -857,6 +868,7 @@ class _DbProductTile extends StatelessWidget {
     this.rating,
     this.reviews,
     this.sections,
+    this.onRefresh,
     required this.onDeleted,
   });
 
@@ -894,7 +906,7 @@ class _DbProductTile extends StatelessWidget {
                   children: sections!.map((section) {
                     Color chipColor;
                     IconData chipIcon;
-                    
+
                     switch (section) {
                       case 'Best Sellers':
                         chipColor = Colors.amber;
@@ -920,7 +932,7 @@ class _DbProductTile extends StatelessWidget {
                         chipColor = Colors.grey;
                         chipIcon = Icons.label;
                     }
-                    
+
                     return Chip(
                       avatar: Icon(chipIcon, size: 14, color: Colors.white),
                       label: Text(
@@ -933,7 +945,10 @@ class _DbProductTile extends StatelessWidget {
                       ),
                       backgroundColor: chipColor.withOpacity(0.3),
                       side: BorderSide(color: chipColor, width: 1),
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 0,
+                      ),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
                     );
@@ -945,6 +960,12 @@ class _DbProductTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (productId != null)
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                tooltip: 'Edit product',
+                onPressed: () => _editProduct(context, productId!),
+              ),
             if (productId != null)
               IconButton(
                 icon: const Icon(Icons.star_rate, color: Colors.amber),
@@ -970,13 +991,18 @@ class _DbProductTile extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF151C2C),
-        title: const Text('Update Rating', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Update Rating',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: rCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: 'Average rating (0-5)',
@@ -996,8 +1022,14 @@ class _DbProductTile extends StatelessWidget {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Save'),
+          ),
         ],
       ),
     );
@@ -1005,18 +1037,42 @@ class _DbProductTile extends StatelessWidget {
       final avg = double.tryParse(rCtrl.text.trim()) ?? 0;
       final cnt = int.tryParse(cCtrl.text.trim()) ?? 0;
       try {
-        await ApiService.setProductRating(productId: pid, ratingAvg: avg, reviewCount: cnt);
+        await ApiService.setProductRating(
+          productId: pid,
+          ratingAvg: avg,
+          reviewCount: cnt,
+        );
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: Colors.green, content: Text('Rating updated')),
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text('Rating updated'),
+          ),
         );
       } catch (e) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: Colors.red, content: Text('Failed to update rating')),
+          const SnackBar(
+            backgroundColor: Colors.red,
+            content: Text('Failed to update rating'),
+          ),
         );
       }
     }
+  }
+
+  Future<void> _editProduct(BuildContext context, int pid) async {
+    // Navigate to product upload page with edit mode
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            AdminProductUploadPage(embedded: true, editProductId: pid),
+      ),
+    ).then((_) {
+      // Refresh list after editing
+      onRefresh?.call();
+    });
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -1255,7 +1311,7 @@ class _WebsiteSectionProductTile extends StatelessWidget {
         ],
       ),
     );
-    
+
     if (ok == true) {
       try {
         // Remove from appropriate section based on name
@@ -1271,7 +1327,7 @@ class _WebsiteSectionProductTile extends StatelessWidget {
             break;
           // Add other sections as needed
         }
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

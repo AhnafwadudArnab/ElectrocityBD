@@ -17,7 +17,7 @@ enum AdminSidebarItem {
   promotions,
   help,
   settings,
-  viewStore,
+  viewStore, featuredBrands,
 }
 
 class AdminSidebar extends StatelessWidget {
@@ -146,7 +146,7 @@ class AdminSidebar extends StatelessWidget {
                     inactiveColor: inactiveGrey,
                   ),
                   _buildSidebarItem(
-                    item: AdminSidebarItem.deals,
+                    item: AdminSidebarItem.featuredBrands,
                     icon: Icons.verified_outlined,
                     label: 'Branding Logo',
                     onItemSelected: onItemSelected,

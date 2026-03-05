@@ -194,5 +194,51 @@ class OrderController {
         http_response_code(500);
         return ['message' => 'Failed to update order'];
     }
+    
+    public function deleteOrder($order_id, $admin_id) {
+        // Verify admin is performing the action
+        error_log("Order deletion attempt - Order ID: $order_id, Admin ID: $admin_id");
+        
+        // Check if order exists
+        $check_query = "SELECT order_id FROM orders WHERE order_id = ?";
+        $stmt = $this->db->prepare($check_query);
+        $stmt->execute([$order_id]);
+        
+        if (!$stmt->fetch()) {
+            http_response_code(404);
+            error_log("Order deletion failed: Order $order_id not found");
+            return ['message' => 'Order not found'];
+        }
+        
+        try {
+            // Start transaction
+            $this->db->beginTransaction();
+            
+            // Delete order items first (foreign key constraint)
+            $delete_items_query = "DELETE FROM order_items WHERE order_id = ?";
+            $stmt = $this->db->prepare($delete_items_query);
+            $stmt->execute([$order_id]);
+            
+            // Delete the order
+            $delete_order_query = "DELETE FROM orders WHERE order_id = ?";
+            $stmt = $this->db->prepare($delete_order_query);
+            $stmt->execute([$order_id]);
+            
+            // Commit transaction
+            $this->db->commit();
+            
+            error_log("Order deleted successfully - Order ID: $order_id by Admin ID: $admin_id");
+            return [
+                'message' => 'Order deleted successfully',
+                'order_id' => $order_id
+            ];
+        } catch (Exception $e) {
+            // Rollback on error
+            $this->db->rollBack();
+            http_response_code(500);
+            error_log("Order deletion failed: " . $e->getMessage());
+            return ['message' => 'Failed to delete order: ' . $e->getMessage()];
+        }
+    }
 }
 ?>

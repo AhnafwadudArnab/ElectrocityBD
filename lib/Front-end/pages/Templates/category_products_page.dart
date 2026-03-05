@@ -409,6 +409,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     final price = _parsePrice(product['price']);
     final name = product['product_name'] ?? '';
     final imageUrl = product['image_url'] ?? '';
+    final stockQty = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
 
     return InkWell(
       onTap: () => _openDetails(product),
@@ -445,6 +446,21 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    stockQty > 0
+                        ? (stockQty <= 5
+                            ? 'Only $stockQty left!'
+                            : '$stockQty in stock')
+                        : 'Out of stock',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stockQty > 0
+                          ? (stockQty <= 5 ? Colors.orange : Colors.green[700])
+                          : Colors.red,
+                      fontWeight: stockQty <= 5 ? FontWeight.w600 : FontWeight.normal,
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(

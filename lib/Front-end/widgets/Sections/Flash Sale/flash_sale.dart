@@ -112,6 +112,20 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
       discountedPrice: 999,
       timeRemaining: '04:15:30',
     ),
+    FlashSaleItem(
+      image: 'assets/BestSale/electric kettle.jpg',
+      title: 'Electric Kettle',
+      originalPrice: 2500,
+      discountedPrice: 1699,
+      timeRemaining: '01:30:00',
+    ),
+    FlashSaleItem(
+      image: 'assets/BestSale/grinder 400w.jpg',
+      title: 'Grinder 400W',
+      originalPrice: 1800,
+      discountedPrice: 1299,
+      timeRemaining: '02:45:15',
+    ),
   ];
 
   static double _parsePrice(dynamic v) {

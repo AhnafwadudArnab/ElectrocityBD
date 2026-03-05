@@ -27,21 +27,17 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     });
 
     try {
-      final response = await ApiService.get('payment_methods');
-      if (response['success'] == true && response['data'] != null) {
-        setState(() {
-          _paymentMethods = List<Map<String, dynamic>>.from(response['data']);
-          _loading = false;
-        });
-      } else {
-        setState(() {
-          _error = response['message'] ?? 'Failed to load payment methods';
-          _loading = false;
-        });
-      }
-    } catch (e) {
+      final response = await ApiService.get('/payment_methods', withAuth: true);
+      final methods = response is List ? response : (response['payment_methods'] as List? ?? response['data'] as List? ?? []);
+      
       setState(() {
-        _error = 'Error: $e';
+        _paymentMethods = methods.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      print('Payment methods load error: $e');
+      setState(() {
+        _error = 'Error loading payment methods: ${e.toString()}';
         _loading = false;
       });
     }

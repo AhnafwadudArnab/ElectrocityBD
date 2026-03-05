@@ -139,6 +139,8 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
     final imageUrl = p['image_url'] as String? ?? '';
+    final stockQty = int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0;
+    
     return ProductData(
       id: 'deal_db_${p['product_id'] ?? index}',
       name: p['product_name'] ?? '',
@@ -149,6 +151,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       additionalInfo: {
         'Brand': p['brand_name'] ?? '',
         'Old Price': '৳${oldPrice.toStringAsFixed(0)}',
+        'stock_quantity': stockQty.toString(),
         if (p['rating_avg'] != null) 'rating': '${p['rating_avg']}',
         if (p['review_count'] != null) 'review_count': '${p['review_count']}',
       },

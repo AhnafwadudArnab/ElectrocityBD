@@ -56,5 +56,7 @@ Widget? getAdminPage(AdminSidebarItem item) {
       return const AdminSettingsPage(embedded: true);
     case AdminSidebarItem.viewStore:
       return null;
+    case AdminSidebarItem.featuredBrands:
+      throw UnimplementedError();
   }
 }

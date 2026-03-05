@@ -11,23 +11,8 @@ import '../All Pages/CART/Main_carting.dart';
 import '../All Pages/Registrations/signup.dart';
 import '../Dimensions/responsive_dimensions.dart';
 import '../pages/Templates/all_products_template.dart';
+import '../utils/api_service.dart';
 import 'SearchRes.dart';
-
-// Dummy product list for demo; replace with your actual product source/provider
-final List<ProductData> allProducts = [
-  ProductData(
-    id: '1',
-    name: 'Smartphone XYZ',
-    category: 'Electronics',
-
-    priceBDT: 32000,
-    images: ['https://via.placeholder.com/150'],
-
-    description: 'A demo smartphone for testing.',
-    additionalInfo: {},
-  ),
-  // ...add more products
-];
 
 class Header extends StatefulWidget implements PreferredSizeWidget {
   const Header({super.key});
@@ -41,6 +26,105 @@ class Header extends StatefulWidget implements PreferredSizeWidget {
 
 class _HeaderState extends State<Header> {
   final TextEditingController _searchController = TextEditingController();
+  List<ProductData> _allProducts = [];
+  bool _productsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    if (_productsLoaded) return;
+    
+    try {
+      print('🔍 Loading products for search...');
+      final res = await ApiService.getProducts(limit: 1000);
+      print('📦 API Response type: ${res.runtimeType}');
+      print('📦 API Response: ${res.toString().substring(0, res.toString().length > 200 ? 200 : res.toString().length)}...');
+      
+      final List<dynamic> productList = res is Map ? (res['products'] as List?) ?? [] : (res is List ? res : []);
+      print('✅ Found ${productList.length} products from database');
+      
+      if (productList.isEmpty) {
+        print('⚠️ No products returned from API!');
+      }
+      
+      final products = productList.map((item) {
+        final map = Map<String, dynamic>.from(item as Map);
+        
+        // Debug first product
+        if (productList.indexOf(item) == 0) {
+          print('📝 First product data: $map');
+          print('💰 Price field: ${map['price']} (type: ${map['price'].runtimeType})');
+        }
+        
+        // Parse price - handle both string and number types
+        double originalPrice = 0.0;
+        if (map['price'] != null) {
+          if (map['price'] is num) {
+            originalPrice = (map['price'] as num).toDouble();
+          } else if (map['price'] is String) {
+            originalPrice = double.tryParse(map['price'] as String) ?? 0.0;
+          }
+        }
+        
+        // Parse discount
+        double discountPercent = 0.0;
+        if (map['discount_percent'] != null) {
+          if (map['discount_percent'] is num) {
+            discountPercent = (map['discount_percent'] as num).toDouble();
+          } else if (map['discount_percent'] is String) {
+            discountPercent = double.tryParse(map['discount_percent'] as String) ?? 0.0;
+          }
+        }
+        
+        final finalPrice = discountPercent > 0 
+            ? originalPrice * (1 - discountPercent / 100)
+            : originalPrice;
+        
+        if (productList.indexOf(item) == 0) {
+          print('💰 Parsed price: $originalPrice, discount: $discountPercent%, final: $finalPrice');
+        }
+        
+        return ProductData(
+          id: map['product_id']?.toString() ?? map['id']?.toString() ?? '0',
+          name: map['product_name']?.toString() ?? map['name']?.toString() ?? '',
+          category: map['category_name']?.toString() ?? map['category']?.toString() ?? '',
+          priceBDT: finalPrice,
+          images: [
+            if (map['image_url'] != null && map['image_url'].toString().isNotEmpty)
+              map['image_url'].toString()
+          ],
+          description: map['description']?.toString() ?? '',
+          additionalInfo: {
+            'brand': map['brand_name']?.toString() ?? '',
+            'brand_id': map['brand_id']?.toString() ?? '',
+            'category_id': map['category_id']?.toString() ?? '',
+            'stock_quantity': map['stock_quantity']?.toString() ?? '0',
+            'original_price': originalPrice.toString(),
+            'discount_percent': discountPercent.toString(),
+            'rating_avg': map['rating_avg']?.toString() ?? '0',
+            'review_count': map['review_count']?.toString() ?? '0',
+          },
+        );
+      }).toList();
+      
+      print('✅ Converted ${products.length} products to ProductData');
+      
+      setState(() {
+        _allProducts = products;
+        _productsLoaded = true;
+      });
+    } catch (e) {
+      print('❌ Error loading products for search: $e');
+      setState(() {
+        _allProducts = [];
+        _productsLoaded = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,17 +279,24 @@ class _HeaderState extends State<Header> {
                                     hintText: 'Search here...',
                                     isDense: true,
                                   ),
-                                  onSubmitted: (query) {
+                                  onSubmitted: (query) async {
                                     if (query.isNotEmpty) {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              SearchResultsPage(
-                                                query: query,
-                                                allProducts: allProducts,
-                                              ),
-                                        ),
-                                      );
+                                      // Ensure products are loaded before searching
+                                      if (!_productsLoaded) {
+                                        await _loadProducts();
+                                      }
+                                      
+                                      if (mounted) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SearchResultsPage(
+                                                  query: query,
+                                                  allProducts: _allProducts,
+                                                ),
+                                          ),
+                                        );
+                                      }
                                     }
                                   },
                                 ),

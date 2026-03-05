@@ -104,24 +104,33 @@ if ($method === 'PUT' || $method === 'POST') {
         
         // Update mid banners
         if (isset($data['mid']) && is_array($data['mid'])) {
+            // Delete existing mid banners first
             $db->exec("DELETE FROM banners WHERE banner_type = 'mid'");
             
             $stmt = $db->prepare('
-                INSERT INTO banners (banner_type, image_url, link_url, title, description, button_text, display_order, active)
-                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
+                INSERT INTO banners (banner_type, image_url, link_url, title, description, button_text, display_order, active, start_date, end_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 YEAR))
             ');
             
             foreach ($data['mid'] as $index => $banner) {
+                $imageUrl = $banner['img'] ?? $banner['image'] ?? '';
+                
+                // Log for debugging
+                error_log("Saving mid banner $index: " . $imageUrl);
+                
                 $stmt->execute([
                     'mid',
-                    $banner['img'] ?? $banner['image'] ?? '',
-                    $banner['link'] ?? '',
-                    $banner['title'] ?? '',
+                    $imageUrl,
+                    $banner['link'] ?? '/deals',
+                    $banner['title'] ?? 'Banner ' . ($index + 1),
                     $banner['description'] ?? '',
-                    $banner['buttonText'] ?? '',
-                    $index
+                    $banner['buttonText'] ?? 'Shop Now',
+                    $index + 1
                 ]);
             }
+            
+            // Log success
+            error_log("Mid banners saved successfully: " . count($data['mid']) . " banners");
         }
         
         // Update sidebar promo
@@ -144,7 +153,15 @@ if ($method === 'PUT' || $method === 'POST') {
             ]);
         }
         
-        echo json_encode(['success' => true, 'message' => 'Banners updated successfully']);
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Banners updated successfully',
+            'updated' => [
+                'hero' => isset($data['hero']) ? count($data['hero']) : 0,
+                'mid' => isset($data['mid']) ? count($data['mid']) : 0,
+                'sidebar' => isset($data['sidebar']) ? 1 : 0
+            ]
+        ]);
     } catch (Throwable $e) {
         error_log("Banner save error: " . $e->getMessage());
         http_response_code(500);

@@ -174,6 +174,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     final price = _parsePrice(p['price']);
     final imageUrl = p['image_url'] as String? ?? '';
     final desc = (p['description'] ?? '').toString();
+    final stockQty = int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0;
 
     // Merge brand/category plus any specs_json into additional info
     final Map<String, String> info = {};
@@ -279,6 +280,21 @@ class _BestSellingBoxState extends State<BestSellingBox> {
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    stockQty > 0
+                        ? (stockQty <= 5
+                            ? 'Only $stockQty left!'
+                            : '$stockQty in stock')
+                        : 'Out of stock',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stockQty > 0
+                          ? (stockQty <= 5 ? Colors.orange : Colors.green[700])
+                          : Colors.red,
+                      fontWeight: stockQty <= 5 ? FontWeight.w600 : FontWeight.normal,
+                    ),
                   ),
                 ],
               ),

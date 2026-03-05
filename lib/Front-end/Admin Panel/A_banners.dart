@@ -107,12 +107,80 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
     }
   }
 
+  Future<void> _pickMidImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _midUploading = true;
+      });
+      try {
+        final url = Uri.parse(ApiService.getUploadUrl());
+        final request = http.MultipartRequest('POST', url);
+        request.files.add(
+          await http.MultipartFile.fromPath('image', result.files.single.path!),
+        );
+        final response = await request.send();
+        if (response.statusCode == 200) {
+          final respStr = await response.stream.bytesToString();
+          String? imgUrl;
+          try {
+            final map = Map<String, dynamic>.from(jsonDecode(respStr) as Map);
+            final u = map['url']?.toString();
+            if (u != null && u.isNotEmpty) {
+              imgUrl = u;
+            }
+          } catch (_) {
+            imgUrl = RegExp(
+              r'"url"\s*:\s*"([^"]+)"',
+            ).firstMatch(respStr)?.group(1);
+          }
+          if (imgUrl != null) {
+            setState(() {
+              _midImageController.text = imgUrl!;
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Mid banner image uploaded!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Upload failed: ${response.statusCode}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Upload error: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        setState(() {
+          _midUploading = false;
+        });
+      }
+    }
+  }
+
   final Color darkBg = const Color(0xFF0B121E);
   final Color cardBg = const Color(0xFF151C2C);
   final Color brandOrange = const Color(0xFFF59E0B);
 
   final TextEditingController _heroImageController = TextEditingController();
   final TextEditingController _heroLabelController = TextEditingController();
+  final TextEditingController _midImageController = TextEditingController();
   final List<TextEditingController> _midControllers = [
     TextEditingController(),
     TextEditingController(),
@@ -125,8 +193,11 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
       TextEditingController();
 
   int? _editingHeroIndex;
+  int? _midEditingIndex;
   bool _heroFormVisible = false;
+  bool _midFormVisible = false;
   bool _syncedFromProvider = false;
+  bool _midUploading = false;
 
   @override
   void initState() {
@@ -177,6 +248,7 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
   void dispose() {
     _heroImageController.dispose();
     _heroLabelController.dispose();
+    _midImageController.dispose();
     for (final c in _midControllers) {
       c.dispose();
     }
@@ -591,6 +663,9 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
             }
           });
         }
+        
+        final midBanners = bp.midBanners;
+        
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -600,156 +675,224 @@ class _AdminBannersPageState extends State<AdminBannersPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Mid Banners (3 banners below Flash Sale)",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Mid Banners (3 banners below Flash Sale)",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (midBanners.length < 3)
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _midEditingIndex = midBanners.length;
+                          _midFormVisible = true;
+                          _midImageController.clear();
+                        });
+                      },
+                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                      label: const Text("Add banner"),
+                      style: TextButton.styleFrom(foregroundColor: brandOrange),
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
-              for (int i = 0; i < 3; i++) ...[
+              
+              // Add/Edit Form
+              if (_midFormVisible || _midEditingIndex != null) ...[
                 Row(
                   children: [
-                    SizedBox(
-                      width: 90,
-                      child: Text(
-                        'Banner ${i + 1}:',
-                        style: TextStyle(color: Colors.grey.shade400),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: _midImageController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Image path or pick file',
+                              labelStyle: TextStyle(color: Colors.grey.shade400),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey.shade700),
+                              ),
+                              suffixIcon: _midUploading
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(12.0),
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(Icons.folder_open, color: Colors.white),
+                                      onPressed: () => _pickMidImage(),
+                                      tooltip: 'Pick image from computer',
+                                    ),
+                            ),
+                          ),
+                          if (_midImageController.text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: SizedBox(
+                                height: 60,
+                                child: Builder(
+                                  builder: (context) {
+                                    final path = _midImageController.text;
+                                    if (path.startsWith('http') || path.startsWith('/uploads/')) {
+                                      return Image.network(
+                                        path.startsWith('/uploads/')
+                                            ? AppConfig.uploadPath(path)
+                                            : path,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(Icons.broken_image, color: Colors.red),
+                                      );
+                                    } else if (path.startsWith('assets/')) {
+                                      return Image.asset(
+                                        path,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(Icons.broken_image, color: Colors.red),
+                                      );
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    Expanded(
-                      child: TextField(
-                        controller: _midControllers[i],
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText:
-                              'e.g. assets/${i + 1}.png or /uploads/xxx.jpg',
-                          hintStyle: TextStyle(color: Colors.grey.shade600),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade700),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: const Icon(
-                              Icons.folder_open,
-                              color: Colors.white,
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.check, color: Colors.green),
+                      onPressed: () async {
+                        final img = _midImageController.text.trim();
+                        if (img.isEmpty) return;
+                        
+                        final newBanners = List<Map<String, String>>.from(midBanners);
+                        final entry = {'img': img};
+                        
+                        if (_midEditingIndex != null && _midEditingIndex! < newBanners.length) {
+                          newBanners[_midEditingIndex!] = entry;
+                        } else {
+                          newBanners.add(entry);
+                        }
+                        
+                        await bp.saveMid(newBanners);
+                        setState(() {
+                          _midFormVisible = false;
+                          _midEditingIndex = null;
+                          _midImageController.clear();
+                        });
+                        
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Mid banner saved!'),
+                              backgroundColor: Colors.green,
                             ),
-                            tooltip: 'Pick and upload image',
-                            onPressed: () async {
-                              final result = await FilePicker.platform
-                                  .pickFiles(type: FileType.image);
-                              if (result != null &&
-                                  result.files.single.path != null) {
-                                try {
-                                  // Use dynamic API base URL
-                                  final url = Uri.parse(ApiService.getUploadUrl());
-                                  final request = http.MultipartRequest(
-                                    'POST',
-                                    url,
-                                  );
-                                  request.files.add(
-                                    await http.MultipartFile.fromPath(
-                                      'image',
-                                      result.files.single.path!,
-                                    ),
-                                  );
-                                  final response = await request.send();
-                                  if (response.statusCode == 200) {
-                                    final respStr = await response.stream
-                                        .bytesToString();
-                                    String? imgUrl;
-                                    try {
-                                      final map = Map<String, dynamic>.from(
-                                        jsonDecode(respStr) as Map,
-                                      );
-                                      imgUrl = map['url']?.toString();
-                                    } catch (_) {
-                                      imgUrl = RegExp(
-                                        r'\"url\"\s*:\s*\"([^\"]+)\"',
-                                      ).firstMatch(respStr)?.group(1);
-                                    }
-                                    if (imgUrl != null && imgUrl.isNotEmpty) {
-                                      setState(() {
-                                        _midControllers[i].text = imgUrl!;
-                                      });
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Image uploaded successfully!'),
-                                            backgroundColor: Colors.green,
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  } else {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Upload failed: ${response.statusCode}'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Upload error: $e'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
-                            },
-                          ),
-                        ),
-                      ),
+                          );
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      onPressed: () => setState(() {
+                        _midFormVisible = false;
+                        _midEditingIndex = null;
+                        _midImageController.clear();
+                      }),
                     ),
                   ],
                 ),
-                if (i < 2) const SizedBox(height: 12),
+                const SizedBox(height: 16),
               ],
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final list = [
-                    {
-                      'img': _midControllers[0].text.trim().isEmpty
-                          ? 'assets/1.png'
-                          : _midControllers[0].text.trim(),
-                    },
-                    {
-                      'img': _midControllers[1].text.trim().isEmpty
-                          ? 'assets/2.png'
-                          : _midControllers[1].text.trim(),
-                    },
-                    {
-                      'img': _midControllers[2].text.trim().isEmpty
-                          ? 'assets/3.png'
-                          : _midControllers[2].text.trim(),
-                    },
-                  ];
-                  await bp.saveMid(list);
-                  if (mounted) setState(() {});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Mid banners saved.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandOrange,
-                  foregroundColor: Colors.white,
+              
+              // List of existing mid banners
+              ...midBanners.asMap().entries.map((e) {
+                final i = e.key;
+                final banner = e.value;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: darkBg,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${i + 1}.',
+                        style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          banner['img'] ?? '',
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            _midEditingIndex = i;
+                            _midFormVisible = true;
+                            _midImageController.text = banner['img'] ?? '';
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                        onPressed: () async {
+                          final newBanners = List<Map<String, String>>.from(midBanners)
+                            ..removeAt(i);
+                          await bp.saveMid(newBanners);
+                          if (_midEditingIndex == i) {
+                            setState(() {
+                              _midEditingIndex = null;
+                              _midImageController.clear();
+                            });
+                          } else {
+                            setState(() {});
+                          }
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Mid banner deleted!'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              
+              if (midBanners.isEmpty && !_midFormVisible)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    "No mid banners. Click \"Add banner\" to add one.",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
-                child: const Text('Save Mid Banners'),
-              ),
             ],
           ),
         );

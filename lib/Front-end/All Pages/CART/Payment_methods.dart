@@ -122,43 +122,72 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   void _completePayment(PaymentMethod method, String transactionId) async {
     final cartProvider = context.read<CartProvider>();
     
-    // ✅ Stock Validation - Check before placing order
+    // ✅ Stock Validation - Check before placing order (with fallback)
     try {
       for (final item in cartProvider.items) {
         final productId = int.tryParse(item.productId);
         if (productId == null) continue;
         
-        // Get product details to check stock
-        final product = await ApiService.getProduct(productId);
-        final availableStock = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
-        
-        if (availableStock < item.quantity) {
-          if (!mounted) return;
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('⚠️ Insufficient Stock'),
-              content: Text(
-                '${item.name}\n\n'
-                'Requested: ${item.quantity} units\n'
-                'Available: $availableStock units\n\n'
-                'Please update your cart and try again.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('OK'),
+        try {
+          // Get product details to check stock
+          final product = await ApiService.getProduct(productId);
+          final availableStock = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
+          
+          if (availableStock < item.quantity) {
+            if (!mounted) return;
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('⚠️ Insufficient Stock'),
+                content: Text(
+                  '${item.name}\n\n'
+                  'Requested: ${item.quantity} units\n'
+                  'Available: $availableStock units\n\n'
+                  'Please update your cart and try again.',
                 ),
-              ],
-            ),
-          );
-          return;
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+            return;
+          }
+        } catch (productError) {
+          // If individual product check fails, log and continue
+          print('⚠️ Could not verify stock for product $productId: $productError');
+          // Continue with other products
         }
       }
     } catch (e) {
+      // If stock verification fails completely, show warning but allow to continue
+      print('⚠️ Stock verification error: $e');
       if (!mounted) return;
-      _showError('Failed to verify stock availability. Please try again.');
-      return;
+      
+      final shouldContinue = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('⚠️ Stock Verification Unavailable'),
+          content: const Text(
+            'Unable to verify stock availability at this moment.\n\n'
+            'Do you want to continue with the order?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      
+      if (shouldContinue != true) return;
     }
     
     // Continue with payment if stock is available

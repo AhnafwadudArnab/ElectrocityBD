@@ -985,6 +985,69 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     ElevatedButton.icon(
                       onPressed: () async {
                         Navigator.pop(context);
+                        
+                        // Confirm deletion
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Delete Order"),
+                            content: Text(
+                              "Are you sure you want to delete order #${order.orderId}?\n\n"
+                              "This action cannot be undone.",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("Cancel"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          ),
+                        );
+                        
+                        if (confirm == true) {
+                          try {
+                            final id = int.tryParse(order.orderId);
+                            if (id != null) {
+                              await ApiService.delete('/orders/$id');
+                            }
+                            await ordersProvider.deleteOrder(order.orderId);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Order deleted successfully"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Failed to delete order: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.delete_forever, size: 18),
+                      label: const Text("Delete Order"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[600],
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(context);
                         final newStatus = await showDialog<String>(
                           context: context,
                           builder: (context) => AlertDialog(

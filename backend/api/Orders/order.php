@@ -44,6 +44,22 @@ switch ($method) {
         echo json_encode($order->updateStatus($_GET['id'], $put_data, $user['user_id']));
         break;
         
+    case 'DELETE':
+        if (!isset($_GET['id'])) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Order ID required']);
+            break;
+        }
+        
+        if ($user['role'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['message' => 'Admin access required']);
+            break;
+        }
+        
+        echo json_encode($order->deleteOrder($_GET['id'], $user['user_id']));
+        break;
+        
     default:
         http_response_code(405);
         echo json_encode(['message' => 'Method not allowed']);

@@ -23,8 +23,13 @@ import 'admin_update_product.dart';
 
 class AdminProductUploadPage extends StatelessWidget {
   final bool embedded;
+  final int? editProductId;
 
-  const AdminProductUploadPage({super.key, this.embedded = false});
+  const AdminProductUploadPage({
+    super.key,
+    this.embedded = false,
+    this.editProductId,
+  });
 
   static void _navigateFromSidebar(
     BuildContext context,
@@ -262,7 +267,9 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
-  final TextEditingController _stockController = TextEditingController(text: '0');
+  final TextEditingController _stockController = TextEditingController(
+    text: '0',
+  );
   final TextEditingController _minPriceController = TextEditingController();
   final TextEditingController _maxPriceController = TextEditingController();
   final TextEditingController _limitController = TextEditingController(
@@ -1133,13 +1140,13 @@ class _SectionUploadCardState extends State<_SectionUploadCard> {
       final serverProduct = (res['product'] is Map)
           ? Map<String, dynamic>.from(res['product'])
           : null;
-      
+
       // Get image URL from server response
       String? imageUrl;
       if (serverProduct != null && serverProduct['image_url'] != null) {
         imageUrl = serverProduct['image_url'].toString();
       }
-      
+
       final productData = serverProduct != null
           ? {
               "id": "server_$productId",

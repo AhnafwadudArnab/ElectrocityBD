@@ -7,6 +7,7 @@ import '../../../Dimensions/responsive_dimensions.dart';
 import '../../../pages/Templates/Dyna_products.dart';
 import '../../../pages/Templates/all_products_template.dart';
 import '../../../Provider/Admin_product_provider.dart';
+import '../../../utils/api_service.dart';
 import 'trending_all_products.dart';
 
 class TrendingItem {
@@ -23,8 +24,59 @@ class TrendingItem {
   });
 }
 
-class TrendingItems extends StatelessWidget {
+class TrendingItems extends StatefulWidget {
   const TrendingItems({super.key});
+
+  @override
+  State<TrendingItems> createState() => _TrendingItemsState();
+}
+
+class _TrendingItemsState extends State<TrendingItems> {
+  List<Map<String, dynamic>> _dbProducts = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFromDb();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadFromDb();
+  }
+
+  Future<void> _loadFromDb() async {
+    try {
+      final res = await ApiService.get('/products?action=trending&limit=12', withAuth: false);
+      
+      List<dynamic> productsList;
+      if (res is Map<String, dynamic>) {
+        productsList = (res['products'] as List<dynamic>? ?? []);
+      } else if (res is List) {
+        productsList = res;
+      } else {
+        productsList = [];
+      }
+      
+      if (mounted) {
+        setState(() {
+          _dbProducts = productsList
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading trending items: $e');
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
 
   // স্যাম্পল প্রোডাক্ট
   static const List<TrendingItem> _sampleProducts = [
@@ -147,8 +199,11 @@ class TrendingItems extends StatelessWidget {
       context,
     ).getProductsBySection("Trending Items");
 
-    final adminTrendItems = _convertAdminProducts(adminProducts);
-    final allProducts = [...adminTrendItems, ..._sampleProducts];
+    // Use database products first, then admin, then sample
+    final useDb = _dbProducts.isNotEmpty;
+    final displayProducts = useDb ? _dbProducts : (adminProducts.isNotEmpty ? adminProducts : null);
+    final adminTrendItems = !useDb && adminProducts.isNotEmpty ? _convertAdminProducts(adminProducts) : <TrendingItem>[];
+    final allProducts = useDb ? [] : [...adminTrendItems, ..._sampleProducts];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,29 +232,208 @@ class TrendingItems extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(.219),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                ),
-                child: SizedBox(
-                  height: 220,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: allProducts.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final product = allProducts[index];
-                      final isFromAdmin = index < adminTrendItems.length;
+        if (_loading)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(.219),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                  ),
+                  child: SizedBox(
+                    height: 220,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: useDb ? _dbProducts.length : allProducts.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        // Handle database products
+                        if (useDb) {
+                          final dbProduct = _dbProducts[index];
+                          final stockQty = int.tryParse(dbProduct['stock_quantity']?.toString() ?? '0') ?? 0;
+                          final price = _parsePrice(dbProduct['price']);
+                          final imageUrl = dbProduct['image_url'] as String? ?? '';
+                          
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                final productData = ProductData(
+                                  id: 'trend_db_${dbProduct['product_id']}',
+                                  name: dbProduct['product_name'] ?? '',
+                                  category: 'Trending Items',
+                                  priceBDT: price,
+                                  images: imageUrl.isNotEmpty ? [imageUrl] : [],
+                                  description: dbProduct['description'] ?? '',
+                                  additionalInfo: {
+                                    'Brand': dbProduct['brand_name'] ?? '',
+                                    'stock_quantity': stockQty.toString(),
+                                    if (dbProduct['rating_avg'] != null) 'rating': '${dbProduct['rating_avg']}',
+                                    if (dbProduct['review_count'] != null) 'review_count': '${dbProduct['review_count']}',
+                                  },
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => UniversalProductDetails(product: productData),
+                                  ),
+                                );
+                              },
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Positioned(
+                                    top: 16,
+                                    left: 0,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                        child: Container(
+                                          width: 190,
+                                          height: 190,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.08),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: Colors.white.withOpacity(0.12)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 205,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: const Color(0xFF62A9D8), width: 1.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                          child: ClipRRect(
+                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                            child: imageUrl.isNotEmpty
+                                                ? Image.network(
+                                                    imageUrl,
+                                                    fit: BoxFit.cover,
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    errorBuilder: (_, __, ___) => Container(
+                                                      color: Colors.grey[300],
+                                                      child: const Icon(Icons.image),
+                                                    ),
+                                                  )
+                                                : Container(
+                                                    color: Colors.grey[300],
+                                                    child: const Icon(Icons.image),
+                                                  ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                dbProduct['product_name'] ?? '',
+                                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                stockQty > 0
+                                                    ? (stockQty <= 5 ? 'Only $stockQty left!' : '$stockQty in stock')
+                                                    : 'Out of stock',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: stockQty > 0
+                                                      ? (stockQty <= 5 ? Colors.orange : Colors.green[700])
+                                                      : Colors.red,
+                                                  fontWeight: stockQty <= 5 ? FontWeight.w600 : FontWeight.normal,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    'Tk ${price.toStringAsFixed(0)}',
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14,
+                                                      color: Color(0xFF2E3192),
+                                                    ),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () async {
+                                                      await context.read<CartProvider>().addToCart(
+                                                        productId: 'trend_db_${dbProduct['product_id']}',
+                                                        name: dbProduct['product_name'] ?? '',
+                                                        price: price,
+                                                        imageUrl: imageUrl,
+                                                        category: 'Trending Items',
+                                                      );
+                                                      if (context.mounted) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text('${dbProduct['product_name']} added to cart'),
+                                                            duration: const Duration(milliseconds: 900),
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.orange,
+                                                      foregroundColor: Colors.white,
+                                                      elevation: 0,
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                                      minimumSize: const Size(0, 30),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                                    ),
+                                                    child: const Text('Add', style: TextStyle(fontSize: 12)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        
+                        // Handle admin/sample products
+                        final product = allProducts[index];
+                        final isFromAdmin = index < adminTrendItems.length;
 
                       return Material(
                         color: Colors.transparent,
