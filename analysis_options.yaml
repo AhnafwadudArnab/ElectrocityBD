@@ -29,6 +29,8 @@ analyzer:
     curly_braces_in_flow_control_structures: ignore
     non_constant_identifier_names: ignore
     unused_catch_clause: ignore
+    unnecessary_null_comparison: ignore
+    invalid_null_aware_operator: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
