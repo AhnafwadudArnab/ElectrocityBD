@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../All Pages/CART/Track_ur_orders.dart';
 import '../Dimensions/responsive_dimensions.dart'; // Adjust path as needed
 import '../pages/Profiles/Profile.dart';
+import '../utils/api_service.dart';
 
 class FooterSection extends StatelessWidget {
   const FooterSection({super.key});
@@ -134,11 +135,53 @@ class FooterSection extends StatelessWidget {
 /// LOGO SECTION
 /// ===============================
 
-class _LogoSection extends StatelessWidget {
+class _LogoSection extends StatefulWidget {
   const _LogoSection();
 
   @override
+  State<_LogoSection> createState() => _LogoSectionState();
+}
+
+class _LogoSectionState extends State<_LogoSection> {
+  String? _qrCodeImage;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQRCode();
+  }
+
+  Future<void> _loadQRCode() async {
+    try {
+      final settings = await ApiService.getSiteSetting('qr_code_image');
+      if (mounted && settings['setting_value'] != null) {
+        setState(() {
+          _qrCodeImage = settings['setting_value'];
+          _loading = false;
+        });
+      } else {
+        setState(() => _loading = false);
+      }
+    } catch (e) {
+      print('Error loading QR code: $e');
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final r = AppResponsive.of(context);
+    final qrSize = r.value(
+      smallMobile: 80.0,
+      mobile: 90.0,
+      tablet: 100.0,
+      smallDesktop: 110.0,
+      desktop: 120.0,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -192,6 +235,64 @@ class _LogoSection extends StatelessWidget {
             _social(context, FontAwesomeIcons.twitter),
             _social(context, FontAwesomeIcons.instagram),
             _social(context, FontAwesomeIcons.linkedinIn),
+          ],
+        ),
+        const SizedBox(height: 20),
+        // QR Code Image and Text Section
+        Row(
+          children: [
+            // QR Code Image Box
+            Container(
+              width: qrSize,
+              height: qrSize,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: _loading
+                  ? const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : _qrCodeImage != null && _qrCodeImage!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.network(
+                        _qrCodeImage!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Icon(
+                            Icons.qr_code_2,
+                            size: qrSize * 0.6,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Icon(
+                        Icons.qr_code_2,
+                        size: qrSize * 0.6,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 12),
+            // Transparent Text Section
+            Expanded(
+              child: Text(
+                'Scan For Mobile App',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: AppDimensions.bodyFont(context),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
       ],

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -854,6 +855,56 @@ class ApiService {
 
   static Future<void> saveSiteSetting(Map<String, dynamic> data) async {
     await post('/site_settings', data);
+  }
+
+  // ─── Image Upload API ───
+
+  static Future<String> uploadImage(Uint8List imageBytes, String fileName) async {
+    try {
+      final uri = Uri.parse(getUploadUrl());
+      print('Uploading to: $uri');
+      
+      final request = http.MultipartRequest('POST', uri);
+      
+      final token = await getToken();
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: fileName,
+        ),
+      );
+      
+      print('Sending upload request...');
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('Upload response status: ${response.statusCode}');
+      print('Upload response body: ${response.body}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        // Return the image URL from response
+        final url = data['url'] ?? data['image_url'] ?? data['path'] ?? '';
+        if (url.isEmpty) {
+          throw ApiException('No URL in upload response', response.statusCode);
+        }
+        return url;
+      } else {
+        throw ApiException(
+          'Upload failed: ${response.body}',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      print('Upload error: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException('Upload error: $e', 0);
+    }
   }
 
   // ─── Search History API ───

@@ -12,13 +12,13 @@ if ($method === 'OPTIONS') {
 
 if ($method !== 'POST') {
     http_response_code(405);
-    echo json_encode(['message' => 'Method not allowed']);
+    echo json_encode(['error' => 'Method not allowed']);
     exit;
 }
 
 if (!isset($_FILES['image'])) {
     http_response_code(400);
-    echo json_encode(['message' => 'No file', 'field' => 'image']);
+    echo json_encode(['error' => 'No file uploaded', 'field' => 'image']);
     exit;
 }
 
@@ -26,11 +26,20 @@ try {
     $url = saveUploadedImage($_FILES['image']);
     if (!$url) {
         http_response_code(500);
-        echo json_encode(['message' => 'Upload failed']);
+        echo json_encode(['error' => 'Upload failed', 'message' => 'Could not save image']);
         exit;
     }
-    echo json_encode(['url' => $url]);
+    
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'url' => $url,
+        'message' => 'Image uploaded successfully'
+    ]);
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['message' => 'Upload error']);
+    echo json_encode([
+        'error' => 'Upload error',
+        'message' => $e->getMessage()
+    ]);
 }
