@@ -55,12 +55,12 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   void initState() {
     super.initState();
     _priceRange = const RangeValues(_priceMin, _priceMax);
-    
+
     // If category filter is provided, add it to selected categories
     if (widget.categoryFilter != null && widget.categoryFilter!.isNotEmpty) {
       _selectedCategories.add(widget.categoryFilter!);
     }
-    
+
     _fetchProductsFromBackend();
   }
 
@@ -79,7 +79,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       );
       print('Trending API Response: $res');
       print('Category Filter: ${widget.categoryFilter}');
-      
+
       // Handle both Map and List responses
       List<dynamic> productsList;
       if (res is Map<String, dynamic>) {
@@ -89,12 +89,14 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
       } else {
         productsList = [];
       }
-      
+
       final list = productsList
           .where((raw) => raw != null)
           .map<Map<String, Object>>((raw) {
             if (raw == null) return <String, Object>{};
-            final p = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+            final p = raw is Map
+                ? Map<String, dynamic>.from(raw)
+                : <String, dynamic>{};
             return {
               'title': (p['product_name'] ?? '') as String,
               'price': _parsePrice(p['price']),
@@ -105,6 +107,9 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               'image': (p['image_url'] ?? '') as String,
               'rating': p['rating_avg'] ?? p['rating'] ?? '',
               'reviews': p['review_count'] ?? p['reviews'] ?? '',
+              'stock_quantity':
+                  int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0,
+              'product_id': p['product_id'] ?? '',
             };
           })
           .where((p) => p.isNotEmpty && (p['title'] as String).isNotEmpty)
@@ -130,12 +135,12 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
   List<Map<String, Object>> _filteredProducts() {
     // Always use DB products, no fallback to sample products
     final base = _dbProducts;
-    
+
     // If no products from DB, return empty list
     if (base.isEmpty) {
       return [];
     }
-    
+
     return base.where((p) {
       final price = p['price'] as double;
       final category = p['category'] as String;
@@ -161,7 +166,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     // Only use DB products that are currently loaded
     final base = _dbProducts;
     if (base.isEmpty) return [];
-    
+
     final categories = base
         .map((p) => p['category'] as String)
         .where((c) => c.isNotEmpty)
@@ -176,7 +181,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     // Only use DB products that are currently loaded
     final base = _dbProducts;
     if (base.isEmpty) return [];
-    
+
     final brands = base
         .map((p) => p['brand'] as String)
         .where((b) => b.isNotEmpty)
@@ -191,7 +196,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     // Only use DB products that are currently loaded
     final base = _dbProducts;
     if (base.isEmpty) return [];
-    
+
     final specs = <String>{};
     for (var p in base) {
       final productSpecs = (p['specs'] as List<String>?) ?? const <String>[];
@@ -233,7 +238,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   void _openDetails(Map<String, Object> item, int index) {
     final product = ProductData(
-      id: '${item['title']}_${item['price']}',
+      id: '${item['product_id'] ?? '${item['title']}_${item['price']}'}',
       name: item['title'] as String,
       category: item['category'] as String,
       priceBDT: item['price'] as double,
@@ -247,6 +252,8 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
         'Specifications': (item['specs'] as List<String>).join(', '),
         if ((item['rating'] ?? '') != '') 'rating': '${item['rating']}',
         if ((item['reviews'] ?? '') != '') 'review_count': '${item['reviews']}',
+        if (item['stock_quantity'] != null)
+          'stock_quantity': '${item['stock_quantity']}',
       },
     );
 
@@ -326,10 +333,11 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   Widget _buildBanner(AppResponsive r, BuildContext context) {
     // Show category name in banner if filter is applied
-    final displayTitle = widget.categoryFilter != null && widget.categoryFilter!.isNotEmpty
+    final displayTitle =
+        widget.categoryFilter != null && widget.categoryFilter!.isNotEmpty
         ? '${widget.breadcrumbLabel} - ${widget.categoryFilter}'
         : widget.breadcrumbLabel;
-    
+
     return Container(
       height: r.value(
         smallMobile: 120,
@@ -387,7 +395,10 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
               ),
               if (widget.categoryFilter != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
@@ -450,7 +461,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     if (options.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return ExpansionTile(
       title: Text(
         title,
@@ -551,13 +562,20 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                   padding: const EdgeInsets.all(50),
                   child: Column(
                     children: [
-                      const Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
+                      const Icon(
+                        Icons.inventory_2_outlined,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 16),
                       Text(
-                        _dbProducts.isEmpty 
+                        _dbProducts.isEmpty
                             ? "No trending products available in database."
                             : "No products match your filters.",
-                        style: const TextStyle(fontSize: 16, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       if (_dbProducts.isEmpty)
@@ -574,7 +592,10 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                               _selectedCategories.clear();
                               _selectedBrands.clear();
                               _selectedSpecifications.clear();
-                              _priceRange = const RangeValues(_priceMin, _priceMax);
+                              _priceRange = const RangeValues(
+                                _priceMin,
+                                _priceMax,
+                              );
                             });
                           },
                           child: const Text('Clear Filters'),
@@ -598,6 +619,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                   price: pageItems[index]['price'] as double,
                   category: pageItems[index]['category'] as String,
                   image: pageItems[index]['image'] as String,
+                  stockQuantity: pageItems[index]['stock_quantity'] as int?,
                   onTap: () => _openDetails(pageItems[index], index),
                 ),
               ),
@@ -613,6 +635,7 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
     required String category,
     required String image,
     required VoidCallback onTap,
+    int? stockQuantity,
   }) {
     return InkWell(
       onTap: onTap,
@@ -664,6 +687,27 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
                       fontSize: 14,
                     ),
                   ),
+                  if (stockQuantity != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      stockQuantity > 0
+                          ? (stockQuantity <= 5
+                                ? 'Only $stockQuantity left!'
+                                : '$stockQuantity in stock')
+                          : 'Out of stock',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: stockQuantity > 0
+                            ? (stockQuantity <= 5
+                                  ? Colors.orange
+                                  : Colors.green[700])
+                            : Colors.red,
+                        fontWeight: stockQuantity <= 5
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
@@ -709,99 +753,114 @@ class _TrendingAllProducts extends State<TrendingAllProducts> {
 
   Widget _buildPagination(int totalPages) {
     if (totalPages <= 1) return const SizedBox.shrink();
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Previous button
         IconButton(
-          onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+          onPressed: _currentPage > 1
+              ? () => setState(() => _currentPage--)
+              : null,
           icon: const Icon(Icons.chevron_left),
           style: IconButton.styleFrom(
-            backgroundColor: _currentPage > 1 ? Colors.amber[700] : Colors.grey[300],
+            backgroundColor: _currentPage > 1
+                ? Colors.amber[700]
+                : Colors.grey[300],
             foregroundColor: Colors.white,
             disabledBackgroundColor: Colors.grey[300],
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
         const SizedBox(width: 12),
-        
+
         // Page numbers
-        ...List.generate(
-          totalPages > 7 ? 7 : totalPages,
-          (i) {
-            int pageNum;
-            if (totalPages <= 7) {
+        ...List.generate(totalPages > 7 ? 7 : totalPages, (i) {
+          int pageNum;
+          if (totalPages <= 7) {
+            pageNum = i + 1;
+          } else {
+            // Smart pagination: show first, last, current and nearby pages
+            if (i == 0) {
+              pageNum = 1;
+            } else if (i == 6) {
+              pageNum = totalPages;
+            } else if (_currentPage <= 4) {
               pageNum = i + 1;
+            } else if (_currentPage >= totalPages - 3) {
+              pageNum = totalPages - 6 + i;
             } else {
-              // Smart pagination: show first, last, current and nearby pages
-              if (i == 0) {
-                pageNum = 1;
-              } else if (i == 6) {
-                pageNum = totalPages;
-              } else if (_currentPage <= 4) {
-                pageNum = i + 1;
-              } else if (_currentPage >= totalPages - 3) {
-                pageNum = totalPages - 6 + i;
-              } else {
-                pageNum = _currentPage - 3 + i;
-              }
+              pageNum = _currentPage - 3 + i;
             }
-            
-            final isActive = _currentPage == pageNum;
-            final isEllipsis = totalPages > 7 && 
-                ((i == 1 && _currentPage > 4) || 
-                 (i == 5 && _currentPage < totalPages - 3));
-            
-            if (isEllipsis) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...', style: TextStyle(fontSize: 18, color: Colors.grey)),
-              );
-            }
-            
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: InkWell(
-                onTap: () => setState(() => _currentPage = pageNum),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.amber[700] : Colors.white,
-                    border: Border.all(
-                      color: isActive ? Colors.amber[700]! : Colors.grey[300]!,
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
+          }
+
+          final isActive = _currentPage == pageNum;
+          final isEllipsis =
+              totalPages > 7 &&
+              ((i == 1 && _currentPage > 4) ||
+                  (i == 5 && _currentPage < totalPages - 3));
+
+          if (isEllipsis) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                '...',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: InkWell(
+              onTap: () => setState(() => _currentPage = pageNum),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.amber[700] : Colors.white,
+                  border: Border.all(
+                    color: isActive ? Colors.amber[700]! : Colors.grey[300]!,
+                    width: 1.5,
                   ),
-                  child: Center(
-                    child: Text(
-                      '$pageNum',
-                      style: TextStyle(
-                        color: isActive ? Colors.white : Colors.black87,
-                        fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 14,
-                      ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    '$pageNum',
+                    style: TextStyle(
+                      color: isActive ? Colors.white : Colors.black87,
+                      fontWeight: isActive
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      fontSize: 14,
                     ),
                   ),
                 ),
               ),
-            );
-          },
-        ),
-        
+            ),
+          );
+        }),
+
         const SizedBox(width: 12),
         // Next button
         IconButton(
-          onPressed: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+          onPressed: _currentPage < totalPages
+              ? () => setState(() => _currentPage++)
+              : null,
           icon: const Icon(Icons.chevron_right),
           style: IconButton.styleFrom(
-            backgroundColor: _currentPage < totalPages ? Colors.amber[700] : Colors.grey[300],
+            backgroundColor: _currentPage < totalPages
+                ? Colors.amber[700]
+                : Colors.grey[300],
             foregroundColor: Colors.white,
             disabledBackgroundColor: Colors.grey[300],
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
       ],

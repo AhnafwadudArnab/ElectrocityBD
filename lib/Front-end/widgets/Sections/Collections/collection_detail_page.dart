@@ -183,7 +183,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
       additionalInfo: {
         if ((item['rating'] ?? '') != '') 'rating': '${item['rating']}',
         if ((item['reviews'] ?? '') != '') 'review_count': '${item['reviews']}',
-        if ((item['stock'] ?? '') != '') 'stock': '${item['stock']}',
+        if ((item['stock'] ?? '') != '') 'stock_quantity': '${item['stock']}',
       },
     );
 

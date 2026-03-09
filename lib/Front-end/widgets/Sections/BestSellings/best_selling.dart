@@ -182,6 +182,7 @@ class _BestSellingBoxState extends State<BestSellingBox> {
     final catName = p['category_name']?.toString();
     if (brandName != null && brandName.isNotEmpty) info['Brand'] = brandName;
     if (catName != null && catName.isNotEmpty) info['Category'] = catName;
+    info['stock_quantity'] = stockQty.toString();
     final specs = p['specs_json'];
     if (specs is Map) {
       for (final entry in specs.entries) {

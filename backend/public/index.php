@@ -75,18 +75,26 @@ if ($segments[0] === 'api') {
     }
     $apiBase = __DIR__ . '/../api';
     $file = null;
-    if (count($segments) >= 3) {
+    
+    // Handle routes with IDs (e.g., /api/payment_methods/1 or /api/products/123)
+    if (count($segments) >= 3 && is_numeric($segments[2])) {
+        // Extract ID and set it in $_GET
+        $_GET['id'] = $segments[2];
+        // Try the base file without the ID
+        $file = $apiBase . '/' . $segments[1] . '.php';
+    } elseif (count($segments) >= 3) {
         $file = $apiBase . '/' . $segments[1] . '/' . $segments[2] . '.php';
     } elseif (count($segments) >= 2) {
         $file = $apiBase . '/' . $segments[1] . '.php';
     }
+    
     if ($file && file_exists($file)) {
         $_GET = array_merge($_GET, $_REQUEST);
         require_once $file;
         exit;
     }
     http_response_code(404);
-    echo json_encode(['message' => 'Endpoint not found']);
+    echo json_encode(['message' => 'Endpoint not found: ' . ($file ?? 'unknown')]);
     exit;
 }
 

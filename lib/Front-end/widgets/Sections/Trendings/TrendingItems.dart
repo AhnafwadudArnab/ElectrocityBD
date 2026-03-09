@@ -151,6 +151,7 @@ class _TrendingItemsState extends State<TrendingItems> {
   }) {
     if (isFromAdmin) {
       final price = _parsePrice(product['price']);
+      final stockQty = int.tryParse(product['stock_quantity']?.toString() ?? product['stock']?.toString() ?? '0') ?? 0;
       final adminImages = product['imageUrl'] != null &&
               (product['imageUrl'] as String).isNotEmpty
           ? [product['imageUrl'] as String]
@@ -162,7 +163,10 @@ class _TrendingItemsState extends State<TrendingItems> {
         priceBDT: price,
         images: adminImages,
         description: product['desc'] ?? '',
-        additionalInfo: {'Category': product['category'] ?? ''},
+        additionalInfo: {
+          'Category': product['category'] ?? '',
+          'stock_quantity': stockQty.toString(),
+        },
       );
     } else {
       return ProductData(

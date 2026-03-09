@@ -280,6 +280,7 @@ class _FlashSaleAllState extends State<FlashSaleAll> {
         'Category': item['category'] as String,
         'Brand': item['brand'] as String,
         'Price': 'Tk ${(item['price'] as double).toStringAsFixed(0)}',
+        if (item['stock_quantity'] != null) 'stock_quantity': '${item['stock_quantity']}',
         if (isAdmin) 'Source': 'Admin Upload',
       },
     );

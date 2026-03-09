@@ -154,6 +154,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
   ProductData _buildProductData(dynamic product, int index, {bool isFromAdmin = false}) {
     if (isFromAdmin) {
       final price = _parsePrice(product['price']);
+      final stockQty = int.tryParse(product['stock_quantity']?.toString() ?? product['stock']?.toString() ?? '0') ?? 0;
       final adminImages = product['imageUrl'] != null &&
               (product['imageUrl'] as String).isNotEmpty
           ? [product['imageUrl'] as String]
@@ -167,6 +168,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
         description: product['desc'] ?? '',
         additionalInfo: {
           'Category': product['category'] ?? '',
+          'stock_quantity': stockQty.toString(),
         },
       );
     } else {
@@ -272,6 +274,7 @@ class _FlashSaleCarouselState extends State<FlashSaleCarousel> {
                                 description: p['description'] ?? '',
                                 additionalInfo: {
                                   'Brand': p['brand_name'] ?? '',
+                                  'stock_quantity': (int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0).toString(),
                                   if (p['rating_avg'] != null) 'rating': '${p['rating_avg']}',
                                   if (p['review_count'] != null) 'review_count': '${p['review_count']}',
                                 },

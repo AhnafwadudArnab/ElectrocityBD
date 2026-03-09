@@ -33,12 +33,18 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   PaymentMethod? _selectedMethod;
   bool _isProcessing = false;
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
   PaymentConfig _config = const PaymentConfig();
   bool _loadingCfg = true;
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _postalCodeController.dispose();
     super.dispose();
   }
 
@@ -46,6 +52,20 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   void initState() {
     super.initState();
     _loadConfig();
+    _loadUserAddress();
+  }
+
+  Future<void> _loadUserAddress() async {
+    try {
+      final userData = await AuthSession.getUserData();
+      if (userData != null && userData.address.isNotEmpty) {
+        setState(() {
+          _addressController.text = userData.address;
+        });
+      }
+    } catch (e) {
+      print('Error loading user address: $e');
+    }
   }
 
   Future<void> _loadConfig() async {
@@ -239,9 +259,27 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         return;
       }
       final userData = await AuthSession.getUserData();
-      String deliveryAddress = userData?.address ?? '';
-      if (deliveryAddress.trim().isEmpty) {
-        deliveryAddress = 'Customer address pending';
+      
+      // Build shipping address from form fields
+      String deliveryAddress = _addressController.text.trim();
+      if (deliveryAddress.isEmpty) {
+        deliveryAddress = userData?.address ?? 'Customer address pending';
+      }
+      
+      // Add city and postal code if provided
+      final city = _cityController.text.trim();
+      final postalCode = _postalCodeController.text.trim();
+      if (city.isNotEmpty) {
+        deliveryAddress += ', $city';
+      }
+      if (postalCode.isNotEmpty) {
+        deliveryAddress += ' - $postalCode';
+      }
+      
+      if (deliveryAddress.trim().isEmpty || deliveryAddress == 'Customer address pending') {
+        if (!context.mounted) return;
+        _showError('Please enter your delivery address.');
+        return;
       }
 
       final body = {
@@ -618,21 +656,123 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  if (_config.nagadEnabled)
-                    _buildPaymentMethodCard(
-                      method: PaymentMethod.nagad,
-                      title: 'Nagad',
-                      assetLogo: 'assets/payments/nagad.png',
-                      accentColor: const Color(0xFFFF7A00),
+                  // Shipping Address Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                  const SizedBox(height: 10),
-                  if (_config.bkashEnabled)
-                    _buildPaymentMethodCard(
-                      method: PaymentMethod.bkash,
-                      title: 'bKash',
-                      assetLogo: 'assets/payments/baksh.png',
-                      accentColor: const Color(0xFFE2136E),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.local_shipping, color: Colors.orange[700]),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Delivery Address',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _addressController,
+                          decoration: InputDecoration(
+                            labelText: 'Street Address *',
+                            hintText: 'House/Flat no, Street name',
+                            prefixIcon: const Icon(Icons.home),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _cityController,
+                                decoration: InputDecoration(
+                                  labelText: 'City',
+                                  hintText: 'e.g., Dhaka',
+                                  prefixIcon: const Icon(Icons.location_city),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: _postalCodeController,
+                                decoration: InputDecoration(
+                                  labelText: 'Postal Code',
+                                  hintText: 'e.g., 1200',
+                                  prefixIcon: const Icon(Icons.pin_drop),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Payment Method Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.payment, color: Colors.orange[700]),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Payment Method',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        if (_config.nagadEnabled)
+                          _buildPaymentMethodCard(
+                            method: PaymentMethod.nagad,
+                            title: 'Nagad',
+                            assetLogo: 'assets/payments/nagad.png',
+                            accentColor: const Color(0xFFFF7A00),
+                          ),
+                        const SizedBox(height: 10),
+                        if (_config.bkashEnabled)
+                          _buildPaymentMethodCard(
+                            method: PaymentMethod.bkash,
+                            title: 'bKash',
+                            assetLogo: 'assets/payments/baksh.png',
+                            accentColor: const Color(0xFFE2136E),
+                          ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,

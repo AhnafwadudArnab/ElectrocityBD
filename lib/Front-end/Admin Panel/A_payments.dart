@@ -43,22 +43,38 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     }
   }
 
-  Future<void> _toggleStatus(int methodId, bool currentStatus) async {
+  bool _isMethodEnabled(dynamic rawValue) {
+    if (rawValue is bool) return rawValue;
+    if (rawValue is num) return rawValue == 1;
+    if (rawValue is String) {
+      
+      final value = rawValue.trim().toLowerCase();
+      return value == '1' || value == 'true' || value == 'yes';
+    }
+    return false;
+  }
+
+  Future<void> _toggleStatus(int methodId, bool nextStatus) async {
     try {
+      print('🔄 Updating payment method $methodId status to $nextStatus');
+      print('📡 API URL: ${ApiService.overrideBaseUrl}/payment_methods/$methodId');
+      
       final response = await ApiService.put(
-        'payment_methods/$methodId',
+        '/payment_methods/$methodId',
         {
           'toggle_status': true,
-          'is_enabled': currentStatus ? 0 : 1,
+          'is_enabled': nextStatus ? 1 : 0,
         },
       );
+
+      print('✅ Response: $response');
 
       if (response['success'] == true) {
         await _loadPaymentMethods();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment method ${currentStatus ? 'disabled' : 'enabled'}'),
+            content: Text('Payment method ${nextStatus ? 'enabled' : 'disabled'}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -72,6 +88,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
         );
       }
     } catch (e) {
+      print('❌ Error toggling status: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -167,9 +184,14 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     'display_order': method?['display_order'] ?? 0,
                   };
 
+                  print('📤 ${isEdit ? 'Updating' : 'Creating'} payment method: $data');
+                  print('📡 API endpoint: ${isEdit ? '/payment_methods/${method!['method_id']}' : '/payment_methods'}');
+
                   final response = isEdit
-                      ? await ApiService.put('payment_methods/${method['method_id']}', data)
-                      : await ApiService.post('payment_methods', data);
+                      ? await ApiService.put('/payment_methods/${method!['method_id']}', data)
+                      : await ApiService.post('/payment_methods', data);
+
+                  print('✅ Response: $response');
 
                   if (response['success'] == true) {
                     await _loadPaymentMethods();
@@ -190,6 +212,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     );
                   }
                 } catch (e) {
+                  print('❌ Error: $e');
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -230,7 +253,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     if (confirm != true) return;
 
     try {
-      final response = await ApiService.delete('payment_methods/$methodId');
+      final response = await ApiService.delete('/payment_methods/$methodId');
       if (response['success'] == true) {
         await _loadPaymentMethods();
         if (!mounted) return;
@@ -346,7 +369,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     itemCount: _paymentMethods.length,
                     itemBuilder: (context, index) {
                       final method = _paymentMethods[index];
-                      final isEnabled = method['is_enabled'] == 1;
+                      final isEnabled = _isMethodEnabled(method['is_enabled']);
                       
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -419,7 +442,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                               Switch(
                                 value: isEnabled,
                                 onChanged: (value) {
-                                  _toggleStatus(method['method_id'], isEnabled);
+                                  _toggleStatus(method['method_id'], value);
                                 },
                                 activeColor: brandOrange,
                               ),

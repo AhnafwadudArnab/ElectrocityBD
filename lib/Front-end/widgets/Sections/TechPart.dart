@@ -147,6 +147,7 @@ class _TechpartState extends State<Techpart> {
 
   ProductData _buildProductData(Map<String, dynamic> product, int index) {
     if (product['isDb'] == true) {
+      final stockQty = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
       return ProductData(
         id: '${product['product_id'] ?? index}',
         name: product['name'] as String,
@@ -158,7 +159,10 @@ class _TechpartState extends State<Techpart> {
             ? [product['image'] as String]
             : [],
         description: 'Tech part from our latest collection.',
-        additionalInfo: {'Rating': '${product['rating'] ?? 4}'},
+        additionalInfo: {
+          'Rating': '${product['rating'] ?? 4}',
+          'stock_quantity': stockQty.toString(),
+        },
       );
     }
     final isAdmin = product.containsKey('isAdmin');
@@ -166,6 +170,7 @@ class _TechpartState extends State<Techpart> {
     if (isAdmin) {
       final adminData = product['adminData'] as Map<String, dynamic>;
       final price = _parsePrice(adminData['price']);
+      final stockQty = int.tryParse(adminData['stock_quantity']?.toString() ?? adminData['stock']?.toString() ?? '0') ?? 0;
       final adminImages =
           adminData['imageUrl'] != null &&
               (adminData['imageUrl'] as String).isNotEmpty
@@ -179,7 +184,10 @@ class _TechpartState extends State<Techpart> {
         priceBDT: price,
         images: adminImages,
         description: adminData['desc'] ?? '',
-        additionalInfo: {'Category': adminData['category'] ?? ''},
+        additionalInfo: {
+          'Category': adminData['category'] ?? '',
+          'stock_quantity': stockQty.toString(),
+        },
       );
     } else {
       return ProductData(

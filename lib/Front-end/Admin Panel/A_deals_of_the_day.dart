@@ -1,8 +1,9 @@
+import 'dart:convert';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:provider/provider.dart';
 
 import '../../config/app_config.dart';
 import '../All Pages/Registrations/login.dart';
@@ -16,7 +17,10 @@ class AdminDealsOfTheDayPage extends StatelessWidget {
 
   const AdminDealsOfTheDayPage({super.key, this.embedded = false});
 
-  static void _navigateFromSidebar(BuildContext context, AdminSidebarItem item) {
+  static void _navigateFromSidebar(
+    BuildContext context,
+    AdminSidebarItem item,
+  ) {
     if (item == AdminSidebarItem.deals) return;
     if (item == AdminSidebarItem.viewStore) {
       Navigator.pushAndRemoveUntil(
@@ -56,10 +60,17 @@ class AdminDealsOfTheDayPage extends StatelessWidget {
                     (route) => false,
                   );
                 },
-                icon: const Icon(Icons.store, color: Color(0xFFF59E0B), size: 20),
+                icon: const Icon(
+                  Icons.store,
+                  color: Color(0xFFF59E0B),
+                  size: 20,
+                ),
                 label: const Text(
                   "Back to Store",
-                  style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: Color(0xFFF59E0B),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -150,7 +161,12 @@ class _DealsManagementViewState extends State<_DealsManagementView> {
     );
   }
 
-  Widget _buildTabButton(String label, IconData icon, int index, Color activeColor) {
+  Widget _buildTabButton(
+    String label,
+    IconData icon,
+    int index,
+    Color activeColor,
+  ) {
     final isActive = _selectedTab == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
@@ -164,7 +180,11 @@ class _DealsManagementViewState extends State<_DealsManagementView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: isActive ? activeColor : Colors.white54, size: 20),
+            Icon(
+              icon,
+              color: isActive ? activeColor : Colors.white54,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
               label,
@@ -190,10 +210,18 @@ class _TimerSettingsCard extends StatefulWidget {
 }
 
 class _TimerSettingsCardState extends State<_TimerSettingsCard> {
-  final TextEditingController _daysController = TextEditingController(text: '3');
-  final TextEditingController _hoursController = TextEditingController(text: '11');
-  final TextEditingController _minutesController = TextEditingController(text: '15');
-  final TextEditingController _secondsController = TextEditingController(text: '0');
+  final TextEditingController _daysController = TextEditingController(
+    text: '3',
+  );
+  final TextEditingController _hoursController = TextEditingController(
+    text: '11',
+  );
+  final TextEditingController _minutesController = TextEditingController(
+    text: '15',
+  );
+  final TextEditingController _secondsController = TextEditingController(
+    text: '0',
+  );
   bool _isActive = true;
   bool _loading = true;
   bool _saving = false;
@@ -235,9 +263,9 @@ class _TimerSettingsCardState extends State<_TimerSettingsCard> {
     final token = await ApiService.getToken();
     if (token == null || token.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Admin login required')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Admin login required')));
       return;
     }
 
@@ -370,10 +398,13 @@ class _TimerSettingsCardState extends State<_TimerSettingsCard> {
                     children: [
                       Text(
                         'Timer Active',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
-                        'Enable/disable the countdown timer',
+                        'Off করলে homepage থেকে Deals section hide হবে',
                         style: TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                     ],
@@ -394,11 +425,18 @@ class _TimerSettingsCardState extends State<_TimerSettingsCard> {
                 ? const SizedBox(
                     height: 24,
                     width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 : const Text(
                     "Save Timer Settings",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
           ),
 
@@ -435,19 +473,31 @@ class _TimerSettingsCardState extends State<_TimerSettingsCard> {
     );
   }
 
-  Widget _buildTimerField(TextEditingController controller, String label, Color bg) {
+  Widget _buildTimerField(
+    TextEditingController controller,
+    String label,
+    Color bg,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             filled: true,
@@ -504,7 +554,9 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
-  final TextEditingController _stockController = TextEditingController(text: '0');
+  final TextEditingController _stockController = TextEditingController(
+    text: '0',
+  );
   List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> _brands = [];
   int? _selectedCategoryId;
@@ -525,7 +577,8 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
     if (v is int) return v;
     if (v is String) return int.tryParse(v);
     if (v is Map && v.containsKey('brand_id')) return _intOrNull(v['brand_id']);
-    if (v is Map && v.containsKey('category_id')) return _intOrNull(v['category_id']);
+    if (v is Map && v.containsKey('category_id'))
+      return _intOrNull(v['category_id']);
     return null;
   }
 
@@ -540,7 +593,8 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
   }
 
   int _extractProductIdFromResponse(Map<String, dynamic> res) {
-    final productIdCandidate = res['productId'] ?? res['id'] ?? res['product_id'];
+    final productIdCandidate =
+        res['productId'] ?? res['id'] ?? res['product_id'];
     try {
       return _toIntStrict(productIdCandidate);
     } catch (_) {
@@ -555,10 +609,14 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
 
   Future<void> _loadCategories() async {
     try {
-      final list = await ApiService.get('/products?action=categories', withAuth: false) as List;
+      final list =
+          await ApiService.get('/products?action=categories', withAuth: false)
+              as List;
       if (mounted) {
         setState(() {
-          final raw = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          final raw = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
           final byName = <String, Map<String, dynamic>>{};
           for (final c in raw) {
             final id = _intOrNull(c['category_id']);
@@ -572,9 +630,12 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
             }
           }
           final unique = byName.values.toList()
-            ..sort((a, b) => (a['category_name'] ?? '').toString().toLowerCase().compareTo(
-                  (b['category_name'] ?? '').toString().toLowerCase(),
-                ));
+            ..sort(
+              (a, b) =>
+                  (a['category_name'] ?? '').toString().toLowerCase().compareTo(
+                    (b['category_name'] ?? '').toString().toLowerCase(),
+                  ),
+            );
           _categories = unique;
           _loadingCategories = false;
           if (_categories.isNotEmpty && _selectedCategoryId == null) {
@@ -589,10 +650,14 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
 
   Future<void> _loadBrands() async {
     try {
-      final list = await ApiService.get('/products?action=brands', withAuth: false) as List;
+      final list =
+          await ApiService.get('/products?action=brands', withAuth: false)
+              as List;
       if (mounted) {
         setState(() {
-          final raw = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          final raw = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
           final byName = <String, Map<String, dynamic>>{};
           for (final b in raw) {
             final id = _intOrNull(b['brand_id']);
@@ -606,9 +671,12 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
             }
           }
           final unique = byName.values.toList()
-            ..sort((a, b) => (a['brand_name'] ?? '').toString().toLowerCase().compareTo(
-                  (b['brand_name'] ?? '').toString().toLowerCase(),
-                ));
+            ..sort(
+              (a, b) => (a['brand_name'] ?? '')
+                  .toString()
+                  .toLowerCase()
+                  .compareTo((b['brand_name'] ?? '').toString().toLowerCase()),
+            );
           _brands = unique;
           if (_brands.isNotEmpty && _selectedBrandId == null) {
             _selectedBrandId = _intOrNull(_brands.first['brand_id']);
@@ -634,13 +702,19 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: const Color(0xFF151C2C),
-          title: const Text('Admin login required', style: TextStyle(color: Colors.white)),
+          title: const Text(
+            'Admin login required',
+            style: TextStyle(color: Colors.white),
+          ),
           content: const Text(
             'Please login as admin to publish products.',
             style: TextStyle(color: Colors.white70),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
@@ -671,17 +745,17 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
       return;
     }
     if (_selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Add an image file!")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Add an image file!")));
       return;
     }
 
     final price = double.tryParse(_priceController.text.trim()) ?? 0;
     if (price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter a valid price.")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Enter a valid price.")));
       return;
     }
 
@@ -701,7 +775,9 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
         specs: null,
       );
 
-      final productId = _extractProductIdFromResponse(Map<String, dynamic>.from(res));
+      final productId = _extractProductIdFromResponse(
+        Map<String, dynamic>.from(res),
+      );
 
       // Assign to Deals of the Day section
       try {
@@ -711,13 +787,17 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.orange,
-              content: Text('Product created, but section assignment failed: $e'),
+              content: Text(
+                'Product created, but section assignment failed: $e',
+              ),
             ),
           );
         }
       }
 
-      final serverProduct = (res['product'] is Map) ? Map<String, dynamic>.from(res['product']) : null;
+      final serverProduct = (res['product'] is Map)
+          ? Map<String, dynamic>.from(res['product'])
+          : null;
       String? imageUrl;
       if (serverProduct != null && serverProduct['image_url'] != null) {
         imageUrl = serverProduct['image_url'].toString();
@@ -793,7 +873,8 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
     const Color brandOrange = Color(0xFFF59E0B);
 
     final productProvider = Provider.of<AdminProductProvider>(context);
-    final currentSectionProducts = productProvider.sectionProducts['Deals of the Day'] ?? [];
+    final currentSectionProducts =
+        productProvider.sectionProducts['Deals of the Day'] ?? [];
 
     return Container(
       decoration: BoxDecoration(
@@ -831,11 +912,26 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
                   children: [
                     _customTextField(_nameController, "Product Name", fieldBg),
                     const SizedBox(height: 12),
-                    _customTextField(_priceController, "Price (BDT)", fieldBg, isNumber: true),
+                    _customTextField(
+                      _priceController,
+                      "Price (BDT)",
+                      fieldBg,
+                      isNumber: true,
+                    ),
                     const SizedBox(height: 12),
-                    _customTextField(_stockController, "Stock Quantity", fieldBg, isNumber: true),
+                    _customTextField(
+                      _stockController,
+                      "Stock Quantity",
+                      fieldBg,
+                      isNumber: true,
+                    ),
                     const SizedBox(height: 12),
-                    _customTextField(_descController, "Full Description", fieldBg, maxLines: 3),
+                    _customTextField(
+                      _descController,
+                      "Full Description",
+                      fieldBg,
+                      maxLines: 3,
+                    ),
                   ],
                 ),
               ),
@@ -858,9 +954,16 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
                         child: _selectedFile != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.memory(_selectedFile!.bytes!, fit: BoxFit.cover),
+                                child: Image.memory(
+                                  _selectedFile!.bytes!,
+                                  fit: BoxFit.cover,
+                                ),
                               )
-                            : const Icon(Icons.add_a_photo, color: Colors.white24, size: 40),
+                            : const Icon(
+                                Icons.add_a_photo,
+                                color: Colors.white24,
+                                size: 40,
+                              ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -878,11 +981,15 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
                       items: _loadingCategories
                           ? []
                           : _categories
-                              .map((c) => DropdownMenuItem<int>(
+                                .map(
+                                  (c) => DropdownMenuItem<int>(
                                     value: _intOrNull(c['category_id']),
-                                    child: Text((c['category_name'] ?? '').toString()),
-                                  ))
-                              .toList(),
+                                    child: Text(
+                                      (c['category_name'] ?? '').toString(),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       onChanged: (v) => setState(() => _selectedCategoryId = v),
                     ),
                     const SizedBox(height: 10),
@@ -898,10 +1005,12 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
                         labelStyle: const TextStyle(color: Colors.white54),
                       ),
                       items: _brands
-                          .map((b) => DropdownMenuItem<int>(
-                                value: _intOrNull(b['brand_id']),
-                                child: Text((b['brand_name'] ?? '').toString()),
-                              ))
+                          .map(
+                            (b) => DropdownMenuItem<int>(
+                              value: _intOrNull(b['brand_id']),
+                              child: Text((b['brand_name'] ?? '').toString()),
+                            ),
+                          )
                           .toList(),
                       onChanged: (v) => setState(() => _selectedBrandId = v),
                     ),
@@ -913,7 +1022,9 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
           const SizedBox(height: 20),
 
           ElevatedButton(
-            onPressed: _publishing ? null : () => _handlePublish(productProvider),
+            onPressed: _publishing
+                ? null
+                : () => _handlePublish(productProvider),
             style: ElevatedButton.styleFrom(
               backgroundColor: brandOrange,
               minimumSize: const Size(double.infinity, 50),
@@ -922,11 +1033,17 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
                 ? const SizedBox(
                     height: 24,
                     width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 : const Text(
                     "Publish to Deals of the Day",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
           ),
 
@@ -955,19 +1072,37 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
                     backgroundImage: hasBytes
                         ? MemoryImage(p['image'].bytes!)
                         : (imageUrl != null && imageUrl.isNotEmpty)
-                            ? NetworkImage(imageUrl)
-                            : null,
-                    backgroundColor: hasBytes || (imageUrl != null && imageUrl.isNotEmpty) ? null : Colors.grey[700],
-                    child: (hasBytes || (imageUrl != null && imageUrl.isNotEmpty))
+                        ? NetworkImage(imageUrl)
+                        : null,
+                    backgroundColor:
+                        hasBytes || (imageUrl != null && imageUrl.isNotEmpty)
+                        ? null
+                        : Colors.grey[700],
+                    child:
+                        (hasBytes || (imageUrl != null && imageUrl.isNotEmpty))
                         ? null
                         : const Icon(Icons.image, color: Colors.white54),
                   ),
-                  title: Text(p['name'], style: const TextStyle(color: Colors.white)),
-                  subtitle: Text("৳ ${p['price']}", style: const TextStyle(color: Colors.green)),
+                  title: Text(
+                    p['name'],
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    "৳ ${p['price']}",
+                    style: const TextStyle(color: Colors.green),
+                  ),
                   trailing: TextButton.icon(
-                    onPressed: () => _confirmDelete(context, productProvider, index),
-                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
-                    label: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                    onPressed: () =>
+                        _confirmDelete(context, productProvider, index),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                      size: 18,
+                    ),
+                    label: const Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.redAccent),
+                    ),
                   ),
                 );
               },
@@ -978,18 +1113,28 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
     );
   }
 
-  void _confirmDelete(BuildContext context, AdminProductProvider provider, int index) {
+  void _confirmDelete(
+    BuildContext context,
+    AdminProductProvider provider,
+    int index,
+  ) {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF151C2C),
-        title: const Text('Remove product?', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Remove product?',
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
           'This will remove the product from Deals of the Day section.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -1001,7 +1146,10 @@ class _ProductUploadCardState extends State<_ProductUploadCard> {
         provider.removeProduct('Deals of the Day', index);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(backgroundColor: Colors.orange, content: Text('Product removed')),
+            const SnackBar(
+              backgroundColor: Colors.orange,
+              content: Text('Product removed'),
+            ),
           );
         }
       }

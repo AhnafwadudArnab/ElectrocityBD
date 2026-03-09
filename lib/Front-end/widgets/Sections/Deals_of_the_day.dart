@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:electrocitybd1/Front-end/pages/Templates/Dyna_products.dart';
 import 'package:electrocitybd1/Front-end/pages/Templates/all_products_template.dart';
+import 'package:electrocitybd1/config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:electrocitybd1/config/app_config.dart';
 
 import '../../All Pages/CART/Cart_provider.dart';
 import '../../Dimensions/responsive_dimensions.dart';
@@ -26,6 +26,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   late ScrollController _scrollController;
   List<Map<String, dynamic>> _dbDeals = [];
   Duration _remaining = const Duration(days: 3, hours: 11, minutes: 15);
+  bool _isTimerActive = true;
 
   @override
   void initState() {
@@ -53,18 +54,25 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     try {
       // Use deals API endpoint directly
       final res = await ApiService.get('/deals', withAuth: false);
-      
+
       List<dynamic> dealsList;
       if (res is Map<String, dynamic>) {
-        dealsList = (res['products'] as List<dynamic>? ?? res['deals'] as List<dynamic>? ?? []);
+        dealsList =
+            (res['products'] as List<dynamic>? ??
+            res['deals'] as List<dynamic>? ??
+            []);
       } else if (res is List) {
         dealsList = res;
       } else {
         dealsList = [];
       }
-      
+
       if (mounted) {
-        setState(() => _dbDeals = dealsList.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+        setState(
+          () => _dbDeals = dealsList
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList(),
+        );
       }
     } catch (e) {
       print('Error loading deals: $e');
@@ -89,8 +97,13 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                 minutes: timer['minutes'] ?? 15,
                 seconds: timer['seconds'] ?? 0,
               );
+              _isTimerActive = _parseBool(timer['is_active']);
             });
-            _startCountdown();
+            if (_isTimerActive) {
+              _startCountdown();
+            } else {
+              _timer?.cancel();
+            }
           }
         }
       } else {
@@ -128,6 +141,16 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     });
   }
 
+  bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final v = value.trim().toLowerCase();
+      return v == '1' || v == 'true' || v == 'yes';
+    }
+    return true;
+  }
+
   static double _parsePrice(dynamic v) {
     if (v == null) return 0.0;
     if (v is num) return v.toDouble();
@@ -140,7 +163,7 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     final oldPrice = price * 1.15;
     final imageUrl = p['image_url'] as String? ?? '';
     final stockQty = int.tryParse(p['stock_quantity']?.toString() ?? '0') ?? 0;
-    
+
     return ProductData(
       id: 'deal_db_${p['product_id'] ?? index}',
       name: p['product_name'] ?? '',
@@ -161,6 +184,11 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
   ProductData _buildProductDataFromAdmin(Map<String, dynamic> p, int index) {
     final price = _parsePrice(p['price']);
     final oldPrice = price * 1.15;
+    final stockQty =
+        int.tryParse(
+          p['stock_quantity']?.toString() ?? p['stock']?.toString() ?? '0',
+        ) ??
+        0;
     final images = <String>[];
     if (p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty) {
       images.add(p['imageUrl'] as String);
@@ -172,7 +200,11 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
       priceBDT: price,
       images: images,
       description: p['desc'] ?? '',
-      additionalInfo: {'Category': p['category'] ?? '', 'Old Price': '৳${oldPrice.toStringAsFixed(0)}'},
+      additionalInfo: {
+        'Category': p['category'] ?? '',
+        'Old Price': '৳${oldPrice.toStringAsFixed(0)}',
+        'stock_quantity': stockQty.toString(),
+      },
     );
   }
 
@@ -211,6 +243,14 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
     final hours = _remaining.inHours % 24;
     final minutes = _remaining.inMinutes % 60;
     final seconds = _remaining.inSeconds % 60;
+    final adminDeals = context
+        .watch<AdminProductProvider>()
+        .getProductsBySection('Deals of the Day');
+    final hasOffers = _dbDeals.isNotEmpty || adminDeals.isNotEmpty;
+
+    if (!_isTimerActive || !hasOffers) {
+      return const SizedBox.shrink();
+    }
 
     return SingleChildScrollView(
       child: Padding(
@@ -273,41 +313,54 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
             // Product cards list (admin products first, then static deals)
             SizedBox(
               height: 120,
-              child: Consumer<AdminProductProvider>(
-                builder: (context, adminProvider, _) {
-                  final adminDeals = adminProvider.getProductsBySection("Deals of the Day");
+              child: Builder(
+                builder: (context) {
                   final List<Widget> cards = [];
 
                   for (var i = 0; i < _dbDeals.length; i++) {
                     final p = _dbDeals[i];
                     final priceVal = _parsePrice(p['price']);
-                    final dealPrice = _parsePrice(p['deal_price'] ?? p['price']);
+                    final dealPrice = _parsePrice(
+                      p['deal_price'] ?? p['price'],
+                    );
                     final imageUrl = p['image_url'] as String? ?? '';
                     final productData = _buildProductDataFromDb(p, i);
-                    cards.add(_productCard(
-                      brand: p['brand_name'] ?? 'Deal',
-                      title: p['product_name'] ?? '',
-                      price: '৳${dealPrice.toStringAsFixed(0)}',
-                      oldPrice: '৳${priceVal.toStringAsFixed(0)}',
-                      imagePath: '',
-                      onTap: () => _openDetails(productData),
-                      imageWidget: imageUrl.isNotEmpty
-                          ? ImageResolver.image(imageUrl: imageUrl, fit: BoxFit.cover)
-                          : null,
-                      onAddToCart: () async {
-                        await context.read<CartProvider>().addToCart(
-                          productId: productData.id,
-                          name: productData.name,
-                          price: dealPrice,
-                          imageUrl: productData.images.isNotEmpty ? productData.images.first : '',
-                          category: productData.category,
-                        );
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${productData.name} added to cart'), duration: const Duration(milliseconds: 900)),
-                        );
-                      },
-                    ));
+                    cards.add(
+                      _productCard(
+                        brand: p['brand_name'] ?? 'Deal',
+                        title: p['product_name'] ?? '',
+                        price: '৳${dealPrice.toStringAsFixed(0)}',
+                        oldPrice: '৳${priceVal.toStringAsFixed(0)}',
+                        imagePath: '',
+                        onTap: () => _openDetails(productData),
+                        imageWidget: imageUrl.isNotEmpty
+                            ? ImageResolver.image(
+                                imageUrl: imageUrl,
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        onAddToCart: () async {
+                          await context.read<CartProvider>().addToCart(
+                            productId: productData.id,
+                            name: productData.name,
+                            price: dealPrice,
+                            imageUrl: productData.images.isNotEmpty
+                                ? productData.images.first
+                                : '',
+                            category: productData.category,
+                          );
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${productData.name} added to cart',
+                              ),
+                              duration: const Duration(milliseconds: 900),
+                            ),
+                          );
+                        },
+                      ),
+                    );
                   }
 
                   for (var i = 0; i < adminDeals.length; i++) {
@@ -316,33 +369,49 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
                     final oldPriceVal = priceVal * 1.15;
                     Widget? imageWidget;
                     if (p['image']?.bytes != null) {
-                      imageWidget = Image.memory(p['image'].bytes!, fit: BoxFit.cover);
-                    } else if (p['imageUrl'] != null && (p['imageUrl'] as String).isNotEmpty) {
-                      imageWidget = Image.network(p['imageUrl'] as String, fit: BoxFit.cover);
+                      imageWidget = Image.memory(
+                        p['image'].bytes!,
+                        fit: BoxFit.cover,
+                      );
+                    } else if (p['imageUrl'] != null &&
+                        (p['imageUrl'] as String).isNotEmpty) {
+                      imageWidget = Image.network(
+                        p['imageUrl'] as String,
+                        fit: BoxFit.cover,
+                      );
                     }
                     final productData = _buildProductDataFromAdmin(p, i);
-                    cards.add(_productCard(
-                      brand: p['category'] ?? 'Deal',
-                      title: p['name'] ?? '',
-                      price: '৳${priceVal.toStringAsFixed(0)}',
-                      oldPrice: '৳${oldPriceVal.toStringAsFixed(0)}',
-                      imagePath: '',
-                      onTap: () => _openDetails(productData),
-                      imageWidget: imageWidget,
-                      onAddToCart: () async {
-                        await context.read<CartProvider>().addToCart(
-                          productId: productData.id,
-                          name: productData.name,
-                          price: productData.priceBDT,
-                          imageUrl: productData.images.isNotEmpty ? productData.images.first : '',
-                          category: productData.category,
-                        );
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${productData.name} added to cart'), duration: const Duration(milliseconds: 900)),
-                        );
-                      },
-                    ));
+                    cards.add(
+                      _productCard(
+                        brand: p['category'] ?? 'Deal',
+                        title: p['name'] ?? '',
+                        price: '৳${priceVal.toStringAsFixed(0)}',
+                        oldPrice: '৳${oldPriceVal.toStringAsFixed(0)}',
+                        imagePath: '',
+                        onTap: () => _openDetails(productData),
+                        imageWidget: imageWidget,
+                        onAddToCart: () async {
+                          await context.read<CartProvider>().addToCart(
+                            productId: productData.id,
+                            name: productData.name,
+                            price: productData.priceBDT,
+                            imageUrl: productData.images.isNotEmpty
+                                ? productData.images.first
+                                : '',
+                            category: productData.category,
+                          );
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${productData.name} added to cart',
+                              ),
+                              duration: const Duration(milliseconds: 900),
+                            ),
+                          );
+                        },
+                      ),
+                    );
                   }
 
                   // All products loaded from database and admin provider
@@ -441,13 +510,16 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: imageWidget ?? (imagePath.isNotEmpty
-                    ? Image.asset(
-                        imagePath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.image, color: Colors.grey),
-                      )
-                    : const Icon(Icons.image, color: Colors.grey)),
+                child:
+                    imageWidget ??
+                    (imagePath.isNotEmpty
+                        ? Image.asset(
+                            imagePath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.image, color: Colors.grey),
+                          )
+                        : const Icon(Icons.image, color: Colors.grey)),
               ),
             ),
             const SizedBox(width: 5),
@@ -504,28 +576,30 @@ class _DealsOfTheDayState extends State<DealsOfTheDay> {
               ),
             ),
             IconButton(
-              onPressed: onAddToCart ?? () async {
-                final productId = title
-                    .toLowerCase()
-                    .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-                    .replaceAll(RegExp(r'^-|-$'), '');
+              onPressed:
+                  onAddToCart ??
+                  () async {
+                    final productId = title
+                        .toLowerCase()
+                        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                        .replaceAll(RegExp(r'^-|-$'), '');
 
-                await context.read<CartProvider>().addToCart(
-                  productId: 'deal-$productId',
-                  name: title,
-                  price: _parsePrice(price),
-                  imageUrl: imagePath,
-                  category: 'Deals of the Day',
-                );
+                    await context.read<CartProvider>().addToCart(
+                      productId: 'deal-$productId',
+                      name: title,
+                      price: _parsePrice(price),
+                      imageUrl: imagePath,
+                      category: 'Deals of the Day',
+                    );
 
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$title added to cart'),
-                    duration: const Duration(milliseconds: 900),
-                  ),
-                );
-              },
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$title added to cart'),
+                        duration: const Duration(milliseconds: 900),
+                      ),
+                    );
+                  },
               icon: const Icon(Icons.add_shopping_cart, size: 20),
               color: const Color(0xFF123456),
               tooltip: 'Add to cart',

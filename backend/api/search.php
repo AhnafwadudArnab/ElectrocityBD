@@ -12,11 +12,11 @@ if ($method === 'OPTIONS') {
 
 // Get user ID if authenticated
 $user_id = null;
-$token = getBearerToken();
+$token = bearerToken();
 if ($token) {
-    $decoded = JWT::verify($token);
+    $decoded = jwt_decode($token);
     if ($decoded) {
-        $user_id = $decoded['user_id'];
+        $user_id = $decoded['sub'] ?? null;
     }
 }
 

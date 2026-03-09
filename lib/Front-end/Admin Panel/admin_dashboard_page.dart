@@ -10,9 +10,11 @@ import 'A_Reports.dart';
 import 'A_Settings.dart';
 import 'A_banners.dart';
 import 'A_brands.dart';
+import 'A_branding_logo.dart';
 import 'A_carts.dart';
 import 'A_collections.dart';
 import 'A_deals.dart';
+import 'A_deals_timer.dart';
 import 'A_discounts.dart';
 import 'A_orders.dart';
 import 'A_products.dart';
@@ -186,6 +188,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   break;
                 case AdminSidebarItem.deals:
                   page = const AdminDealsPage(embedded: true);
+                  break;
+                case AdminSidebarItem.dealsTimer:
+                  page = const AdminDealsTimerPage(embedded: true);
+                  break;
+                case AdminSidebarItem.featuredBrands:
+                  page = const AdminBrandingLogoPage(embedded: true);
                   break;
                 // case AdminSidebarItem.flashSales:
                 //   page = const AdminFlashSalesPage(embedded: true);

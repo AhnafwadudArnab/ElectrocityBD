@@ -1,282 +1,219 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:electrocitybd1/config/app_config.dart';
+import '../utils/api_service.dart';
 
 class AdminDealsTimerPage extends StatefulWidget {
-  const AdminDealsTimerPage({Key? key}) : super(key: key);
+  final bool embedded;
+  const AdminDealsTimerPage({super.key, this.embedded = false});
 
   @override
   State<AdminDealsTimerPage> createState() => _AdminDealsTimerPageState();
 }
 
 class _AdminDealsTimerPageState extends State<AdminDealsTimerPage> {
-  final _daysController = TextEditingController(text: '3');
-  final _hoursController = TextEditingController(text: '11');
-  final _minutesController = TextEditingController(text: '15');
-  final _secondsController = TextEditingController(text: '0');
-  bool _isActive = true;
-  bool _loading = false;
+  bool _loading = true;
+  List<Map<String, dynamic>> _timers = [];
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentTimer();
+    _loadTimers();
   }
 
-  @override
-  void dispose() {
-    _daysController.dispose();
-    _hoursController.dispose();
-    _minutesController.dispose();
-    _secondsController.dispose();
-    super.dispose();
-  }
+  Future<void> _loadTimers() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
-  Future<void> _loadCurrentTimer() async {
-    setState(() => _loading = true);
     try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/deals_timer'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true && data['timer'] != null) {
-          final timer = data['timer'];
-          if (mounted) {
-            setState(() {
-              _daysController.text = '${timer['days'] ?? 3}';
-              _hoursController.text = '${timer['hours'] ?? 11}';
-              _minutesController.text = '${timer['minutes'] ?? 15}';
-              _secondsController.text = '${timer['seconds'] ?? 0}';
-              _isActive = timer['is_active'] == 1 || timer['is_active'] == true;
-            });
-          }
-        }
-      }
+      // Check if deals_timer.php exists
+      final response = await ApiService.get('/deals_timer', withAuth: true);
+      
+      final timers = response is List 
+          ? response 
+          : (response['timers'] as List? ?? response['data'] as List? ?? []);
+      
+      setState(() {
+        _timers = timers.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _loading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load timer: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
-
-  Future<void> _updateTimer() async {
-    setState(() => _loading = true);
-    try {
-      final response = await http.put(
-        Uri.parse('${AppConfig.apiBaseUrl}/deals_timer'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'days': int.tryParse(_daysController.text) ?? 3,
-          'hours': int.tryParse(_hoursController.text) ?? 11,
-          'minutes': int.tryParse(_minutesController.text) ?? 15,
-          'seconds': int.tryParse(_secondsController.text) ?? 0,
-          'is_active': _isActive,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Timer updated successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to update timer: ${response.statusCode}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update timer: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      print('Deals timer load error: $e');
+      setState(() {
+        _error = 'Error loading deals timers: ${e.toString()}';
+        _loading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Deals Timer Control'),
-        backgroundColor: const Color(0xFF123456),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Deals of the Day Countdown Timer',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Control the countdown timer displayed on the store homepage',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
+    const cardBg = Color(0xFF151C2C);
+    const brandOrange = Color(0xFFF59E0B);
+
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 70,
+          decoration: const BoxDecoration(
+            color: cardBg,
+            border: Border(bottom: BorderSide(color: Colors.white10)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Row(
+            children: [
+              const Text(
+                'Management / Deals Timer',
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Implement add timer dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Feature coming soon!'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Add Timer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brandOrange,
+                  foregroundColor: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_error != null)
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.red[100],
+            child: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.red),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_error!, style: const TextStyle(color: Colors.red))),
+                TextButton(
+                  onPressed: _loadTimers,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: _timers.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _daysController,
-                          decoration: const InputDecoration(
-                            labelText: 'Days',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.calendar_today),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
+                      Icon(Icons.timer_outlined, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Deals Timer Management',
+                        style: TextStyle(fontSize: 20, color: Colors.grey[600], fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextField(
-                          controller: _hoursController,
-                          decoration: const InputDecoration(
-                            labelText: 'Hours',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.access_time),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Set countdown timers for your deals and promotions',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextField(
-                          controller: _minutesController,
-                          decoration: const InputDecoration(
-                            labelText: 'Minutes',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.timer),
-                          ),
-                          keyboardType: TextInputType.number,
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.orange[200]!),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextField(
-                          controller: _secondsController,
-                          decoration: const InputDecoration(
-                            labelText: 'Seconds',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.timer_outlined),
-                          ),
-                          keyboardType: TextInputType.number,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.orange[700]),
+                            const SizedBox(width: 12),
+                            Text(
+                              'This feature is under development',
+                              style: TextStyle(color: Colors.orange[900], fontWeight: FontWeight.w500),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  Card(
-                    child: SwitchListTile(
-                      title: const Text('Timer Active'),
-                      subtitle: const Text('Enable or disable the countdown timer'),
-                      value: _isActive,
-                      onChanged: (value) => setState(() => _isActive = value),
-                      activeColor: const Color(0xFF123456),
-                    ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadTimers,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(32),
+                    itemCount: _timers.length,
+                    itemBuilder: (context, index) {
+                      final timer = _timers[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white10, width: 2),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(20),
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: brandOrange.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.timer,
+                              color: brandOrange,
+                              size: 28,
+                            ),
+                          ),
+                          title: Text(
+                            timer['title'] ?? 'Timer',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            timer['description'] ?? '',
+                            style: const TextStyle(color: Colors.white60),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  // TODO: Edit timer
+                                },
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                tooltip: 'Edit',
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  // TODO: Delete timer
+                                },
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'Delete',
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      onPressed: _loading ? null : _updateTimer,
-                      icon: const Icon(Icons.save),
-                      label: const Text(
-                        'Update Timer',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF123456),
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Preview',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _previewTimeBox(_daysController.text, 'Days'),
-                        const SizedBox(width: 12),
-                        _previewTimeBox(_hoursController.text, 'Hours'),
-                        const SizedBox(width: 12),
-                        _previewTimeBox(_minutesController.text, 'Min'),
-                        const SizedBox(width: 12),
-                        _previewTimeBox(_secondsController.text, 'Sec'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _previewTimeBox(String value, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.black87,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            value.padLeft(2, '0'),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: Colors.black54),
+                ),
         ),
       ],
     );

@@ -111,6 +111,7 @@ class _BestSellingAllState extends State<BestSellingAll> {
       additionalInfo: {
         if ((item['rating'] ?? '') != '') 'rating': '${item['rating']}',
         if ((item['reviews'] ?? '') != '') 'review_count': '${item['reviews']}',
+        if ((item['stock_quantity'] ?? '') != '') 'stock_quantity': '${item['stock_quantity']}',
       },
     );
     Navigator.push(

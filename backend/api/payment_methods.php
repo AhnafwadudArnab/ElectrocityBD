@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/../controllers/paymentMethodController.php';
 
+// Get database connection
+$conn = db();
+
 $controller = new PaymentMethodController($conn);
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
@@ -66,6 +69,10 @@ try {
                 exit;
             }
             
+            // Log the request for debugging
+            error_log("PUT Request - Method ID from URL: " . ($method_id ?? 'null'));
+            error_log("PUT Request - Input data: " . json_encode($input));
+            
             if (!$method_id && isset($input['method_id'])) {
                 $method_id = (int)$input['method_id'];
             }
@@ -78,10 +85,14 @@ try {
             
             // Check if it's a toggle status request
             if (isset($input['toggle_status'])) {
+                error_log("Toggle status request for method $method_id to " . $input['is_enabled']);
                 $result = $controller->toggleStatus($method_id, $input['is_enabled']);
             } else {
+                error_log("Update request for method $method_id");
                 $result = $controller->update($method_id, $input);
             }
+            
+            error_log("PUT Result: " . json_encode($result));
             break;
             
         case 'DELETE':
