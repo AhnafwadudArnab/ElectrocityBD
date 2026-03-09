@@ -154,17 +154,25 @@ class _LogoSectionState extends State<_LogoSection> {
 
   Future<void> _loadQRCode() async {
     try {
+      print('Footer: Loading QR code from API...');
       final settings = await ApiService.getSiteSetting('qr_code_image');
-      if (mounted && settings['setting_value'] != null) {
-        setState(() {
-          _qrCodeImage = settings['setting_value'];
-          _loading = false;
-        });
-      } else {
-        setState(() => _loading = false);
+      print('Footer: API response: $settings');
+      
+      if (mounted) {
+        if (settings['setting_value'] != null && settings['setting_value'].toString().isNotEmpty) {
+          final qrUrl = settings['setting_value'].toString();
+          print('Footer: QR code URL found: $qrUrl');
+          setState(() {
+            _qrCodeImage = qrUrl;
+            _loading = false;
+          });
+        } else {
+          print('Footer: No QR code found in settings');
+          setState(() => _loading = false);
+        }
       }
     } catch (e) {
-      print('Error loading QR code: $e');
+      print('Footer: Error loading QR code: $e');
       if (mounted) {
         setState(() => _loading = false);
       }
@@ -259,27 +267,43 @@ class _LogoSectionState extends State<_LogoSection> {
                       ),
                     )
                   : _qrCodeImage != null && _qrCodeImage!.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.network(
-                        _qrCodeImage!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Center(
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            _qrCodeImage!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                  strokeWidth: 2,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              print('Footer: Image load error: $error');
+                              print('Footer: Failed URL: $_qrCodeImage');
+                              return Center(
+                                child: Icon(
+                                  Icons.qr_code_2,
+                                  size: qrSize * 0.6,
+                                  color: Colors.grey[400],
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : Center(
                           child: Icon(
                             Icons.qr_code_2,
                             size: qrSize * 0.6,
                             color: Colors.grey[400],
                           ),
                         ),
-                      ),
-                    )
-                  : Center(
-                      child: Icon(
-                        Icons.qr_code_2,
-                        size: qrSize * 0.6,
-                        color: Colors.grey[400],
-                      ),
-                    ),
             ),
             const SizedBox(width: 12),
             // Transparent Text Section

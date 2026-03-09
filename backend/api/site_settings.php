@@ -21,10 +21,20 @@ try {
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
                 
                 if ($result) {
-                    echo json_encode($result);
+                    // Ensure we return proper data structure
+                    echo json_encode([
+                        'id' => $result['id'] ?? null,
+                        'setting_key' => $result['setting_key'] ?? $key,
+                        'setting_value' => $result['setting_value'] ?? null,
+                        'created_at' => $result['created_at'] ?? null,
+                        'updated_at' => $result['updated_at'] ?? null,
+                    ]);
                 } else {
-                    // Return empty object if not found
-                    echo json_encode(['setting_key' => $key, 'setting_value' => null]);
+                    // Return structure with null value if not found
+                    echo json_encode([
+                        'setting_key' => $key,
+                        'setting_value' => null
+                    ]);
                 }
             } else {
                 $stmt = $db->query("SELECT * FROM site_settings");

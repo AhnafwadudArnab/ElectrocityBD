@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:electrocitybd1/config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -17,11 +18,11 @@ import 'A_deals.dart';
 import 'A_discounts.dart';
 import 'A_flash_sales.dart';
 import 'A_orders.dart';
-import 'A_promotions.dart';
+import 'A_payments.dart';
 import 'A_products.dart';
+import 'A_promotions.dart';
 import 'Admin_sidebar.dart';
 import 'admin_dashboard_page.dart';
-import 'A_payments.dart';
 
 class AdminSettingsPage extends StatefulWidget {
   final bool embedded;
@@ -46,7 +47,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Row(
             children: [
               Icon(Icons.person, color: Color(0xFFF59E0B), size: 24),
@@ -79,9 +82,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading profile: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading profile: $e')));
     }
   }
 
@@ -89,15 +92,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.grey, fontSize: 12),
-        ),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        ),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14)),
       ],
     );
   }
@@ -177,7 +174,8 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (newPasswordController.text != confirmPasswordController.text) {
+              if (newPasswordController.text !=
+                  confirmPasswordController.text) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Passwords do not match')),
                 );
@@ -186,13 +184,14 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
               if (newPasswordController.text.length < 6) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Password must be at least 6 characters')),
+                  const SnackBar(
+                    content: Text('Password must be at least 6 characters'),
+                  ),
                 );
                 return;
               }
 
               try {
-                // TODO: Implement password change API
                 Navigator.pop(ctx);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -203,9 +202,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 );
               } catch (e) {
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             style: ElevatedButton.styleFrom(
@@ -237,7 +236,10 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           children: [
             ListTile(
               leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
-              title: const Text('English', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'English',
+                style: TextStyle(color: Colors.white),
+              ),
               trailing: const Icon(Icons.check, color: Color(0xFFF59E0B)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -251,9 +253,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               title: const Text('বাংলা', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Coming soon!')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Coming soon!')));
               },
             ),
           ],
@@ -282,7 +284,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 color: const Color(0xFFF59E0B),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.storefront, color: Colors.black, size: 24),
+              child: const Icon(
+                Icons.storefront,
+                color: Colors.black,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 12),
             const Text('About', style: TextStyle(color: Colors.white)),
@@ -308,7 +314,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             SizedBox(height: 16),
             Text(
               'Manage your e-commerce store with ease. Track orders, manage products, and monitor sales all in one place.',
-              style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                height: 1.5,
+              ),
             ),
             SizedBox(height: 16),
             Text(
@@ -441,9 +451,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           height: 70,
           decoration: const BoxDecoration(
             color: cardBg,
-            border: Border(
-              bottom: BorderSide(color: Colors.white10),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.white10)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Row(
@@ -578,9 +586,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                   brandOrange,
                   icon: Icons.qr_code_2,
                   title: 'Footer QR Code',
-                  children: [
-                    _QRCodeUploadSection(),
-                  ],
+                  children: [_QRCodeUploadSection()],
                 ),
                 const SizedBox(height: 20),
                 _buildSection(
@@ -790,9 +796,9 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
@@ -809,7 +815,7 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
 
     try {
       print('Starting image upload...');
-      
+
       // Upload image to server
       final imageUrl = await ApiService.uploadImage(
         _selectedImageBytes!,
@@ -817,19 +823,30 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
       );
 
       print('Image uploaded successfully: $imageUrl');
+
+      // Convert relative URL to absolute URL if needed
+      String fullImageUrl = imageUrl;
+      if (imageUrl.startsWith('/')) {
+        // Get base URL without /api
+        final baseUrl = (ApiService.overrideBaseUrl ?? AppConfig.apiBaseUrl)
+            .replaceAll('/api', '');
+        fullImageUrl = '$baseUrl$imageUrl';
+      }
+
+      print('Full image URL: $fullImageUrl');
       print('Saving to site settings...');
 
       // Save the URL to site settings
       await ApiService.saveSiteSetting({
         'setting_key': 'qr_code_image',
-        'setting_value': imageUrl,
+        'setting_value': fullImageUrl,
       });
 
       print('Settings saved successfully');
 
       if (mounted) {
         setState(() {
-          _currentQRCode = imageUrl;
+          _currentQRCode = fullImageUrl;
           _selectedImageBytes = null;
           _selectedImageName = null;
           _uploading = false;
@@ -844,18 +861,22 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
     } catch (e, stackTrace) {
       print('Upload error: $e');
       print('Stack trace: $stackTrace');
-      
+
       if (mounted) {
         setState(() => _uploading = false);
-        
+
         // Show detailed error message
         String errorMessage = 'Upload failed';
         if (e.toString().contains('ApiException')) {
-          errorMessage = e.toString().replaceAll('ApiException', '').replaceAll('(', '').replaceAll(')', '');
+          errorMessage = e
+              .toString()
+              .replaceAll('ApiException', '')
+              .replaceAll('(', '')
+              .replaceAll(')', '');
         } else {
           errorMessage = 'Upload failed: ${e.toString()}';
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -896,13 +917,21 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
           ),
           const SizedBox(height: 16),
           // Current QR Code Preview
-          if (_currentQRCode != null && _currentQRCode!.isNotEmpty && _selectedImageBytes == null)
+          if (_currentQRCode != null &&
+              _currentQRCode!.isNotEmpty &&
+              _selectedImageBytes == null)
             Center(
               child: Column(
                 children: [
                   const Text(
                     'Current QR Code',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _currentQRCode!,
+                    style: const TextStyle(color: Colors.white70, fontSize: 10),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -919,9 +948,40 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
                       child: Image.network(
                         _currentQRCode!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(
-                          child: Icon(Icons.broken_image, color: Colors.grey),
-                        ),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Image load error: $error');
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Failed to load image',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -945,7 +1005,10 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFF59E0B), width: 2),
+                      border: Border.all(
+                        color: const Color(0xFFF59E0B),
+                        width: 2,
+                      ),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(6),
@@ -969,7 +1032,11 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
             child: OutlinedButton.icon(
               onPressed: _uploading ? null : _pickImage,
               icon: const Icon(Icons.image),
-              label: Text(_selectedImageBytes == null ? 'Choose Image' : 'Choose Different Image'),
+              label: Text(
+                _selectedImageBytes == null
+                    ? 'Choose Image'
+                    : 'Choose Different Image',
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white24),
@@ -985,7 +1052,9 @@ class _QRCodeUploadSectionState extends State<_QRCodeUploadSection> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: (_uploading || _selectedImageBytes == null) ? null : _uploadImage,
+              onPressed: (_uploading || _selectedImageBytes == null)
+                  ? null
+                  : _uploadImage,
               icon: _uploading
                   ? const SizedBox(
                       width: 16,
