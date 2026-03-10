@@ -4,12 +4,14 @@ import 'package:electrocitybd1/config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../All Pages/CART/Cart_provider.dart';
 import '../All Pages/Registrations/signup.dart';
 import '../pages/home_page.dart';
 import '../utils/api_service.dart';
 import '../utils/auth_session.dart';
+import '../Provider/language_provider.dart';
 import 'A_Help.dart';
 import 'A_Reports.dart';
 import 'A_banners.dart';
@@ -36,6 +38,34 @@ class AdminSettingsPage extends StatefulWidget {
 class _AdminSettingsPageState extends State<AdminSettingsPage> {
   bool _emailNotifications = true;
   bool _pushNotifications = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationSettings();
+  }
+
+  Future<void> _loadNotificationSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _pushNotifications = prefs.getBool('push_notifications_enabled') ?? false;
+    });
+  }
+
+  Future<void> _togglePushNotifications(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('push_notifications_enabled', value);
+    setState(() => _pushNotifications = value);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(value ? 'Push notifications enabled' : 'Push notifications disabled'),
+          backgroundColor: value ? Colors.green : Colors.orange,
+        ),
+      );
+    }
+  }
 
   void _showAdminProfile(BuildContext context) async {
     try {
@@ -219,6 +249,8 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   }
 
   void _showLanguageDialog(BuildContext context) {
+    final languageProvider = context.read<LanguageProvider>();
+    
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -240,22 +272,33 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 'English',
                 style: TextStyle(color: Colors.white),
               ),
-              trailing: const Icon(Icons.check, color: Color(0xFFF59E0B)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Language set to English')),
-                );
+              trailing: languageProvider.isEnglish 
+                  ? const Icon(Icons.check, color: Color(0xFFF59E0B))
+                  : null,
+              onTap: () async {
+                await languageProvider.setLanguage('en');
+                if (context.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Language set to English')),
+                  );
+                }
               },
             ),
             ListTile(
               leading: const Text('🇧🇩', style: TextStyle(fontSize: 24)),
               title: const Text('বাংলা', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Coming soon!')));
+              trailing: languageProvider.isBengali 
+                  ? const Icon(Icons.check, color: Color(0xFFF59E0B))
+                  : null,
+              onTap: () async {
+                await languageProvider.setLanguage('bn');
+                if (context.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('ভাষা বাংলায় সেট করা হয়েছে')),
+                  );
+                }
               },
             ),
           ],
@@ -563,18 +606,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                       trailing: Switch(
                         value: _pushNotifications,
                         activeColor: brandOrange,
-                        onChanged: (value) {
-                          setState(() => _pushNotifications = value);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                value
-                                    ? 'Push notifications enabled'
-                                    : 'Push notifications disabled',
-                              ),
-                            ),
-                          );
-                        },
+                        onChanged: _togglePushNotifications,
                       ),
                       onTap: () {},
                     ),

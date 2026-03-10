@@ -9,13 +9,19 @@ import 'Front-end/Provider/Banner_provider.dart';
 import 'Front-end/Provider/Orders_provider.dart';
 import 'Front-end/pages/Profiles/Wishlist_provider.dart';
 import 'Front-end/utils/api_service.dart';
+import 'Front-end/Provider/language_provider.dart';
+import 'Front-end/pages/Services/app_localizations.dart';
 import 'config/app_config.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
   // Force API base URL for web platform
   if (kIsWeb) {
     ApiService.setBaseUrl(AppConfig.apiBaseUrl);
-    print('🌐 Running on Web - API URL set to: ${AppConfig.apiBaseUrl}');
+    if (kDebugMode) {
+      print('🌐 Running on Web - API URL set to: ${AppConfig.apiBaseUrl}');
+    }
   }
   
   runApp(
@@ -24,6 +30,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => BannerProvider()),
         ChangeNotifierProvider(create: (_) => AdminProductProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider<CartProvider>.value(value: CartProvider()),
         ChangeNotifierProvider<WishlistProvider>.value(
           value: WishlistProvider(),
@@ -117,9 +124,18 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final bp = context.watch<BannerProvider>();
+    final languageProvider = context.watch<LanguageProvider>();
+    
     return MaterialApp(
       title: 'ElectrocityBD',
       debugShowCheckedModeBanner: false,
+      locale: languageProvider.locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        DefaultMaterialLocalizations.delegate,
+        DefaultWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
