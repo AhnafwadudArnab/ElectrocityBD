@@ -1,14 +1,18 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
-  /// Production/cPanel এর জন্য: 'https://yourdomain.com'
-  /// Development এর জন্য: 'http://localhost:8000'
+  /// API Base URL Configuration
   /// 
-  /// IMPORTANT: Production deploy করার সময় এই URL পরিবর্তন করুন
-  /// অথবা --dart-define=API_URL=https://yourdomain.com দিয়ে build করুন
+  /// For Development: Use localhost
+  /// For Production: Use your domain
+  /// 
+  /// Build with custom URL:
+  /// flutter build apk --release --dart-define=API_URL=https://yourdomain.com
   static const String _baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://localhost:8000',
+    defaultValue: kReleaseMode 
+        ? 'https://yourdomain.com'  // CHANGE THIS to your production domain
+        : 'http://localhost:8000',   // Development default
   );
 
   static String get apiBaseUrl => '$_baseUrl/api';
@@ -25,8 +29,8 @@ class AppConfig {
     return '$_baseUrl/$path';
   }
 
-  // Database credentials are now managed by backend only
-  // These are kept for reference but should NOT be used in production
+  // Database credentials are managed by backend only
+  // These are deprecated and should not be used
   @Deprecated('Use backend environment variables instead')
   static const String dbHost = 'localhost';
 
@@ -45,13 +49,13 @@ class AppConfig {
   @Deprecated('Use backend environment variables instead')
   static const String jwtSecret = 'ElectrocityBD_Secret_Key_2024';
 
-  static const int uploadMaxSize = 5242880;
+  static const int uploadMaxSize = 5242880; // 5MB
 
   static const String uploadDir = 'public/uploads';
 
-  static bool get isProduction => !_baseUrl.contains('localhost');
+  static bool get isProduction => kReleaseMode;
 
-  static bool get isDevelopment => _baseUrl.contains('localhost');
+  static bool get isDevelopment => kDebugMode;
 
   static String get environment => isProduction ? 'Production' : 'Development';
 

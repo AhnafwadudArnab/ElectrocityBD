@@ -81,12 +81,13 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     });
   }
 
-  // TEMP OFF: bKash gateway disabled (simulated success)
   Future<void> _processBKashPayment() async {
     final phone = _phoneController.text.trim();
     final valid = RegExp(r'^01[0-9]{9}$').hasMatch(phone);
     if (!valid) {
-      _showError('Please enter your bKash phone number');
+      _showError(
+        'Please enter a valid 11-digit bKash phone number (e.g., 01712345678)',
+      );
       return;
     }
 
@@ -105,8 +106,12 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
 
   // TEMP OFF: Nagad gateway disabled (simulated success)
   Future<void> _processNagadPayment() async {
-    if (_phoneController.text.isEmpty) {
-      _showError('Please enter your Nagad phone number');
+    final phone = _phoneController.text.trim();
+    final valid = RegExp(r'^01[0-9]{9}$').hasMatch(phone);
+    if (!valid) {
+      _showError(
+        'Please enter a valid 11-digit Nagad phone number (e.g., 01712345678)',
+      );
       return;
     }
 
@@ -141,75 +146,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
 
   void _completePayment(PaymentMethod method, String transactionId) async {
     final cartProvider = context.read<CartProvider>();
-    
-    // ✅ Stock Validation - Check before placing order (with fallback)
-    try {
-      for (final item in cartProvider.items) {
-        final productId = int.tryParse(item.productId);
-        if (productId == null) continue;
-        
-        try {
-          // Get product details to check stock
-          final product = await ApiService.getProduct(productId);
-          final availableStock = int.tryParse(product['stock_quantity']?.toString() ?? '0') ?? 0;
-          
-          if (availableStock < item.quantity) {
-            if (!mounted) return;
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('⚠️ Insufficient Stock'),
-                content: Text(
-                  '${item.name}\n\n'
-                  'Requested: ${item.quantity} units\n'
-                  'Available: $availableStock units\n\n'
-                  'Please update your cart and try again.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: const Text('OK'),
-                  ),
-                ],
-              ),
-            );
-            return;
-          }
-        } catch (productError) {
-          // If individual product check fails, log and continue
-          print('⚠️ Could not verify stock for product $productId: $productError');
-          // Continue with other products
-        }
-      }
-    } catch (e) {
-      // If stock verification fails completely, show warning but allow to continue
-      print('⚠️ Stock verification error: $e');
-      if (!mounted) return;
-      
-      final shouldContinue = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('⚠️ Stock Verification Unavailable'),
-          content: const Text(
-            'Unable to verify stock availability at this moment.\n\n'
-            'Do you want to continue with the order?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Continue'),
-            ),
-          ],
-        ),
-      );
-      
-      if (shouldContinue != true) return;
-    }
-    
+
+    // Removed frontend stock validation - backend will handle it authoritatively
+    // This prevents race conditions and ensures accurate stock checks
+
     // Continue with payment if stock is available
     final now = DateTime.now();
     final deliveryDate = now.add(const Duration(days: 5));
@@ -229,24 +169,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     ];
     final estimatedDelivery =
         '${deliveryDate.day} ${months[deliveryDate.month - 1]} ${deliveryDate.year}';
-    final createdAt =
-        '${now.day} ${months[now.month - 1]} ${now.year}, '
-        '${now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour)}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
 
-    context.read<CartProvider>();
     final ordersProvider = context.read<OrdersProvider>();
-    final orderItems = cartProvider.items
-        .map(
-          (item) => {
-            'productId': item.productId,
-            'name': item.name,
-            'price': item.price,
-            'quantity': item.quantity,
-            'imageUrl': item.imageUrl,
-            'category': item.category,
-          },
-        )
-        .toList();
     final total = cartProvider.getCartTotal();
     final methodName = method == PaymentMethod.bkash ? 'bKash' : 'Nagad';
 
@@ -258,14 +182,13 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         _showError('Please log in to place an order.');
         return;
       }
-      final userData = await AuthSession.getUserData();
-      
-      // Build shipping address from form fields
+      // Validate delivery address
       String deliveryAddress = _addressController.text.trim();
       if (deliveryAddress.isEmpty) {
-        deliveryAddress = userData?.address ?? 'Customer address pending';
+        final userData = await AuthSession.getUserData();
+        deliveryAddress = userData?.address ?? '';
       }
-      
+
       // Add city and postal code if provided
       final city = _cityController.text.trim();
       final postalCode = _postalCodeController.text.trim();
@@ -275,10 +198,27 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
       if (postalCode.isNotEmpty) {
         deliveryAddress += ' - $postalCode';
       }
-      
-      if (deliveryAddress.trim().isEmpty || deliveryAddress == 'Customer address pending') {
+
+      // Frontend validation matching backend rules
+      if (deliveryAddress.isEmpty) {
         if (!context.mounted) return;
         _showError('Please enter your delivery address.');
+        return;
+      }
+
+      if (deliveryAddress.length < 10) {
+        if (!context.mounted) return;
+        _showError(
+          'Delivery address is too short (minimum 10 characters required).',
+        );
+        return;
+      }
+
+      if (deliveryAddress.length > 500) {
+        if (!context.mounted) return;
+        _showError(
+          'Delivery address is too long (maximum 500 characters allowed).',
+        );
         return;
       }
 
@@ -313,47 +253,73 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
           (idStr != null
               ? 'EC-${DateTime.now().toUtc().toString().substring(0, 10).replaceAll(RegExp(r'[^0-9]'), '')}-$idStr'
               : 'EC-${DateTime.now().millisecondsSinceEpoch}');
-      await ordersProvider.refreshFromApi();
+
+      // Only clear cart after successful order creation
       await cartProvider.clearCart();
+      await ordersProvider.refreshFromApi();
       if (!context.mounted) return;
     } on ApiException catch (e) {
-      // Fallback: default route to success even if API fails
-      try {
-        await cartProvider.clearCart();
-      } catch (_) {}
+      // Handle API errors properly - don't clear cart or show success
       if (!context.mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => OrderCompletedPage(
-            orderId: orderId ??
-                'EC-${DateTime.now().millisecondsSinceEpoch}',
-            paymentMethod:
-                method == PaymentMethod.bkash ? 'bKash' : 'Nagad',
-            transactionId: transactionId,
-            estimatedDelivery: estimatedDelivery,
+
+      // Check if it's a stock error
+      if (e.message.toLowerCase().contains('insufficient stock') ||
+          e.message.toLowerCase().contains('out of stock')) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('⚠️ Stock Unavailable'),
+            content: Text(e.message),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pop(context); // Go back to cart
+                },
+                child: const Text('Update Cart'),
+              ),
+            ],
           ),
+        );
+        return;
+      }
+
+      // Other API errors
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Order Failed'),
+          content: Text(
+            'Unable to place order: ${e.message}\n\n'
+            'Your cart has been preserved. Please try again.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
         ),
-        (route) => route.isFirst,
       );
       return;
     } catch (e) {
-      // Fallback: default route to success even if API fails
-      try {
-        await cartProvider.clearCart();
-      } catch (_) {}
+      // Network or unexpected errors
       if (!context.mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => OrderCompletedPage(
-            orderId:
-                orderId ?? 'EC-${DateTime.now().millisecondsSinceEpoch}',
-            paymentMethod:
-                method == PaymentMethod.bkash ? 'bKash' : 'Nagad',
-            transactionId: transactionId,
-            estimatedDelivery: estimatedDelivery,
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Connection Error'),
+          content: const Text(
+            'Unable to connect to server. Please check your connection and try again.\n\n'
+            'Your cart has been preserved.',
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
         ),
-        (route) => route.isFirst,
       );
       return;
     }
@@ -669,7 +635,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.local_shipping, color: Colors.orange[700]),
+                            Icon(
+                              Icons.local_shipping,
+                              color: Colors.orange[700],
+                            ),
                             const SizedBox(width: 8),
                             const Text(
                               'Delivery Address',
@@ -838,7 +807,8 @@ class _PaymentInstructionPageState extends State<_PaymentInstructionPage> {
   @override
   void initState() {
     super.initState();
-    _txnController.text = '9bq9366twd';
+    // Remove pre-filled dummy transaction ID for production
+    // Users must enter their actual transaction ID
   }
 
   @override

@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../models/orders.php';
 require_once __DIR__ . '/../models/carts.php';
+require_once __DIR__ . '/../util/InputSanitizer.php';
+require_once __DIR__ . '/../util/Logger.php';
+require_once __DIR__ . '/../services/EmailService.php';
 
 class OrderController {
     private $db;
@@ -13,25 +16,24 @@ class OrderController {
     
     public function createOrder($user_id, $data) {
         // Log the incoming request for debugging
-        error_log("Order creation attempt - User ID: $user_id");
-        error_log("Order data: " . json_encode($data));
+        Logger::info("Order creation attempt", ['user_id' => $user_id]);
+        
+        // Sanitize inputs
+        $data['delivery_address'] = InputSanitizer::sanitizeAddress($data['delivery_address'] ?? '');
+        $data['payment_method'] = InputSanitizer::sanitizeString($data['payment_method'] ?? '');
         
         // Validate required fields
         if (!isset($data['payment_method']) || !isset($data['delivery_address'])) {
             http_response_code(400);
-            error_log("Order creation failed: Missing payment_method or delivery_address");
+            Logger::warning("Order creation failed: Missing required fields", ['user_id' => $user_id]);
             return ['message' => 'Payment method and delivery address required'];
         }
         
         // Validate delivery address
-        $address = trim($data['delivery_address']);
-        if (strlen($address) < 10) {
+        $address = $data['delivery_address'];
+        if ($address === null) {
             http_response_code(400);
-            return ['message' => 'Delivery address is too short (minimum 10 characters)'];
-        }
-        if (strlen($address) > 500) {
-            http_response_code(400);
-            return ['message' => 'Delivery address is too long (maximum 500 characters)'];
+            return ['message' => 'Invalid delivery address format'];
         }
         
         // Prefer items provided by client; fallback to server cart
@@ -145,7 +147,32 @@ class OrderController {
         if ($this->order->create($cart_items)) {
             $orderId = $this->order->order_id;
             $code = 'EC-' . date('Ymd') . '-' . $orderId;
-            error_log("Order created successfully - Order ID: $orderId, Code: $code");
+            Logger::logOrder('order_created', $code, $user_id, $total);
+            
+            // Send order confirmation email
+            try {
+                $userQuery = "SELECT email, full_name FROM users WHERE user_id = ?";
+                $userStmt = $this->db->prepare($userQuery);
+                $userStmt->execute([$user_id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($userData) {
+                    $emailService = new EmailService();
+                    $orderData = [
+                        'order_id' => $code,
+                        'total_amount' => $total,
+                        'payment_method' => $data['payment_method'],
+                        'delivery_address' => $data['delivery_address'],
+                        'estimated_delivery' => $data['estimated_delivery'] ?? '5-7 business days'
+                    ];
+                    $emailService->sendOrderConfirmation($userData['email'], $orderData);
+                    Logger::info("Order confirmation email sent", ['order_id' => $code, 'email' => $userData['email']]);
+                }
+            } catch (Exception $e) {
+                Logger::error("Failed to send order confirmation email", ['order_id' => $code, 'error' => $e->getMessage()]);
+                // Don't fail the order if email fails
+            }
+            
             return [
                 'message' => 'Order created successfully',
                 'order_id' => $orderId,
@@ -154,7 +181,7 @@ class OrderController {
         }
         
         http_response_code(500);
-        error_log("Order creation failed: Database error");
+        Logger::error("Order creation failed: Database error", ['user_id' => $user_id]);
         return ['message' => 'Failed to create order'];
     }
     

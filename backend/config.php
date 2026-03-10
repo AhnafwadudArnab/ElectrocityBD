@@ -1,22 +1,47 @@
 <?php
+require_once __DIR__ . '/config/env.php';
+
 return [
     'db' => [
-        'host' => getenv('DB_HOST') ?: getenv('ECITY_DB_HOST') ?: '127.0.0.1',
-        'port' => getenv('DB_PORT') ?: getenv('ECITY_DB_PORT') ?: '3306',
-        'name' => getenv('DB_NAME') ?: getenv('ECITY_DB_NAME') ?: 'electrobd',
-        'user' => getenv('DB_USER') ?: getenv('ECITY_DB_USER') ?: 'root',
-        'pass' => getenv('DB_PASSWORD') ?: getenv('ECITY_DB_PASS') ?: '',
+        'host' => Env::get('DB_HOST', '127.0.0.1'),
+        'port' => Env::get('DB_PORT', '3306'),
+        'name' => Env::get('DB_NAME', 'electrobd'),
+        'user' => Env::get('DB_USER', 'root'),
+        'pass' => Env::get('DB_PASSWORD', ''),
         'charset' => 'utf8mb4',
     ],
     'auth' => [
-        'jwt_secret' => getenv('JWT_SECRET') ?: getenv('ECITY_JWT_SECRET') ?: 'ElectrocityBD_Secret_Key_2024',
+        'jwt_secret' => Env::get('JWT_SECRET', 'CHANGE_THIS_SECRET_KEY_IN_PRODUCTION'),
         'jwt_issuer' => 'electrocitybd',
-        'jwt_ttl_seconds' => 60 * 60 * 24,
+        'jwt_ttl_seconds' => 60 * 60 * 24 * 7, // 7 days
     ],
     'uploads' => [
         'dir' => __DIR__ . '/public/uploads',
         'base_path' => '/uploads',
-        'max_size_bytes' => 5 * 1024 * 1024,
-        'allowed_exts' => ['jpg','jpeg','png','webp'],
+        'max_size_bytes' => (int)Env::get('MAX_FILE_SIZE', 5 * 1024 * 1024), // 5MB default
+        'allowed_exts' => explode(',', Env::get('ALLOWED_IMAGE_TYPES', 'jpg,jpeg,png,webp')),
+        'max_width' => (int)Env::get('MAX_IMAGE_WIDTH', 2000),
+        'max_height' => (int)Env::get('MAX_IMAGE_HEIGHT', 2000),
+    ],
+    'mail' => [
+        'host' => Env::get('MAIL_HOST', 'smtp.gmail.com'),
+        'port' => (int)Env::get('MAIL_PORT', 587),
+        'username' => Env::get('MAIL_USERNAME', ''),
+        'password' => Env::get('MAIL_PASSWORD', ''),
+        'from_address' => Env::get('MAIL_FROM_ADDRESS', 'noreply@electrocitybd.com'),
+        'from_name' => Env::get('MAIL_FROM_NAME', 'ElectrocityBD'),
+        'encryption' => 'tls',
+    ],
+    'security' => [
+        'rate_limit_requests' => (int)Env::get('RATE_LIMIT_REQUESTS', 100),
+        'rate_limit_window' => (int)Env::get('RATE_LIMIT_WINDOW', 60), // seconds
+        'max_login_attempts' => (int)Env::get('MAX_LOGIN_ATTEMPTS', 5),
+        'login_lockout_time' => (int)Env::get('LOGIN_LOCKOUT_TIME', 900), // 15 minutes
+    ],
+    'app' => [
+        'env' => Env::get('APP_ENV', 'development'),
+        'debug' => Env::get('APP_DEBUG', 'true') === 'true',
+        'url' => Env::get('APP_URL', 'http://localhost:8000'),
     ],
 ];
+

@@ -46,7 +46,8 @@ if ($method === 'POST') {
     
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($password !== $user['password'] && !password_verify($password, $user['password'])) {
+    // Verify password using bcrypt only (production-ready)
+    if (!password_verify($password, $user['password'])) {
         http_response_code(401);
         echo json_encode(['message' => 'Invalid admin credentials']);
         exit;
